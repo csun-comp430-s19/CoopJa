@@ -3,6 +3,17 @@ package main.java.CoopJa;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+//NOTE: this .java file is specifically to test our tokenizer (Token.java), it does not do any tokenization
+
+//HOW TO USE:
+//1. Either declare or edit a variable at the top of testExample() (like foo, foo2, etc)
+//2. Find the line "ArrayList<Token> tokenList = Token.tokenize(foo5);" and replace "foo5" with the variable to test
+//3. (Optional) Find the line "Token.TokenType[] expectedTypes = {};" and add the predicted tokens in the curly braces preceeded by "Token."
+//              For a complete list of Tokens, see Token.java", examples of this are listed above this line
+//4. Run the file. If the array of predicted tokens matches the output, the line "Arrays match" will be printed last, otherwise "Arrays do not match"
+//              Above this, a complete list of tokens is displayed. If an item is not recognized, it will be declared an UNKNOWN token.
+/////////////
+
 public class TokenizerExampleTest {
     public static boolean testExample(){
         String foo = "public int foo(int x)";

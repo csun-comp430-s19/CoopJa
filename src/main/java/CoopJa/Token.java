@@ -12,7 +12,7 @@ public class Token {
         KEYWORD_PRIVATE,KEYWORD_PROTECTED,KEYWORD_BREAK,KEYWORD_RETURN,KEYWORD_WHILE,KEYWORD_FOR,KEYWORD_IF,KEYWORD_EXTENDS,
         KEYWORD_THIS,KEYWORD_STATIC,SYMBOL_PLUS,SYMBOL_MINUS,SYMBOL_ASTERISK,SYMBOL_SLASH, SYMBOL_BACKSLASH,SYMBOL_GREATERTHAN, SYMBOL_LESSTHAN,
         SYMBOL_EXCLAMATION,SYMBOL_EQUALS,SYMBOL_BAR,SYMBOL_AMPERSAND,SYMBOL_CARET,SYMBOL_TILDE,SYMBOL_QUOTE,SYMBOL_SEMICOLON,
-        SYMBOL_LEFTPAREN,SYMBOL_RIGHTPAREN,SYMBOL_LEFTCURLY,SYMBOL_RIGHTCURLY,SYMBOL_LEFTBRACKET,SYMBOL_RIGHTBRACKET, SYMBOL_COMMA,
+        SYMBOL_LEFTPAREN,SYMBOL_RIGHTPAREN,SYMBOL_LEFTCURLY,SYMBOL_RIGHTCURLY,SYMBOL_LEFTBRACKET,SYMBOL_RIGHTBRACKET, SYMBOL_COMMA, SYMBOL_PERIOD,
         VARIABLENAME, NUMBER, UNKNOWN
     }
 
@@ -63,6 +63,7 @@ public class Token {
                 put("[", TokenType.SYMBOL_LEFTBRACKET);
                 put("]", TokenType.SYMBOL_RIGHTBRACKET);
                 put(",", TokenType.SYMBOL_COMMA);
+                put(".", TokenType.SYMBOL_PERIOD);
             }};
 
     private TokenType type;
@@ -124,5 +125,14 @@ public class Token {
             tokenTypeArray[i] = tokenList.get(i).getType();
         }
         return tokenTypeArray;
+    }
+
+    @Override
+    public boolean equals(Object o){ //used to help the Unit Testing (TokenizerUnitTests.java)
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        Token token = (Token) o;
+        return token.type == this.type && token.tokenString.equals(this.tokenString);
     }
 }
