@@ -10,7 +10,7 @@ public class Token {
     public enum TokenType {
         KEYWORD_VOID,KEYWORD_INT,KEYWORD_DOUBLE,KEYWORD_CHAR,KEYWORD_BOOLEAN,KEYWORD_STRING,KEYWORD_AUTO,KEYWORD_PUBLIC,
         KEYWORD_PRIVATE,KEYWORD_PROTECTED,KEYWORD_BREAK,KEYWORD_RETURN,KEYWORD_WHILE,KEYWORD_FOR,KEYWORD_IF,KEYWORD_EXTENDS,
-        KEYWORD_THIS,KEYWORD_STATIC,SYMBOL_PLUS,SYMBOL_MINUS,SYMBOL_ASTERISK,SYMBOL_SLASH,SYMBOL_GREATERTHAN, SYMBOL_LESSTHAN,
+        KEYWORD_THIS,KEYWORD_STATIC,SYMBOL_PLUS,SYMBOL_MINUS,SYMBOL_ASTERISK,SYMBOL_SLASH, SYMBOL_BACKSLASH,SYMBOL_GREATERTHAN, SYMBOL_LESSTHAN,
         SYMBOL_EXCLAMATION,SYMBOL_EQUALS,SYMBOL_BAR,SYMBOL_AMPERSAND,SYMBOL_CARET,SYMBOL_TILDE,SYMBOL_QUOTE,SYMBOL_SEMICOLON,
         SYMBOL_LEFTPAREN,SYMBOL_RIGHTPAREN,SYMBOL_LEFTCURLY,SYMBOL_RIGHTCURLY,SYMBOL_LEFTBRACKET,SYMBOL_RIGHTBRACKET, SYMBOL_COMMA,
         VARIABLENAME, NUMBER, UNKNOWN
@@ -45,6 +45,7 @@ public class Token {
                 put("-", TokenType.SYMBOL_MINUS);
                 put("*", TokenType.SYMBOL_ASTERISK);
                 put("/", TokenType.SYMBOL_SLASH);
+                put("\\", TokenType.SYMBOL_BACKSLASH);
                 put(">", TokenType.SYMBOL_GREATERTHAN);
                 put("<", TokenType.SYMBOL_LESSTHAN);
                 put("!", TokenType.SYMBOL_EXCLAMATION);
@@ -76,7 +77,7 @@ public class Token {
             type = TOKEN_MAP.get(tokenString);
         }
         else {
-            if (Character.isLetter(tokenString.charAt(0))) {
+            if (Character.isLetter(tokenString.charAt(0)) || tokenString.charAt(0) == '_') {
                 type = TokenType.VARIABLENAME;
             }
             // If the first character is a number, categorize this as a number,
@@ -101,7 +102,7 @@ public class Token {
     // Static method to tokenize
     public static ArrayList<Token> tokenize(String input){
         // Regular expression pattern for seperating the string to a token array
-        Pattern p = Pattern.compile("[a-zA-Z]+[a-zA-Z0-9]*|[0-9]+|\\S");
+        Pattern p = Pattern.compile("[a-zA-Z_]+[a-zA-Z0-9_]*|[0-9]+|\\S");
         // Apply the matcher
         Matcher m = p.matcher(input);
 
