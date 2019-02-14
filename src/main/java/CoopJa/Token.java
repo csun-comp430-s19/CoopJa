@@ -124,4 +124,13 @@ public class Token {
         }
         return tokenTypeArray;
     }
+
+    @Override
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        Token token = (Token) o;
+        return token.type == this.type && token.tokenString.equals(this.tokenString);
+    }
 }
