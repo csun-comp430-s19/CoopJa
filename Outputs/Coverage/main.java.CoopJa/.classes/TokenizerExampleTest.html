@@ -1,0 +1,154 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html id="htmlId">
+<head>
+  <title>Coverage Report :: TokenizerExampleTest</title>
+  <style type="text/css">
+    @import "../../.css/coverage.css";
+  </style>
+</head>
+
+<body>
+<div class="header"></div>
+
+<div class="content">
+<div class="breadCrumbs">
+    [ <a href="../../index.html">all classes</a> ]
+    [ <a href="../index.html">main.java.CoopJa</a> ]
+</div>
+
+<h1>Coverage Summary for Class: TokenizerExampleTest (main.java.CoopJa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TokenizerExampleTest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/ 17)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<div class="sourceCode"><i>1</i>&nbsp;package main.java.CoopJa;
+<i>2</i>&nbsp;
+<i>3</i>&nbsp;import java.util.ArrayList;
+<i>4</i>&nbsp;import java.util.Arrays;
+<i>5</i>&nbsp;
+<i>6</i>&nbsp;//NOTE: this .java file is specifically to test our tokenizer (Token.java), it does not do any tokenization
+<i>7</i>&nbsp;
+<i>8</i>&nbsp;//HOW TO USE:
+<i>9</i>&nbsp;//1. Either declare or edit a variable at the top of testExample() (like foo, foo2, etc)
+<i>10</i>&nbsp;//2. Find the line &quot;ArrayList&lt;Token&gt; tokenList = Token.tokenize(foo5);&quot; and replace &quot;foo5&quot; with the variable to test
+<i>11</i>&nbsp;//3. (Optional) Find the line &quot;Token.TokenType[] expectedTypes = {};&quot; and add the predicted tokens in the curly braces preceeded by &quot;Token.&quot;
+<i>12</i>&nbsp;//              For a complete list of Tokens, see Token.java&quot;, examples of this are listed above this line
+<i>13</i>&nbsp;//4. Run the file. If the array of predicted tokens matches the output, the line &quot;Arrays match&quot; will be printed last, otherwise &quot;Arrays do not match&quot;
+<i>14</i>&nbsp;//              Above this, a complete list of tokens is displayed. If an item is not recognized, it will be declared an UNKNOWN token.
+<i>15</i>&nbsp;/////////////
+<i>16</i>&nbsp;
+<b class="nc"><i>17</i>&nbsp;public class TokenizerExampleTest {</b>
+<i>18</i>&nbsp;    public static boolean testExample(){
+<b class="nc"><i>19</i>&nbsp;        String foo = &quot;public int foo(int x)&quot;;</b>
+<b class="nc"><i>20</i>&nbsp;        String foo2 = &quot;int x;&quot;;</b>
+<b class="nc"><i>21</i>&nbsp;        String foo3 = &quot;foo++ + 2;&quot;;</b>
+<b class="nc"><i>22</i>&nbsp;        String foo4 = &quot;foo &gt;= 5;&quot;;</b>
+<b class="nc"><i>23</i>&nbsp;        String foo5 = &quot;_foo&quot;;</b>
+<b class="nc"><i>24</i>&nbsp;        String complicated = &quot;public static void main(String args[]){ println(\&quot;Hello World!\&quot;); }&quot;;</b>
+<i>25</i>&nbsp;        // Example we&#39;ll be working with
+<b class="nc"><i>26</i>&nbsp;        String mainExample = &quot;9*3 + foo77 + (12)&quot;;</b>
+<i>27</i>&nbsp;
+<i>28</i>&nbsp;        // Let&#39;s tokenize mainExample
+<i>29</i>&nbsp;        // You&#39;ll need a Token ArrayList, we&#39;ll call it tokenList
+<b class="nc"><i>30</i>&nbsp;        ArrayList&lt;Token&gt; tokenList = Token.tokenize(foo5);</b>
+<i>31</i>&nbsp;
+<i>32</i>&nbsp;        // Let&#39;s create an array of what we exact the output to be, which is a Number, an asterisk, a number, a plus,
+<i>33</i>&nbsp;        // A variablename, a plus, a left paren, a number, and a right paren
+<i>34</i>&nbsp;        // This can be a little tedious
+<i>35</i>&nbsp;
+<i>36</i>&nbsp;//        Token.TokenType[] expectedTypes = {Token.TokenType.NUMBER, Token.TokenType.SYMBOL_ASTERISK, Token.TokenType.NUMBER,
+<i>37</i>&nbsp;//                Token.TokenType.SYMBOL_PLUS, Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_PLUS,
+<i>38</i>&nbsp;//                Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.NUMBER, Token.TokenType.SYMBOL_RIGHTPAREN}; //mainExample
+<i>39</i>&nbsp;
+<i>40</i>&nbsp;//        Token.TokenType[] expectedTypes = {Token.TokenType.KEYWORD_PUBLIC, Token.TokenType.KEYWORD_STATIC, Token.TokenType.KEYWORD_VOID,
+<i>41</i>&nbsp;//        Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.KEYWORD_STRING, Token.TokenType.VARIABLENAME,
+<i>42</i>&nbsp;//                Token.TokenType.SYMBOL_LEFTBRACKET, Token.TokenType.SYMBOL_RIGHTBRACKET, Token.TokenType.SYMBOL_RIGHTPAREN, Token.TokenType.SYMBOL_LEFTCURLY,
+<i>43</i>&nbsp;//                Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.VARIABLENAME,
+<i>44</i>&nbsp;//                Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_EXCLAMATION, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.SYMBOL_RIGHTPAREN, Token.TokenType.SYMBOL_SEMICOLON,
+<i>45</i>&nbsp;//                Token.TokenType.SYMBOL_RIGHTCURLY}; //complicated
+<i>46</i>&nbsp;
+<i>47</i>&nbsp;
+<b class="nc"><i>48</i>&nbsp;        Token.TokenType[] expectedTypes = {};</b>
+<i>49</i>&nbsp;
+<i>50</i>&nbsp;        // Now let&#39;s get an array of types from the input
+<b class="nc"><i>51</i>&nbsp;        Token.TokenType[] receivedTypes = Token.extractTokenTypes(tokenList);</b>
+<i>52</i>&nbsp;
+<i>53</i>&nbsp;        // And compare the list
+<i>54</i>&nbsp;        // In junit, you would use assertArrayEquals, but we&#39;ll use Arrays.equal, and print the result to the terminal
+<i>55</i>&nbsp;
+<b class="nc"><i>56</i>&nbsp;        for (int i = 0; i &lt; receivedTypes.length; i++) {</b>
+<b class="nc"><i>57</i>&nbsp;            System.out.println(receivedTypes[i]);</b>
+<i>58</i>&nbsp;        }
+<i>59</i>&nbsp;
+<b class="nc"><i>60</i>&nbsp;        return Arrays.equals(expectedTypes, receivedTypes);</b>
+<i>61</i>&nbsp;    }
+<i>62</i>&nbsp;
+<i>63</i>&nbsp;    public static void main(String[] args){
+<b class="nc"><i>64</i>&nbsp;        if (testExample()){</b>
+<b class="nc"><i>65</i>&nbsp;            System.out.printf(&quot;Arrays match\n&quot;);</b>
+<i>66</i>&nbsp;        }
+<i>67</i>&nbsp;        else{
+<b class="nc"><i>68</i>&nbsp;            System.out.printf(&quot;Arrays do not match\n&quot;);</b>
+<i>69</i>&nbsp;        }
+<i>70</i>&nbsp;    }
+<i>71</i>&nbsp;}
+</div>
+</div>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2019-02-18 22:24</div>
+</div>
+</body>
+</html>
