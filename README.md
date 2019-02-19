@@ -9,6 +9,8 @@ Miguel Cruz
 
 Nicholas Araklisianos
 
+Project created in IntelliJ IDEA
+
 # Lexer
 TokenizerUnitTests.java contains unit tests for the Lexer portion
 
