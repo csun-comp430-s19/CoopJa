@@ -4,11 +4,11 @@ import java.util.ArrayList;
 
 public class N_ParserExample {
 
-    public static String exampletest = "if ( stuff ) { more stuff } else { other stuff }"; //example statement to test parser
+    public static String exampletest = "if(1){2}else{3}"; //example statement to test parser
     public static ArrayList<Token> alltokens = Token.tokenize(exampletest); //tokenize var
     //public static Token.TokenType[] receivedtypeslist = Token.extractTokenTypes(alltokens); //get list of tokens names
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParserException {
 
         System.out.println("----- Initial Print -----");
         printTokens(alltokens);
@@ -17,14 +17,21 @@ public class N_ParserExample {
     }
 
     public static void printTokens(ArrayList<Token> toPrint) {
-        System.out.println("// Printing ArrayList //");
-        for (int i = 0; i < toPrint.size(); i++) {
-            System.out.println(toPrint.get(i).getType().name());
+        if (toPrint == null) {
+            System.out.println("// Printing ArrayList //");
+            System.err.println("ArrayList is Empty"); //NOTE EMPTY ARRAYLIST
+            System.out.println();
+            System.out.println("// End of List //");
+        } else {
+            System.out.println("// Printing ArrayList //");
+            for (int i = 0; i < toPrint.size(); i++) {
+                System.out.println(toPrint.get(i).getType().name());
+            }
+            System.out.println("// End of List //");
         }
-        System.out.println("// End of List //");
     }
 
-    public static void Validator(ArrayList<Token> tokenslist) {
+    public static void Validator(ArrayList<Token> tokenslist) throws ParserException {
 
         int currentpos = 0; //probably not needed
         //start with first token in list (could use to chop off already dealt with material)
@@ -33,6 +40,9 @@ public class N_ParserExample {
                 IfStmt iftest = if_dealwith(tokenslist);
                 ParserPrinter(iftest); // TEST
                 break;
+            case "KEYWORD_FOR":
+                //ForStmt fortest = for_dealwith(tokenslist);
+                //ParserPrinter();
             default:
                 System.out.println("idk yet");
                 break;
@@ -40,7 +50,7 @@ public class N_ParserExample {
 
     }
 
-    public static IfStmt if_dealwith(ArrayList<Token> tokenstuff) {
+    public static IfStmt if_dealwith(ArrayList<Token> tokenstuff) throws ParserException {
 
         //declare if elements
         ArrayList<Token> ifCondition = null;
@@ -73,18 +83,16 @@ public class N_ParserExample {
                     }
                     if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY") || tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTCURLY")) {
                         //illegal characters
-                        // THROW ERROR & BREAK
-                        System.out.println("ERROR: illegal characters {} found in if condition");
+                        //System.err.println("ERROR: illegal characters {} found in if condition");
+                        throw new ParserException("ERROR: illegal characters {} found in if condition"); // #### not working correctly
                     }
                     currentpos++;
                 } while (done);
             } catch (Exception e) { //no right paren
-                // THROW ERROR & BREAK
-                System.out.println("ERROR: no closing right parethesis is present");
+                throw new ParserException("ERROR: no closing right parethesis is present in if");
             }
 
             ifCondition = getTokenSubset(tokenstuff, startpos, endpos); //arraylist of tokens for the if condition
-            //send somewhere to resolve the if condition
 
             //since we must have "if ( ) { } else { }
             //must now resolve {}, the body of the if stmt
@@ -110,63 +118,64 @@ public class N_ParserExample {
                         }
                         currentpos++;
                     } while (done);
-                } catch (Exception e) { //no right curly
-                    // THROW ERROR & BREAK
-                    System.out.println("ERROR: no closing right curly is present");
+                } catch (Exception e4) { //no right curly
+                    throw new ParserException("ERROR: no closing right curly is present in if");
                 }
                 ifStmts = getTokenSubset(tokenstuff, startpos, endpos);
 
                 //must now have an else token followed by '{'
 
                 //currently, the following is resolved if(cond){stmts}
-                if (tokenstuff.get(currentpos).getType().name().equals("KEYWORD_ELSE")) { //good
-                    if (tokenstuff.get(++currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) { //have "else{"
-                        currentpos++;
-                        startpos = currentpos;
-                        extraparenseen = 0;
-                        done = true;
-                        try { //check if there is a right curly
-                            do {
-                                if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) {
-                                    extraparenseen++; //count the extra left curly
-                                }
-                                if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTCURLY")) {
-                                    if (extraparenseen == 0) { //found end of if stmts
-                                        endpos = currentpos; //endpoint
-                                        done = false; //escape
-                                    } else { //extraparenseen > 0
-                                        extraparenseen--;
+                try {
+                    if (tokenstuff.get(currentpos).getType().name().equals("KEYWORD_ELSE")) {
+                        if (tokenstuff.get(++currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) {
+                            currentpos++; //increment past 'else{'
+                            startpos = currentpos;
+                            extraparenseen = 0;
+                            done = true;
+                            try { //check if there is a right curly
+                                do {
+                                    if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) {
+                                        extraparenseen++; //count the extra left paren
                                     }
-                                }
-                                currentpos++;
-                            } while (done);
-                        } catch (Exception e) { //no right curly
-                            // THROW ERROR & BREAK
-                            System.out.println("ERROR: no closing right curly is present");
+                                    if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTCURLY")) {
+                                        if (extraparenseen == 0) { //found end of if condition
+                                            endpos = currentpos; //endpoint
+                                            done = false; //escape
+                                        } else { //extraparenseen > 0
+                                            extraparenseen--;
+                                        }
+                                    }
+                                    currentpos++;
+                                } while (done);
+                            } catch (Exception e3) { //no right curly
+                                System.err.println("ERROR: no closing right curly is present after else");
+                                throw new ParserException("ERROR: no closing right curly is present after else");
+                            }
+
+                            elseStmts = getTokenSubset(tokenstuff, startpos, endpos); //arraylist of tokens for the if condition
+
+                        } else {
+                            System.err.println("ERROR: else not followed by '{'");
+                            throw new ParserException("ERROR: else not followed by '{'");
                         }
 
-                        elseStmts = getTokenSubset(tokenstuff, startpos, endpos);
-
-                    } else { //no left curly after else
-                        // THROW ERROR & BREAK
-                        System.out.println("ERROR: else not followed by '{'");
                     }
-
-                } else { //no else keyword
-                    // THROW ERROR & BREAK
-                    System.out.println("ERROR: else keyword not present");
+                } catch (Exception e2) {
+                    //System.err.println("ERROR: else keyword not present");
+                    throw new ParserException("ERROR: else keyword not present");
                 }
 
 
             } else { //no curly
-                // THROW ERROR & BREAK
-                System.out.println("ERROR: if(cond) not followed by '{'");
+                //System.err.println("ERROR: if(cond) not followed by '{'");
+                throw new ParserException("ERROR: if(cond) not followed by '{'");
             }
 
 
         } else { //if keyword not followed immediately by '('
-            // THROW ERROR & BREAK
-            System.out.println("ERROR: if keyword not followed by left parenthesis");
+            //System.err.println("ERROR: if keyword not followed by left parenthesis");
+            throw new ParserException("ERROR: if keyword not followed by left parenthesis");
         }
 
         IfStmt outIF = new IfStmt(ifCondition, ifStmts, elseStmts);
@@ -207,15 +216,8 @@ public class N_ParserExample {
 
 }
 
-class IfStmt {
-
-    ArrayList<Token> Conditions;
-    ArrayList<Token> Statements;
-    ArrayList<Token> ElseStmts;
-
-    public IfStmt(ArrayList<Token> in_Cond, ArrayList<Token> in_Stmts, ArrayList<Token> in_ElseStmts) {
-        Conditions = in_Cond;
-        Statements = in_Stmts;
-        ElseStmts = in_ElseStmts;
+class ParserException extends Exception { //may need to make its own Java file at some point
+    public ParserException(final String message) {
+        super(message);
     }
 }
