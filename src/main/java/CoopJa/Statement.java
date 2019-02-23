@@ -51,10 +51,6 @@ class IfStmt extends Statement {
     }
 }
 
-class ForStmt extends Statement {
-
-}
-
 class WhileLoop extends Statement {
 
     ArrayList<Token> Conditions;
@@ -69,6 +65,32 @@ class WhileLoop extends Statement {
         System.out.println("----- While Conditions -----");
         printTokens(this.Conditions);
         System.out.println("----- While Statements -----");
+        printTokens(this.Statements);
+    }
+}
+
+class ForLoop extends Statement {
+
+    ArrayList<Token> Condition1;
+    ArrayList<Token> Condition2;
+    ArrayList<Token> Condition3;
+    ArrayList<Token> Statements;
+
+    public ForLoop(ArrayList<Token> in_Cond1, ArrayList<Token> in_Cond2, ArrayList<Token> in_Cond3, ArrayList<Token> in_Stmts) {
+        Condition1 = in_Cond1;
+        Condition2 = in_Cond2;
+        Condition3 = in_Cond3;
+        Statements = in_Stmts;
+    }
+
+    public void printSelf() {
+        System.out.println("----- For Condition 1 -----");
+        printTokens(this.Condition1);
+        System.out.println("----- For Condition 2 -----");
+        printTokens(this.Condition2);
+        System.out.println("----- For Condition 3 -----");
+        printTokens(this.Condition3);
+        System.out.println("----- For Statements -----");
         printTokens(this.Statements);
     }
 }
