@@ -4,15 +4,15 @@ import java.util.ArrayList;
 
 public class N_ParserExample {
 
-    public static String exampletest = "for(1;2;3){4}"; //example statement to test parser
+    public static String exampletest = "if(1){2}else{3}while(1){2}for(1;2;3){4}"; //example statement to test parser
     public static ArrayList<Token> alltokens = Token.tokenize(exampletest); //tokenize var
+    public static int globalpos;
+    public static int globalend;
     //public static Token.TokenType[] receivedtypeslist = Token.extractTokenTypes(alltokens); //get list of tokens names
 
     public static void main(String[] args) throws ParserException {
 
-        System.out.println("----- Initial Print -----");
-        printTokens(alltokens);
-        Validator(alltokens);
+        Handler(alltokens);
 
     }
 
@@ -31,11 +31,31 @@ public class N_ParserExample {
         }
     }
 
+    public static void Handler(ArrayList<Token> tokenslist) throws ParserException {
+
+        int positioninitial = 0;
+        setGlobalPos(positioninitial);
+        boolean flag = true;
+        do {
+            if (tokenslist != null) { //if position is not empty
+                Validator(tokenslist); //deal with first keyword
+                tokenslist = getTokenSubset(tokenslist, getGlobalPos(), getGlobalEnd()); //overwrite the list with a chopped version
+            } else {
+                System.out.println();
+                System.out.println("***** Parsing Complete *****");
+                flag = false; //escape
+            }
+        } while (flag); //keep going until list is empty
+
+    }
+
     public static void Validator(ArrayList<Token> tokenslist) throws ParserException { /// $$$ need to write something to keep calling this to deal with entire string
 
-        int currentpos = 0; //probably not needed
+        System.out.println("----- Validator Given ArrayList -----");
+        printTokens(tokenslist);
+        int startingplace = 0; //probably not needed
         //start with first token in list (could use to chop off already dealt with material)
-        switch (tokenslist.get(currentpos).getType().name()) {
+        switch (tokenslist.get(startingplace).getType().name()) {
             case "KEYWORD_IF":
                 IfStmt iftest = if_dealwith(tokenslist);
                 ParserPrinter(iftest);
@@ -53,6 +73,22 @@ public class N_ParserExample {
                 break;
         }
 
+    }
+
+    public static int getGlobalPos() {
+        return globalpos;
+    }
+
+    public static void setGlobalPos(int input) {
+        globalpos = input;
+    }
+
+    public static int getGlobalEnd() {
+        return globalend;
+    }
+
+    public static void setGlobalEnd(int input) {
+        globalend = input;
     }
 
     public static IfStmt if_dealwith(ArrayList<Token> tokenstuff) throws ParserException {
@@ -146,6 +182,8 @@ public class N_ParserExample {
                                         if (extraparenseen == 0) { //found end of if condition
                                             endpos = currentpos; //endpoint
                                             done = false; //escape
+                                            setGlobalPos(currentpos + 1);
+                                            setGlobalEnd(tokenstuff.size());
                                         } else { //extraparenseen > 0
                                             extraparenseen--;
                                         }
@@ -247,6 +285,8 @@ public class N_ParserExample {
                             if (extraparenseen == 0) { //found end of while stmts
                                 endpos = currentpos; //endpoint
                                 done = false; //escape
+                                setGlobalPos(currentpos + 1);
+                                setGlobalEnd(tokenstuff.size());
                             } else { //extraparenseen > 0
                                 extraparenseen--;
                             }
@@ -421,6 +461,8 @@ public class N_ParserExample {
                             if (extraparenseen == 0) { //found end of for stmts
                                 endpos = currentpos; //endpoint
                                 done = false; //escape
+                                setGlobalPos(currentpos + 1);
+                                setGlobalEnd(tokenstuff.size());
                             } else { //extraparenseen > 0
                                 extraparenseen--;
                             }
@@ -455,7 +497,7 @@ public class N_ParserExample {
         ArrayList<Token> subsetList = null;
         if (start == end) { //empty stmt like "if()"
             return subsetList; //return empty list
-        } else {
+        } else if (start < end) { //good
             int cap = end - start + 1; //capacity = numb of tokens
             subsetList = new ArrayList<Token>(cap);
             int put = 0;
@@ -464,7 +506,10 @@ public class N_ParserExample {
                 put++;
             }
             return subsetList;
+        } else { //start > end
+            return subsetList; //return empty list
         }
+
     }
 
     public static void ParserPrinter(Statement input) {
