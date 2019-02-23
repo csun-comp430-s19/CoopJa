@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class N_ParserExample {
 
-    public static String exampletest = "if(1){2}else{3}"; //example statement to test parser
+    public static String exampletest = "while(1){2}"; //example statement to test parser
     public static ArrayList<Token> alltokens = Token.tokenize(exampletest); //tokenize var
     //public static Token.TokenType[] receivedtypeslist = Token.extractTokenTypes(alltokens); //get list of tokens names
 
@@ -31,7 +31,7 @@ public class N_ParserExample {
         }
     }
 
-    public static void Validator(ArrayList<Token> tokenslist) throws ParserException {
+    public static void Validator(ArrayList<Token> tokenslist) throws ParserException { /// $$$ need to write something to keep calling this to deal with entire string
 
         int currentpos = 0; //probably not needed
         //start with first token in list (could use to chop off already dealt with material)
@@ -40,11 +40,12 @@ public class N_ParserExample {
                 IfStmt iftest = if_dealwith(tokenslist);
                 ParserPrinter(iftest); // TEST
                 break;
-            case "KEYWORD_FOR":
-                //ForStmt fortest = for_dealwith(tokenslist);
-                //ParserPrinter();
+            case "KEYWORD_WHILE":
+                WhileLoop whiletest = while_dealwith(tokenslist);
+                ParserPrinter(whiletest);
+                break;
             default:
-                System.out.println("idk yet");
+                System.err.println("idk yet");
                 break;
         }
 
@@ -57,7 +58,6 @@ public class N_ParserExample {
         ArrayList<Token> ifStmts = null;
         ArrayList<Token> elseStmts = null;
 
-        //while will be similar to beginning of if
         int currentpos = 0;
         int startpos = 0; //start of if condition
         int endpos = 0; //end of if condition
@@ -184,6 +184,93 @@ public class N_ParserExample {
 
     }
 
+    public static WhileLoop while_dealwith(ArrayList<Token> tokenstuff) throws ParserException {
+
+        ArrayList<Token> whileCondition = null;
+        ArrayList<Token> whileStmts = null;
+
+        int currentpos = 0;
+        int startpos = 0;
+        int endpos = 0;
+        //reaching this point means that a while token was detected, so check if there is a '(' after
+        //tokenstuff[currentpos].name() gives the string name of the token (while: "KEYWORD_WHILE")
+        if (tokenstuff.get(currentpos).getType().name().equals("KEYWORD_WHILE") && tokenstuff.get(++currentpos).getType().name().equals("SYMBOL_LEFTPAREN")) {
+            currentpos++;
+            startpos = currentpos;
+            int extraparenseen = 0;
+            boolean done = true;
+            try { //check if there is a right paren
+                do {
+                    if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTPAREN")) {
+                        extraparenseen++; //count the extra left paren
+                    }
+                    if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTPAREN")) {
+                        if (extraparenseen == 0) { //found end of while condition
+                            endpos = currentpos; //endpoint
+                            done = false; //escape
+                        } else { //extraparenseen > 0
+                            extraparenseen--;
+                        }
+                    }
+                    if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY") || tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTCURLY")) {
+                        //illegal characters
+                        //System.err.println("ERROR: illegal characters {} found in while condition");
+                        throw new ParserException("ERROR: illegal characters {} found in while condition"); // #### not working correctly
+                    }
+                    currentpos++;
+                } while (done);
+            } catch (Exception e) { //no right paren
+                throw new ParserException("ERROR: no closing right parethesis is present in while");
+            }
+
+            whileCondition = getTokenSubset(tokenstuff, startpos, endpos); //arraylist of tokens for the while condition
+
+            //since we must have "while ( ) { }
+            //must now resolve {}, the body of the while stmt
+
+            //currently, the following is resolved: while(cond), must now have a '{'
+            if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) { //good
+                currentpos++;
+                startpos = currentpos;
+                extraparenseen = 0;
+                done = true;
+                try { //check if there is a right curly
+                    do {
+                        if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_LEFTCURLY")) {
+                            extraparenseen++; //count the extra left curly
+                        }
+                        if (tokenstuff.get(currentpos).getType().name().equals("SYMBOL_RIGHTCURLY")) {
+                            if (extraparenseen == 0) { //found end of while stmts
+                                endpos = currentpos; //endpoint
+                                done = false; //escape
+                            } else { //extraparenseen > 0
+                                extraparenseen--;
+                            }
+                        }
+                        currentpos++;
+                    } while (done);
+                } catch (Exception e4) { //no right curly
+                    throw new ParserException("ERROR: no closing right curly is present in while");
+                }
+                whileStmts = getTokenSubset(tokenstuff, startpos, endpos);
+
+            } else { //no curly
+                //System.err.println("ERROR: while(cond) not followed by '{'");
+                throw new ParserException("ERROR: while(cond) not followed by '{'");
+            }
+
+
+        } else { //while keyword not followed immediately by '('
+            //System.err.println("ERROR: while keyword not followed by left parenthesis");
+            throw new ParserException("ERROR: while keyword not followed by left parenthesis");
+        }
+
+        WhileLoop outWHILE = new WhileLoop(whileCondition, whileStmts); /// $$$ maybe moving with final validation (where "whileStmts" is finalized)
+
+        return outWHILE;
+
+    }
+
     public static ArrayList<Token> getTokenSubset(ArrayList<Token> global, int start, int end) {
         //note: end contains actual meta character
         //ex: the right paren in "if(~)", the right curly in "if(~){~}", or rightmost curly in "if(~){~}else{~}"
@@ -203,14 +290,16 @@ public class N_ParserExample {
         }
     }
 
-    public static void ParserPrinter(IfStmt inputIf) { //testing, just taking if right now
+    public static void ParserPrinter(Statement input) {
 
-        System.out.println("----- Print If Conditions -----");
-        printTokens(inputIf.Conditions);
-        System.out.println("----- Print If Statements -----");
-        printTokens(inputIf.Statements);
-        System.out.println("----- Print Else Statements -----");
-        printTokens(inputIf.ElseStmts);
+        if (input instanceof IfStmt) {
+            System.out.println("----- If -----");
+            input.printSelf();
+        }
+        if (input instanceof WhileLoop) {
+            System.out.println("----- While -----");
+            input.printSelf();
+        }
 
     }
 
