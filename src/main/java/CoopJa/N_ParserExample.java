@@ -1,6 +1,8 @@
 package main.java.CoopJa;
 
 import java.util.ArrayList;
+import java.util.Currency;
+import java.util.Stack;
 
 public class N_ParserExample {
 
@@ -13,23 +15,9 @@ public class N_ParserExample {
     public static void main(String[] args) throws ParserException {
 
         Handler(alltokens);
-
+        ExpressionParser.testExp_dealwith();
     }
 
-    public static void printTokens(ArrayList<Token> toPrint) {
-        if (toPrint == null) {
-            System.out.println("// Printing ArrayList //");
-            System.err.println("ArrayList is Empty"); //NOTE EMPTY ARRAYLIST
-            System.out.println();
-            System.out.println("// End of List //");
-        } else {
-            System.out.println("// Printing ArrayList //");
-            for (int i = 0; i < toPrint.size(); i++) {
-                System.out.println(toPrint.get(i).getType().name());
-            }
-            System.out.println("// End of List //");
-        }
-    }
 
     public static void Handler(ArrayList<Token> tokenslist) throws ParserException {
 
@@ -52,7 +40,7 @@ public class N_ParserExample {
     public static void Validator(ArrayList<Token> tokenslist) throws ParserException { /// $$$ need to write something to keep calling this to deal with entire string
 
         System.out.println("----- Validator Given ArrayList -----");
-        printTokens(tokenslist);
+        Utilities.printTokens(tokenslist);
         int startingplace = 0; //probably not needed
         //start with first token in list (could use to chop off already dealt with material)
         switch (tokenslist.get(startingplace).getType().name()) {
@@ -489,6 +477,7 @@ public class N_ParserExample {
         return outFOR;
 
     }
+
 
     public static ArrayList<Token> getTokenSubset(ArrayList<Token> global, int start, int end) {
         //note: end contains actual meta character

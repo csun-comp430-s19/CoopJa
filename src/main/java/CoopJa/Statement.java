@@ -8,20 +8,6 @@ public class Statement {
 
     }
 
-    public static void printTokens(ArrayList<Token> toPrint) {
-        if (toPrint == null) {
-            System.out.println("// Printing ArrayList //");
-            System.err.println("ArrayList is Empty"); //NOTE EMPTY ARRAYLIST
-            System.out.println();
-            System.out.println("// End of List //");
-        } else {
-            System.out.println("// Printing ArrayList //");
-            for (int i = 0; i < toPrint.size(); i++) {
-                System.out.println(toPrint.get(i).getType().name());
-            }
-            System.out.println("// End of List //");
-        }
-    }
 
     public void printSelf() {
 
@@ -43,11 +29,11 @@ class IfStmt extends Statement {
 
     public void printSelf() {
         System.out.println("----- If Conditions -----");
-        printTokens(this.Conditions);
+        Utilities.printTokens(this.Conditions);
         System.out.println("----- If Statements -----");
-        printTokens(this.Statements);
+        Utilities.printTokens(this.Statements);
         System.out.println("----- If Else Statements -----");
-        printTokens(this.ElseStmts);
+        Utilities.printTokens(this.ElseStmts);
     }
 }
 
@@ -63,9 +49,9 @@ class WhileLoop extends Statement {
 
     public void printSelf() {
         System.out.println("----- While Conditions -----");
-        printTokens(this.Conditions);
+        Utilities.printTokens(this.Conditions);
         System.out.println("----- While Statements -----");
-        printTokens(this.Statements);
+        Utilities.printTokens(this.Statements);
     }
 }
 
@@ -85,12 +71,12 @@ class ForLoop extends Statement {
 
     public void printSelf() {
         System.out.println("----- For Condition 1 -----");
-        printTokens(this.Condition1);
+        Utilities.printTokens(this.Condition1);
         System.out.println("----- For Condition 2 -----");
-        printTokens(this.Condition2);
+        Utilities.printTokens(this.Condition2);
         System.out.println("----- For Condition 3 -----");
-        printTokens(this.Condition3);
+        Utilities.printTokens(this.Condition3);
         System.out.println("----- For Statements -----");
-        printTokens(this.Statements);
+        Utilities.printTokens(this.Statements);
     }
 }
