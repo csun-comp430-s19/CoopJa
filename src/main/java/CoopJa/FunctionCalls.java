@@ -83,8 +83,10 @@ public class FunctionCalls {
         // Hella testing
         // Create example input
         String foo = "foo(fobby, 60, 2424)";
+        String foo2 = "foo(foo2())";
+        String foo3 = "foo(foo2(), foo3)";
         // Tokenize that
-        ArrayList<Token> tokens = Token.tokenize(foo);
+        ArrayList<Token> tokens = Token.tokenize(foo2);
         // Run it through the parser, just checking sanity through the debugger for now.
         parseFunctionCalls(tokens, 0, tokens.size());
     }

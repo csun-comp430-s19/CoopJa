@@ -39,8 +39,16 @@ public class MemberReferencing {
 
         // Read tokens until the end
         while (secondaryTokenPointer <= end) {
-            // Read tokens until period
-            while (secondaryTokenPointer < end && inputTokenList.get(secondaryTokenPointer).getType() != Token.TokenType.SYMBOL_PERIOD) {
+            // Read tokens until period NOT IN QUOTES
+            int leftParenCount = 0;
+            while (secondaryTokenPointer <= end && (inputTokenList.get(secondaryTokenPointer).getType() != Token.TokenType.SYMBOL_PERIOD || leftParenCount > 0)) {
+                // If '(', increment count, if ')', decrement
+                if (inputTokenList.get(secondaryTokenPointer).getType() == Token.TokenType.SYMBOL_LEFTPAREN){
+                    leftParenCount++;
+                }
+                else if (inputTokenList.get(secondaryTokenPointer).getType() == Token.TokenType.SYMBOL_RIGHTPAREN){
+                    leftParenCount--;
+                }
                 // Increment pointer
                 secondaryTokenPointer++;
             }
@@ -83,9 +91,12 @@ public class MemberReferencing {
         String foo2 = "foo.bar().foofoo.barbar()";
         String foo3 = "foo";
         String foo4 = "bar()";
+        // More complicated Crap
+        String foo5 = "foo.bar(foo2.bar)";
+        String foo6 = "foo.bar(foo2.bar).foo3(foo4())";
 
         // Tokenize whatever
-        ArrayList<Token> tokenizedExample = Token.tokenize(foo4);
+        ArrayList<Token> tokenizedExample = Token.tokenize(foo);
 
         // Test in debugger
         MemberParser(tokenizedExample, 0, tokenizedExample.size() -1 );
