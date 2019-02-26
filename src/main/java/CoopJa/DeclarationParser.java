@@ -1,8 +1,14 @@
 package main.java.CoopJa;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 class Assignable{
+    // todo: More on this section
+    ArrayList<Token> assignedTokens;
+    public Assignable(ArrayList<Token> assignedTokens){
+        this.assignedTokens = assignedTokens;
+    }
 };
 
 class ParseDeclaration{
@@ -24,34 +30,6 @@ class ParseAssignment{
     public ParseAssignment(Identifier identifier, Assignable assignment){
         this.identifier = identifier;
         this.assignment = assignment;
-    }
-}
-
-
-class AccessModifier{
-    public Token token = null;
-    public AccessModifier(Token inputToken){
-        if (inputToken.getType() == Token.TokenType.KEYWORD_PUBLIC ||
-                inputToken.getType() == Token.TokenType.KEYWORD_PRIVATE ||
-                inputToken.getType() == Token.TokenType.KEYWORD_PROTECTED){
-            token = inputToken;
-        }
-    }
-}
-
-class VarType{
-    public Token token = null;
-    public VarType(Token inputToken){
-        if(inputToken.getType() == Token.TokenType.KEYWORD_INT ||
-                inputToken.getType() == Token.TokenType.KEYWORD_DOUBLE ||
-                inputToken.getType() == Token.TokenType.KEYWORD_CHAR ||
-                inputToken.getType() == Token.TokenType.KEYWORD_BOOLEAN ||
-                inputToken.getType() == Token.TokenType.KEYWORD_STRING ||
-                inputToken.getType() == Token.TokenType.KEYWORD_STRING ||
-                inputToken.getType() == Token.TokenType.KEYWORD_AUTO ||
-                inputToken.getType() == Token.TokenType.VARIABLENAME){
-            token = inputToken;
-        }
     }
 }
 
@@ -82,9 +60,13 @@ public class DeclarationParser {
 
     }
 
-    public static Assignable parseAssignmenable(){
+    public static Assignable parseAssignmenable(ArrayList<Token> tokenList, int start, int end){
         //todo: S T U B
-        return null;
+        ArrayList<Token> assignableTokenList = new ArrayList<>();
+        for (int i = start; i <= end; i++){
+            assignableTokenList.add(tokenList.get(i));
+        }
+        return new Assignable(assignableTokenList);
     }
 
     // Assignment Parser
@@ -110,10 +92,9 @@ public class DeclarationParser {
             return null;
         }
         // Try to get an assignable
-        Assignable assignment = parseAssignmenable();
-        // todo: STUB CODE THIS WILL BE FINE AS NULL
+        Assignable assignment = parseAssignmenable(inputTokens, tokenPointer, end);
+        // todo: This isn't fully finished
         return new ParseAssignment(varName, assignment);
-        // todo: DON'T LET THE ABOVE GET AWAY
     }
 
     // Declration Parser
@@ -136,7 +117,7 @@ public class DeclarationParser {
         Identifier identifier;
 
         // If first token wasn't acces modifier token, move the pointer before checking for type token
-        if (accessModifier != null){
+        if (accessModifier.token != null){
             tokenPointer++;
             focusToken = inputTokens.get(tokenPointer);
         }
@@ -151,9 +132,11 @@ public class DeclarationParser {
         tokenPointer++; // If that didn't return null, increment pouinter
         focusToken = inputTokens.get(tokenPointer);
 
-        // Now check if we're at the end. If it is the end, return SOMETHING
-        if (start >= end){
-            return new ParseDeclaration(accessModifier, varType, null);
+        // Now check if we're at the end. If it is the end, but there is probably an identifier
+        // Give a smaller parseAssignment with the identifier, but no assignable
+        if (tokenPointer >= end){
+            ParseAssignment inputParseAssignment = new ParseAssignment(new Identifier(focusToken), null);
+            return new ParseDeclaration(accessModifier, varType, inputParseAssignment);
         }
         else{
             // Let's Try to get a "ParseAssign", if that returns null, there's an error
