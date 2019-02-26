@@ -65,16 +65,24 @@ class operations{}
 
 public class DeclarationParser {
 
-    // Constructor
-    public DeclarationParser(){
-    }
+    public AccessModifier accessModifier;
+    public VarType varType;
+    public Identifier identifier;
+    public ParseAssignment assignment;
 
+    // Constructor
+    /*public DeclarationParser(AccessModifier accessModifier, VarType varType, Identifier identifier, ParseAssignment assignment){
+        this.accessModifier = accessModifier;
+        this.varType = varType;
+        this.identifier = identifier;
+        this.assignment = assignment;
+    }*/
 
     public static void testing(){
 
     }
 
-    public static Assignable parseAssignment(){
+    public static Assignable parseAssignmenable(){
         //todo: S T U B
         return null;
     }
@@ -102,7 +110,7 @@ public class DeclarationParser {
             return null;
         }
         // Try to get an assignable
-        Assignable assignment = parseAssignment();
+        Assignable assignment = parseAssignmenable();
         // todo: STUB CODE THIS WILL BE FINE AS NULL
         return new ParseAssignment(varName, assignment);
         // todo: DON'T LET THE ABOVE GET AWAY
@@ -128,7 +136,7 @@ public class DeclarationParser {
         Identifier identifier;
 
         // If first token wasn't acces modifier token, move the pointer before checking for type token
-        if (accessModifier == null){
+        if (accessModifier != null){
             tokenPointer++;
             focusToken = inputTokens.get(tokenPointer);
         }
@@ -141,10 +149,11 @@ public class DeclarationParser {
         }
 
         tokenPointer++; // If that didn't return null, increment pouinter
+        focusToken = inputTokens.get(tokenPointer);
 
-        // Now check if we're at the end. If it is the end, return null
+        // Now check if we're at the end. If it is the end, return SOMETHING
         if (start >= end){
-            return null;
+            return new ParseDeclaration(accessModifier, varType, null);
         }
         else{
             // Let's Try to get a "ParseAssign", if that returns null, there's an error
@@ -160,6 +169,12 @@ public class DeclarationParser {
 
     }
 
-
+    public static void main(String[] args){
+        // Debug crap
+        String foo = "public int foo = 9";
+        String foo2 = "int foo";
+        ArrayList<Token> tokens = Token.tokenize(foo);
+        doParseDeclaration(tokens, 0, tokens.size()-1);
+    }
 
 }
