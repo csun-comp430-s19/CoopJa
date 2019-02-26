@@ -22,6 +22,15 @@ class VariableExpression extends Expression{
         System.out.println("----- Variable -----");
         System.out.println(Variable.getTokenString());
     }
+
+    @Override
+    public boolean equals(Object o){ //used to help the Unit Testing
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        VariableExpression expression = (VariableExpression) o;
+        return expression.Variable.getTokenString().equals(this.Variable.getTokenString());
+    }
 }
 
 class StringExpression extends Expression{
@@ -34,6 +43,14 @@ class StringExpression extends Expression{
         System.out.println("----- String -----");
         System.out.println(TString.getTokenString());
     }
+    @Override
+    public boolean equals(Object o){ //used to help the Unit Testing
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        StringExpression expression = (StringExpression) o;
+        return expression.TString.getTokenString().equals(this.TString.getTokenString());
+    }
 }
 
 class NumExpression extends  Expression{
@@ -44,6 +61,15 @@ class NumExpression extends  Expression{
     public void printSelf() {
         System.out.println("----- Number -----");
         System.out.println(Number.getTokenString());
+    }
+
+    @Override
+    public boolean equals(Object o){ //used to help the Unit Testing
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        NumExpression expression = (NumExpression) o;
+        return expression.Number.getTokenString().equals(this.Number.getTokenString());
     }
 }
 
@@ -65,5 +91,17 @@ class ArithmeticExpression extends  Expression{
         System.out.println(Operator.getType().name());
         System.out.println("----- 2nd Expression -----");
         this.Expression2.printSelf();
+    }
+
+    @Override
+    public boolean equals(Object o){ //used to help the Unit Testing
+        if (this == o) return true;
+        if (o == null) return false;
+        if (this.getClass() != o.getClass()) return false;
+        ArithmeticExpression expression = (ArithmeticExpression) o;
+        if (!expression.Expression1.equals(this.Expression1)) return false;
+        if (!expression.Operator.getTokenString().equals(this.Operator.getTokenString())) return false;
+        if (!expression.Expression2.equals(this.Expression2)) return false;
+        return true;
     }
 }
