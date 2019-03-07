@@ -2,7 +2,7 @@ package main.java.CoopJa;
 
 import java.util.ArrayList;
 
-public class FunctionDeclaration {
+public class FunctionDeclaration implements Declaration{
 
     ParseDeclaration functionDeclare;   // Beggingin section
     ArrayList<ParseDeclaration> functionParameters; // List of declarations parameters
