@@ -31,5 +31,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.typemeta:funcj-parser:0.6.12" level="project" />
   </component>
 </module>

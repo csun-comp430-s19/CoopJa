@@ -34,14 +34,14 @@ public class TokenizerExampleTest {
         // This can be a little tedious
 
 //        Token.TokenType[] expectedTypes = {Token.TokenType.NUMBER, Token.TokenType.SYMBOL_ASTERISK, Token.TokenType.NUMBER,
-//                Token.TokenType.SYMBOL_PLUS, Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_PLUS,
+//                Token.TokenType.SYMBOL_PLUS, Token.TokenType.IDENTIFIER, Token.TokenType.SYMBOL_PLUS,
 //                Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.NUMBER, Token.TokenType.SYMBOL_RIGHTPAREN}; //mainExample
 
 //        Token.TokenType[] expectedTypes = {Token.TokenType.KEYWORD_PUBLIC, Token.TokenType.KEYWORD_STATIC, Token.TokenType.KEYWORD_VOID,
-//        Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.KEYWORD_STRING, Token.TokenType.VARIABLENAME,
+//        Token.TokenType.IDENTIFIER, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.KEYWORD_STRING, Token.TokenType.IDENTIFIER,
 //                Token.TokenType.SYMBOL_LEFTBRACKET, Token.TokenType.SYMBOL_RIGHTBRACKET, Token.TokenType.SYMBOL_RIGHTPAREN, Token.TokenType.SYMBOL_LEFTCURLY,
-//                Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.VARIABLENAME,
-//                Token.TokenType.VARIABLENAME, Token.TokenType.SYMBOL_EXCLAMATION, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.SYMBOL_RIGHTPAREN, Token.TokenType.SYMBOL_SEMICOLON,
+//                Token.TokenType.IDENTIFIER, Token.TokenType.SYMBOL_LEFTPAREN, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.IDENTIFIER,
+//                Token.TokenType.IDENTIFIER, Token.TokenType.SYMBOL_EXCLAMATION, Token.TokenType.SYMBOL_QUOTE, Token.TokenType.SYMBOL_RIGHTPAREN, Token.TokenType.SYMBOL_SEMICOLON,
 //                Token.TokenType.SYMBOL_RIGHTCURLY}; //complicated
 
 
