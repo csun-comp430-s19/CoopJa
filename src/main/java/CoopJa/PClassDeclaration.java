@@ -6,11 +6,11 @@ public class PClassDeclaration {
     // Access Mod, Identifier, list of statements
     public Token accessModifier;
     public Token identifier;       // REQUIRED
-    public ArrayList<PStatement> statementList;
+    public ArrayList<PDeclaration> declarationList;
 
-    public PClassDeclaration(Token accessModifier, Token identifier, ArrayList<PStatement> statementList){
+    public PClassDeclaration(Token accessModifier, Token identifier, ArrayList<PDeclaration> declarationList){
         this.accessModifier = accessModifier;
         this.identifier = identifier;
-        this.statementList = statementList;
+        this.declarationList = declarationList;
     }
 }

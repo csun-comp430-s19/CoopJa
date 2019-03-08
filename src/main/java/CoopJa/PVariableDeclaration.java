@@ -1,6 +1,6 @@
 package main.java.CoopJa;
 
-public class PVariableDeclaration implements PStatement {
+public class PVariableDeclaration implements PStatement, PDeclaration {
     // The following ways are how a Variable can be declared, and thus what info it may contain
     // accessModifier(optional) variableType identifier assignmentExpression
     public Token accessModifier;   // OPTIONAL

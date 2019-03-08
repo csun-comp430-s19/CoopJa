@@ -2,7 +2,7 @@ package main.java.CoopJa;
 
 import java.util.ArrayList;
 
-public class PStatementFunctionDeclaration implements PStatement{
+public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
     // Function declarations work similar to variable declarations
     // public int foo(int x, char y, foo z){ statements}
     // We need to store access type, return type, identifier, a list of variable declarations, and a list of statements

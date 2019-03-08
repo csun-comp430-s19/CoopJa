@@ -43,7 +43,7 @@ public class Token {
                 put("extends", TokenType.KEYWORD_EXTENDS);
                 put("this", TokenType.KEYWORD_THIS);
                 put("static", TokenType.KEYWORD_STATIC);
-                put("class", TokenType.KEYWORD_STATIC);
+                put("class", TokenType.KEYWORD_CLASS);
                 put("true", TokenType.KEYWORD_TRUE);
                 put("false", TokenType.KEYWORD_FALSE);
                 put("null", TokenType.KEYWORD_NULL);

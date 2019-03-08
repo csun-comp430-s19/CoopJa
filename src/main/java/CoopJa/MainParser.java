@@ -97,7 +97,13 @@ public class MainParser {
     // Class Declaration parser
     public Parser<Token, PClassDeclaration> classDeclarationParser;
 
-    
+    // General Declaration parser
+    public Parser<Token, PDeclaration> declarationGeneralParser;
+
+    // Porgram Parser
+    public Parser<Token, PProgram> programParser;
+
+
 
 
     // TODO: Expression Crap
@@ -226,9 +232,10 @@ public class MainParser {
         // TODO: Parses between an identifier with different declaration types: declaring with an optional expression, declaring a function, or just doing nothing (which is sometimes valid)
         // Starts with an identifier, then either an =, a (, or return null
         identifierDeclarationDisambiguator = identifierParser.and(Combinators.choice(
-                // Should handle possible function declaration here
-                assignmentParser.map(a -> (Functions.F3<Token, Token, Token, PVariableDeclaration>)(x,y,z) -> new PVariableDeclaration(x, y, z, a)),
+                // Declaration assignment parser
+                assignmentParser.andL(semicolonParser).map(a -> (Functions.F3<Token, Token, Token, PVariableDeclaration>)(x,y,z) -> new PVariableDeclaration(x, y, z, a)),
                 // I'm sorry if you somehow made it far and THIS is what finally loses you
+                // Parsers a function declaration
                 leftParenParser.andR(varObjTypeParser.and(identifierParser).map(a -> b -> new PVariableDeclaration(null, a, b, null)).sepBy(commaParser))
                         .andL(rightParenParser).and(statementListParser)
                         .map(a -> b -> (Functions.F3<Token, Token, Token, PStatementFunctionDeclaration>)(x,y,z) -> new PStatementFunctionDeclaration(x, y, z, IListtoArrayList(a), b))  // Function declaration
@@ -247,9 +254,9 @@ public class MainParser {
                 //identifierParser.and(assignmentParser).map(c -> d -> (Functions.F<Token, PVariableDeclaration>)(x) -> new PVariableDeclaration(null, x, c, d)), // Declaration of an object instance
                 identifierDeclarationDisambiguator.map(a -> (Functions.F<Token, PStatement>)(x) -> a.apply(null,x)),   // Declaration of an object or a function, no access modifier
 
-                assignmentParser.map(a -> (Functions.F<Token, PVariableAssignment>)(x) -> new PVariableAssignment(x,a)),   // Assigning an identifier to a value
+                assignmentParser.andL(semicolonParser).map(a -> (Functions.F<Token, PVariableAssignment>)(x) -> new PVariableAssignment(x,a)),   // Assigning an identifier to a value
 
-                leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).map(a -> (Functions.F<Token, PStatement>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a)) ),  // Function call
+                leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).andL(semicolonParser).map(a -> (Functions.F<Token, PStatement>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a)) ),  // Function call
 
                 Combinators.fail()  // Ths is meant to check for a function call, but right now it's a stub
                 )
@@ -285,9 +292,11 @@ public class MainParser {
         );   // Stub */
 
         statementParser = Combinators.choice(
-                accessTypeDecisionTree.andL(semicolonParser),   // Tokens beginning with access
-                identifierDecisionTree.andL(semicolonParser),   // Tokens beginning with an identifier
-                varTypeDecisionTree.andL(semicolonParser),
+                //accessTypeDecisionTree.andL(semicolonParser),   // Tokens beginning with access
+                //identifierDecisionTree.andL(semicolonParser),   // Tokens beginning with an identifier
+                //varTypeDecisionTree.andL(semicolonParser),
+                identifierDecisionTree,   // Tokens beginning with an identifier
+                varTypeDecisionTree,
                 ifStatementParser,
                 whileStatementParser,
                 forStatementParser
@@ -320,6 +329,18 @@ public class MainParser {
                 .and(statementListParser)
                 .map(a -> b -> new PStatementWhileStatement(a, b)));
 
+        // General declaration Parser
+        declarationGeneralParser = Combinators.choice(
+                accessTypeDecisionTree.map(a -> (PDeclaration) a),
+                varTypeDecisionTree.map(a -> (PDeclaration) a),
+                identifierDecisionTree.map(a -> (PDeclaration) a)
+        );
+
+        {
+            int foo = 0;
+            foo = 1;
+        }
+
         // For statement
         forStatementParser.set(Combinators.satisfy("For token", typePredicate(Token.TokenType.KEYWORD_FOR))
                 .andR(leftParenParser)
@@ -332,11 +353,26 @@ public class MainParser {
                 .and(statementListParser)
                 .map (a -> b -> c -> d -> new PStatementForStatement(a, b, c, d)));
 
+
+
         // Class declaration parser
         classDeclarationParser = accessTypeParser.
                 andL(Combinators.satisfy("class token", typePredicate(Token.TokenType.KEYWORD_CLASS)))
                 .and(identifierParser)
-                .map(a -> b -> new PClassDeclaration(a, b, null));
+                .andL(Combinators.satisfy("Curly Open", typePredicate(Token.TokenType.SYMBOL_LEFTCURLY)))
+                .and(declarationGeneralParser.manyTill(Combinators.satisfy("Curly Close", typePredicate(Token.TokenType.SYMBOL_RIGHTCURLY))))
+                .map(a -> b -> c -> new PClassDeclaration(a, b, IListtoArrayList(c)));
+
+        programParser = classDeclarationParser.many().map(a -> new PProgram(IListtoArrayList(a)));
+
+
+
+
+
+
+
+
+
 
         // Expression Crap
         expressionOperatorParser = operatorParser.map(a -> new PExpressionOperator(a));
@@ -366,7 +402,23 @@ public class MainParser {
     // Not very good testing main class
     public static void main(String[] args){
         //String foo = "for(i = 0; 1; i = 1;){public int foo = 5; int foo2 = 6; public int foo3; int foo4; foo4 = 5;}";
-        String foo = "public foo3 foo(int x, char y, foo z){int foo2 = 0;};";
+        //String foo = "public foo3 foo(int x, char y, foo z){int foo2 = 0;};";
+
+        String foo = "public class foo{public int foo4 = 0;}" +
+                "public class foo2{" +
+                "public int foo3 = 0;" +
+                "public int main(){" +
+                "foo3 = 1;" +
+                "}" +
+                "}";
+
+        /*String foo = "public class foo2{" +
+                "public int foo3 = 0;" +
+                "public int main(){" +
+                "foo3 = 1;" +
+                "}" +
+                "}";*/
+
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
@@ -377,6 +429,6 @@ public class MainParser {
         MainParser = 0;
 
         //PVariableDeclaration fooDeclaration = (PVariableDeclaration)parsers.statementParser.apply(tokenListInput).getOrThrow();
-        PStatement fooTester = parsers.statementParser.parse(tokenListInput).getOrThrow();
+        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
     }
 }
