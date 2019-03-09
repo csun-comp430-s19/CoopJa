@@ -17,9 +17,9 @@ public enum Operator //Could further separate to BinaryOperator & UnaryOperator
     /*Bitwise Operators*/
     BITAND,
     //==|
-    XOR, //^
-    IOR, //|
+    BITXOR, //^
+    BITOR, //|
     SHFTRT, //>> Shift Right Shght
     SHFTLT, //<< Shift Left  Sheft
-    INVERT, //~
+    INVERT, // ~
 }        
