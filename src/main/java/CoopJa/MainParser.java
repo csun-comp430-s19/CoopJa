@@ -52,9 +52,10 @@ public class MainParser {
     public Parser<Token, Token> periodParser;
 
     // More complex parsers
+    Parser<Token, PExpression> assignmentParser;
     // Expressions
     // Main Expression
-    public Parser <Token, PExpression> expressionParser;
+    public Parser <Token, PExpression> expressionParser;  // Large Parser is now the standard parser
     public Ref <Token, PExpression> expressionRef = Parser.ref();
 
 
@@ -109,8 +110,9 @@ public class MainParser {
 
     // TODO: Expression Crap
     // Parser for parsing out an expression into a special list
-    public Parser<Token, ArrayList<PExpressionParserElement>> expressionLargeParser;
+    public Ref<Token, PExpression> expressionLargeParser = Parser.ref();
     public Parser<Token, PExpressionParserElement> expressionOperatorParser;
+    public Ref<Token, PExpressionParserElement> identifierExpressionParser = Parser.ref();
     public Parser<Token, PExpressionParserElement> expressionAtomParser;
 
 
@@ -179,59 +181,10 @@ public class MainParser {
         periodParser = Combinators.satisfy("period token", typePredicate(Token.TokenType.SYMBOL_PERIOD));
 
 
-        // Pratically everything below this is dealing with difficult statements in some way
-        // Variable Assignment
-        // ident = expression
-        /*variableAssignmentParser = identifierParser
-                .andL(Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS)))
-                .and(expressionRef)
-                .map(a -> b -> new PVariableAssignment(a, b));*/
-
-        // Variable Declaration
-        // accessMod type ident = expression
-        // accessMod type ident
-        // type ident = expression
-        // type ident
-        // This method doesn't work because of confusing parser logic!
-        /*variableDeclarationParserTest1 = Combinators.choice(
-                // 1
-                accessTypeParser.and(varTypeParser).and(identifierParser)
-                        .andL(Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS)))
-                        .and(expressionRef).map(a -> b -> c -> d -> new PVariableDeclaration(a, b, c, d)),
-                // 2
-                accessTypeParser.and(varTypeParser).and(identifierParser).map(a -> b -> c -> new PVariableDeclaration(a,b,c,null)),
-                // 3
-                varTypeParser.and(identifierParser)
-                        .andL(Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS)))
-                        .and(expressionRef).map(a -> b -> c -> new PVariableDeclaration(null, a, b, c)),
-                // 4
-                varTypeParser.and(identifierParser).map(a -> b -> new PVariableDeclaration(null, a, b, null))
-        );*/
-
-        /*variableDeclarationParserTest1 = Combinators.choice(
-                // 1 & 2
-                accessTypeParser.and(varTypeParser).and(identifierParser)
-                        .and((Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS))
-                                .andR(expressionRef)).or(pure(null))).map(a -> b -> c -> d -> new PVariableDeclaration(a, b, c, d)),
-                // 3 & 4
-                varTypeParser.and(identifierParser)
-                        .and((Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS))
-                                .andR(expressionRef)).or(pure(null))).map(b -> c -> d -> new PVariableDeclaration(null, b, c, d))
-        );*/
-
         // Parses assignment statements starting from '='
-        Parser<Token, PExpression> assignmentParser = (Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS))
+        assignmentParser = (Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS))
                 .andR(expressionRef)).or(pure(null));
 
-        // Mostly a test, not actually used
-        /*variableDeclarationParserTest1 = Combinators.choice(
-                // 1 & 2
-                accessTypeParser.and(varTypeParser).and(identifierParser)
-                        .and(assignmentParser).map(a -> b -> c -> d -> new PVariableDeclaration(a, b, c, d)),
-                // 3 & 4
-                varTypeParser.and(identifierParser)
-                        .and(assignmentParser).map(b -> c -> d -> new PVariableDeclaration(null, b, c, d))
-        );*/
         // TODO: Parses between an identifier with different declaration types: declaring with an optional expression, declaring a function, or just doing nothing (which is sometimes valid)
         // Starts with an identifier, then either an =, a (, or return null
         identifierDeclarationDisambiguator = identifierParser.and(Combinators.choice(
@@ -287,14 +240,6 @@ public class MainParser {
         // Hopefully this stuff is less difficult
         // General Statements
         // Will essentially find the first token in a statement and work from there
-        /*statementParser = Combinators.choice(
-                accessTypeDecisionTree.andL(semicolonParser),   // Tokens beginning with access
-                identifierDecisionTree.andL(semicolonParser),   // Tokens beginning with an identifier
-                varTypeDecisionTree.andL(semicolonParser),
-                ifStatementParser,
-                whileStatementParser,
-                forStatementParser
-        );   // Stub */
 
         statementParser = Combinators.choice(
                 //accessTypeDecisionTree.andL(semicolonParser),   // Tokens beginning with access
@@ -373,13 +318,30 @@ public class MainParser {
 
 
 
-
         // Expression Crap
         expressionOperatorParser = operatorParser.map(a -> new PExpressionOperator(a));
-        expressionAtomParser = Combinators.satisfy("Number", typePredicate(Token.TokenType.NUMBER)).map(PExpressionAtomLiterals::new);
+        // Parsing identifier expression atoms
+        identifierExpressionParser.set(varObjTypeParser.and(Combinators.choice(
+                leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a))),  // Function call
+                periodParser.andR(identifierExpressionParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PIdentifierReference(x, (PStatement)a)),
+                pure((Functions.F<Token, PExpressionAtom>)(x) -> new PExpressionVariable(x))
+        )).map(a -> b -> b.apply(a)));
 
-        //expressionLargeParser = expressionAtomParser.sepBy(expressionOperatorParser).map(MainParser::IListtoArrayList);
-        expressionLargeParser = expressionAtomParser.or(expressionOperatorParser).many().map(MainParser::IListtoArrayList);
+        //expressionAtomParser = Combinators.satisfy("Number", typePredicate(Token.TokenType.NUMBER)).map(PExpressionAtomNumberLiteral::new);
+        expressionAtomParser = Combinators.choice(
+                Combinators.satisfy("Number Literal", typePredicate(Token.TokenType.NUMBER)).map(PExpressionAtomNumberLiteral::new),
+                Combinators.satisfy("String Literal", typePredicate(Token.TokenType.STRING)).map(PExpressionAtomStringLiteral::new),
+                Combinators.satisfy("true", typePredicate(Token.TokenType.KEYWORD_TRUE)).map(PExpressionAtomBooleanLiteral::new),
+                Combinators.satisfy("false", typePredicate(Token.TokenType.KEYWORD_FALSE)).map(PExpressionAtomBooleanLiteral::new),
+                Combinators.satisfy("null token", typePredicate(Token.TokenType.KEYWORD_NULL)).map(PExpressionAtomNullLiteral::new),
+                Combinators.satisfy("new", typePredicate(Token.TokenType.KEYWORD_NEW)).andR(identifierParser).map(PExpressionAtomObjectConstruction::new),    // This needs to be an and chain
+                identifierExpressionParser,   // Variable/Func calls
+                leftParenParser.andR(expressionLargeParser).andL(rightParenParser).map(a -> (PExpressionAtom)a)
+        );
+
+
+        //expressionLargeParser = expressionAtomParser.or(expressionOperatorParser).many().map(a -> PExpressionBinOp.computeExpression(IListtoArrayList(a), 0));
+        expressionLargeParser.set(expressionAtomParser.or(expressionOperatorParser).many1().map(a -> PExpressionBinOp.computeExpression(IListtoArrayList(a), 0)));
 
         // General expressions
         expressionParser = Combinators.satisfy("Number", typePredicate(Token.TokenType.NUMBER)).map(PExpressionStub::new);  // Stub
@@ -387,7 +349,7 @@ public class MainParser {
         //statementParser = Combinators.fail();   // Stub
 
         // Establish ALL references now (?)
-        expressionRef.set(expressionParser);
+        expressionRef.set(expressionLargeParser);
         statementRef.set(statementParser);
 
     }
@@ -408,7 +370,11 @@ public class MainParser {
                 "public class foo2{" +
                 "public int foo3 = 0;" +
                 "public int main(){" +
-                "foo.foo4(); foo9 = 1;" +
+                "foo.foo4(); " +
+                "foo9 = (1 + 9)*5;" +
+                "for (int i = 0; i < 9; i = i+1;){" +
+                "foo = foo + 5;" +
+                "}" +
                 "}" +
                 "}";
 
@@ -419,9 +385,9 @@ public class MainParser {
                 "}" +
                 "}";*/
 
-        String foo2 = "3+5/5";
-
-        ArrayList<Token> tokenList = Token.tokenize(foo2);
+        //String foo2 = "(5+5)*(foo6()*foo5 + \"Hello\")";
+        //(foo5 + 5) * foo4(1+2, foo6())
+        ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
 
@@ -431,7 +397,7 @@ public class MainParser {
         MainParser = 0;
 
         //PVariableDeclaration fooDeclaration = (PVariableDeclaration)parsers.statementParser.apply(tokenListInput).getOrThrow();
-        //PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
-        PExpressionBinOp fooTester2 = (PExpressionBinOp)PExpressionBinOp.computeExpression(parsers.expressionLargeParser.parse(tokenListInput).getOrThrow(), 0);
+        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        //PExpression fooTester2 = parsers.expressionLargeParser.parse(tokenListInput).getOrThrow();
     }
 }

@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="CoopJa" target="1.5" />
+      <module name="CoopJa" target="1.11" />
     </bytecodeTargetLevel>
   </component>
 </project>

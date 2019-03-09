@@ -1,6 +1,6 @@
 package CoopJa;
 
-public class PIdentifierReference implements PStatement{
+public class PIdentifierReference implements PStatement, PExpressionAtom{
     public Token identifier;
     public PStatement next;
 
