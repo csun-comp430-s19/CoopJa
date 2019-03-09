@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 import org.typemeta.funcj.functions.Functions.*;
 import org.typemeta.funcj.parser.*;

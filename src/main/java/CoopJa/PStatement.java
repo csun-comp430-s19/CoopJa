@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public interface PStatement {
 }

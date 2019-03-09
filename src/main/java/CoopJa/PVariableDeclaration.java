@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PVariableDeclaration implements PStatement, PDeclaration {
     // The following ways are how a Variable can be declared, and thus what info it may contain

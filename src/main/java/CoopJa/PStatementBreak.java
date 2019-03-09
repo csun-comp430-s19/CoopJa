@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PStatementBreak implements PStatement {
     public Token token;

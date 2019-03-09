@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PExpressionAtomLiterals implements PExpressionAtom {
     public Token literalToken;

@@ -1,6 +1,6 @@
-package test.java.CoopJa;
+package CoopJa;
 
-import main.java.CoopJa.Token;
+import CoopJa.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PIdentifierReference implements PStatement{
     public Token identifier;

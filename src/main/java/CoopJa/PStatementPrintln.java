@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PStatementPrintln implements PStatement{
     public Token printStringToken;

@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PExpressionStub implements  PExpression {
     Token stubToken;

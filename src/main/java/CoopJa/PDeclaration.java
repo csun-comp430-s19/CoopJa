@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 // Stub interface for general declarations
 public interface PDeclaration {

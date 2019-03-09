@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 import java.util.ArrayList;
 import java.util.HashMap;

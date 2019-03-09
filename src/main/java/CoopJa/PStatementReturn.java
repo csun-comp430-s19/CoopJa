@@ -1,4 +1,4 @@
-package main.java.CoopJa;
+package CoopJa;
 
 public class PStatementReturn implements PStatement{
     public PExpression returnExpression;
