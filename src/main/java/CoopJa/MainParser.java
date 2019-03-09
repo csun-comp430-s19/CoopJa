@@ -408,7 +408,7 @@ public class MainParser {
                 "public class foo2{" +
                 "public int foo3 = 0;" +
                 "public int main(){" +
-                "foo.foo4 = 1;" +
+                "foo.foo4(); foo9 = 1;" +
                 "}" +
                 "}";
 
@@ -419,7 +419,9 @@ public class MainParser {
                 "}" +
                 "}";*/
 
-        ArrayList<Token> tokenList = Token.tokenize(foo);
+        String foo2 = "3+5/5";
+
+        ArrayList<Token> tokenList = Token.tokenize(foo2);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
 
@@ -429,6 +431,7 @@ public class MainParser {
         MainParser = 0;
 
         //PVariableDeclaration fooDeclaration = (PVariableDeclaration)parsers.statementParser.apply(tokenListInput).getOrThrow();
-        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        //PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        PExpressionBinOp fooTester2 = (PExpressionBinOp)PExpressionBinOp.computeExpression(parsers.expressionLargeParser.parse(tokenListInput).getOrThrow(), 0);
     }
 }

@@ -13,49 +13,38 @@ public class PExpressionBinOp implements PExpression {
 
     // The operator token
     public Token operatorToken;
-
-    // It would be nice to have some quick lookup on the associative and precedence rules of a given token
-
-
-
-
-    // This should be an Implementation of the "Precedence Climbing" Expression algorithm
+    
     public static PExpression computeExpression(ArrayList<PExpressionParserElement> parserElements, int min_prec){
-        // Grab the first token, it should be an expression token.
         PExpression lhs_local = (PExpressionAtom)parserElements.get(0);
-        PExpression rhs_local;
         parserElements.remove(0);
-        int next_min_prec;
-
         while (true){
-            PExpressionOperator currentToken;
+            PExpressionParserElement currentToken;
             try {
-                currentToken = (PExpressionOperator) parserElements.get(0);
-                parserElements.remove(0);
+                currentToken = parserElements.get(0);
             }
-            catch (Exception IndexOutOfBoundsException){
-                currentToken = null;
+            catch(Exception IndexOutOfBounds){
+                break;
             }
-
-            if (currentToken != null && currentToken.precedence() >= min_prec){
-                if (currentToken.isLeftAssociative()){
-                    next_min_prec = currentToken.precedence() + 1;
-                }
-                else{
-                    next_min_prec = currentToken.precedence();
-                }
-                rhs_local = computeExpression(parserElements, next_min_prec);
-                lhs_local = new PExpressionBinOp(lhs_local, rhs_local);
+            if (currentToken == null|| !(currentToken instanceof PExpressionOperator) || ((PExpressionOperator)currentToken).precedence() < min_prec){
+                break;
+            }
+            int next_min_prec;
+            if (((PExpressionOperator) currentToken).isLeftAssociative()){
+                next_min_prec = ((PExpressionOperator) currentToken).precedence() + 1;
             }
             else{
-                return lhs_local;
+                next_min_prec = ((PExpressionOperator) currentToken).precedence();
             }
-
+            parserElements.remove(0);
+            PExpression rhs_local = computeExpression(parserElements, next_min_prec);
+            lhs_local = new PExpressionBinOp(lhs_local, rhs_local, ((PExpressionOperator) currentToken).operatorToken);
         }
+        return lhs_local;
     }
 
-    public PExpressionBinOp(PExpression lhs, PExpression rhs){
+    public PExpressionBinOp(PExpression lhs, PExpression rhs, Token operatorToken){
         this.lhs = lhs;
         this.rhs = rhs;
+        this.operatorToken = operatorToken;
     }
 }
