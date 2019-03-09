@@ -18,6 +18,24 @@ public class N_ParserExample {
         ExpressionParser.testExp_dealwith();
     }
 
+    public static void run() { //used to test the expression object
+        ExpressionCool test = new ExpressionCool();
+
+        String one1 = "test 1";
+        ArrayList<Token> oneA = Token.tokenize(one1);
+        String two2 = "1 2";
+        ArrayList<Token> twoA = Token.tokenize(two2);
+        String next3 = "if while";
+        ArrayList<Token> nextA = Token.tokenize(next3);
+
+        test.add(oneA);
+        test.add(twoA);
+        test.add(oneA);
+        test.add(nextA);
+
+        test.printSelf();
+    }
+
 
     public static void Handler(ArrayList<Token> tokenslist) throws ParserException {
 

@@ -1,5 +1,6 @@
 package main.java.CoopJa;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Statement {
@@ -78,5 +79,29 @@ class ForLoop extends Statement {
         Utilities.printTokens(this.Condition3);
         System.out.println("----- For Statements -----");
         Utilities.printTokens(this.Statements);
+    }
+}
+
+class ExpressionCool extends Statement {
+
+    ArrayList<ArrayList<Token>> Exp = new ArrayList<ArrayList<Token>>(1);
+    int loc = 0;
+
+    public ExpressionCool() {
+        //add expressions as they are parsed
+    }
+
+    public void add(ArrayList<Token> input) {
+        Exp.add(loc, input);
+        loc++;
+    }
+
+    public void printSelf() {
+        System.out.println("----- Expression -----");
+        for (int i = 0; i < Exp.size(); i++) {
+            int var1 = i + 1;
+            System.out.println("----- Part " + var1 + " -----");
+            Utilities.printTokens(Exp.get(i));
+        }
     }
 }
