@@ -2,8 +2,6 @@ package java.main.CoopJa;
 
 import java.util.HashMap;
 
-
-
 public class TypeChecker
 {
     /*Get the list of 'declarations' in the program.
@@ -33,18 +31,20 @@ public class TypeChecker
             //Operators are prob enums, so do that. 
             switch(exp.operator)
             {
-                //Needs more operators.
-                case Operator.Plus: //+
+                //(!)Needs more operators.
+                case Operator.PLUS: //+
                     //typecheck these, make sure they're num types or strings or correct type.
-                case Operator.Equals://==
+                case Operator.EQ://==
+                
+                case Operator.NTEQ://==
                 
                 case Operator.GT://>
                 
-                case Operator.GTEq://>=
+                case Operator.GTEQ://>=
                 
                 case Operator.LT://<
                 
-                case Operator.:LTEq://<=
+                case Operator.:LTEQ://<=
                 
                 default: 
                     //If it reaches this, then the parser is messed up bc not a balid op type.                    
