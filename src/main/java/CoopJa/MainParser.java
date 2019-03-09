@@ -49,6 +49,7 @@ public class MainParser {
     // Parenthesis
     public Parser<Token, Token> leftParenParser;
     public Parser<Token, Token> rightParenParser;
+    public Parser<Token, Token> periodParser;
 
     // More complex parsers
     // Expressions
@@ -63,13 +64,13 @@ public class MainParser {
     public Ref <Token, PStatement> statementRef = Parser.ref();
 
     // Variable Assignment
-    public Parser <Token, PVariableAssignment> variableAssignmentParser;
+    //public Parser <Token, PVariableAssignment> variableAssignmentParser;
     // Variable Declaration
     public Parser <Token, PStatement> variableDeclarationParserTest1;
 
     // Identifier Statement Parse Decision Tree
     public Parser<Token, Functions.F2<Token, Token, PStatement>> identifierDeclarationDisambiguator;
-    public Parser<Token, PStatement> identifierDecisionTree;
+    public Ref<Token, PStatement> identifierDecisionTree = Parser.ref();
 
     // Access Type Variable Declaration Decision Tree
     public Parser<Token, PStatement> accessTypeDecisionTree;
@@ -129,6 +130,7 @@ public class MainParser {
                 Combinators.satisfy("char type", typePredicate(Token.TokenType.KEYWORD_CHAR)),
                 Combinators.satisfy("boolean type", typePredicate(Token.TokenType.KEYWORD_BOOLEAN)),
                 Combinators.satisfy("string type", typePredicate(Token.TokenType.KEYWORD_STRING)),
+                Combinators.satisfy("void type", typePredicate(Token.TokenType.KEYWORD_VOID)),
                 Combinators.satisfy("auto type", typePredicate(Token.TokenType.KEYWORD_AUTO))
                 //Combinators.satisfy("object type", typePredicate(Token.TokenType.OBJECTNAME))
         );
@@ -174,15 +176,16 @@ public class MainParser {
         // Parenthesis parser
         leftParenParser = Combinators.satisfy("paren left", typePredicate(Token.TokenType.SYMBOL_LEFTPAREN));
         rightParenParser = Combinators.satisfy("paren right", typePredicate(Token.TokenType.SYMBOL_RIGHTPAREN));
+        periodParser = Combinators.satisfy("period token", typePredicate(Token.TokenType.SYMBOL_PERIOD));
 
 
         // Pratically everything below this is dealing with difficult statements in some way
         // Variable Assignment
         // ident = expression
-        variableAssignmentParser = identifierParser
+        /*variableAssignmentParser = identifierParser
                 .andL(Combinators.satisfy("Equals", typePredicate(Token.TokenType.SYMBOL_EQUALS)))
                 .and(expressionRef)
-                .map(a -> b -> new PVariableAssignment(a, b));
+                .map(a -> b -> new PVariableAssignment(a, b));*/
 
         // Variable Declaration
         // accessMod type ident = expression
@@ -250,7 +253,7 @@ public class MainParser {
         ).map(a -> b -> c -> c.apply(a,b)); // a = access type token, b = datatype token, c = lambda expression to apply these to
 
         // TODO:  Parses any "statement" beginning with an identifier
-        identifierDecisionTree = identifierParser.and(Combinators.choice(
+        identifierDecisionTree.set(identifierParser.and(Combinators.choice(
                 //identifierParser.and(assignmentParser).map(c -> d -> (Functions.F<Token, PVariableDeclaration>)(x) -> new PVariableDeclaration(null, x, c, d)), // Declaration of an object instance
                 identifierDeclarationDisambiguator.map(a -> (Functions.F<Token, PStatement>)(x) -> a.apply(null,x)),   // Declaration of an object or a function, no access modifier
 
@@ -258,9 +261,11 @@ public class MainParser {
 
                 leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).andL(semicolonParser).map(a -> (Functions.F<Token, PStatement>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a)) ),  // Function call
 
-                Combinators.fail()  // Ths is meant to check for a function call, but right now it's a stub
+                periodParser.andR(identifierDecisionTree).map(a -> (Functions.F<Token, PIdentifierReference>)(x) -> new PIdentifierReference(x, a)),
+
+                Combinators.fail()  // why
                 )
-        ).map(a -> b -> b.apply(a));
+        ).map(a -> b -> b.apply(a)));
 
         varTypeDecisionTree = varTypeParser.and(
                 identifierDeclarationDisambiguator.map(a -> (Functions.F<Token, PStatement>)(x) -> a.apply(null,x))
@@ -336,11 +341,6 @@ public class MainParser {
                 identifierDecisionTree.map(a -> (PDeclaration) a)
         );
 
-        {
-            int foo = 0;
-            foo = 1;
-        }
-
         // For statement
         forStatementParser.set(Combinators.satisfy("For token", typePredicate(Token.TokenType.KEYWORD_FOR))
                 .andR(leftParenParser)
@@ -408,7 +408,7 @@ public class MainParser {
                 "public class foo2{" +
                 "public int foo3 = 0;" +
                 "public int main(){" +
-                "foo3 = 1;" +
+                "foo.foo4 = 1;" +
                 "}" +
                 "}";
 
