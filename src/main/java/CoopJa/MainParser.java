@@ -269,7 +269,9 @@ public class MainParser {
                 .andR(expressionRef)
                 .andL(rightParenParser)
                 .and(statementListParser)
-                .map(a -> b -> new PStatementIfStatement(a, b)));
+                //.and((Combinators.satisfy("else token", typePredicate(Token.TokenType.KEYWORD_ELSE)).andR(statementListParser)).or(pure(null)))   // There's a bug here that's making "else" statements mandatory
+                .and((Combinators.satisfy("else token", typePredicate(Token.TokenType.KEYWORD_ELSE)).andR(statementListParser)))
+                .map(a -> b -> (x) -> new PStatementIfStatement(a, b, x)));
 
         // While statement (literally a boiler plate of the above, but I don't want to create another intermediary parser so whatever)
         whileStatementParser.set(Combinators.satisfy("while token", typePredicate(Token.TokenType.KEYWORD_WHILE))
@@ -375,6 +377,14 @@ public class MainParser {
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
+                "if (1){" +
+                "int i = 0;" +
+                "}" +
+                "else{" +
+                "int i = 1;" +
+                "}" +
+                "int i = 2;" +
+                "return;" +
                 "}" +
                 "}";
 
@@ -398,6 +408,7 @@ public class MainParser {
 
         //PVariableDeclaration fooDeclaration = (PVariableDeclaration)parsers.statementParser.apply(tokenListInput).getOrThrow();
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        //PStatementIfStatement fooTester = parsers.ifStatementParser.parse(tokenListInput).getOrThrow();
         //PExpression fooTester2 = parsers.expressionLargeParser.parse(tokenListInput).getOrThrow();
     }
 }
