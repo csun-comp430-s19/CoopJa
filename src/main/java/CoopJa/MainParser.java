@@ -306,9 +306,10 @@ public class MainParser {
         classDeclarationParser = accessTypeParser.
                 andL(Combinators.satisfy("class token", typePredicate(Token.TokenType.KEYWORD_CLASS)))
                 .and(identifierParser)
+                .and((Combinators.satisfy("extends token", typePredicate(Token.TokenType.KEYWORD_EXTENDS)).andR(identifierParser)).or(pure(null)))
                 .andL(Combinators.satisfy("Curly Open", typePredicate(Token.TokenType.SYMBOL_LEFTCURLY)))
                 .and(declarationGeneralParser.manyTill(Combinators.satisfy("Curly Close", typePredicate(Token.TokenType.SYMBOL_RIGHTCURLY))))
-                .map(a -> b -> c -> new PClassDeclaration(a, b, IListtoArrayList(c)));
+                .map(a -> b -> c -> d -> new PClassDeclaration(a, b, c, IListtoArrayList(d)));
 
         programParser = classDeclarationParser.many().map(a -> new PProgram(IListtoArrayList(a)));
 
@@ -369,6 +370,7 @@ public class MainParser {
         //String foo = "public foo3 foo(int x, char y, foo z){int foo2 = 0;};";
 
         String foo = "public class foo{public int foo4 = 0;}" +
+                "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
                 "public int foo3 = 0;" +
                 "public int main(){" +
