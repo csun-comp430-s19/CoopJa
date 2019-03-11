@@ -1,5 +1,6 @@
-package main.java.CoopJa;
+package CoopJa;
 
+import CoopJa.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -95,8 +96,7 @@ public class TokenizerUnitTests {
     public void testTokenizeVarIncrement(){
         assertTokenizes("foo++ + 2;", new ArrayList<Token>(Arrays.asList(
                 new Token("foo"),
-                new Token("+"),
-                new Token("+"),
+                new Token("++"),
                 new Token("+"),
                 new Token("2"),
                 new Token(";")
@@ -132,11 +132,7 @@ public class TokenizerUnitTests {
                 new Token("{"),
                 new Token("println"),
                 new Token("("),
-                new Token("\""),
-                new Token("Hello"),
-                new Token("World"),
-                new Token("!"),
-                new Token("\""),
+                new Token("\"Hello World!\""),
                 new Token(")"),
                 new Token(";"),
                 new Token("}")
