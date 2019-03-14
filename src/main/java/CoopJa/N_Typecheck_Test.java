@@ -24,7 +24,7 @@ public class N_Typecheck_Test {
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
-                "if (1){" +
+                "if (1 == 1){" +
                 "int i = 0;" +
                 "}" +
                 "else{" +
@@ -329,16 +329,16 @@ public class N_Typecheck_Test {
 
 class Storage {
 
-    ArrayList<String> VariableNames;
-    ArrayList<String> MethodNames;
+    HashMap<String,String> VariableNames;
+    HashMap<String,String> MethodNames;
 
-    public Storage(ArrayList<String> vars, ArrayList<String> funct) {
+    public Storage(HashMap<String,String> vars, HashMap<String,String> funct) {
         VariableNames = vars;
         MethodNames = funct;
     }
 
     public Storage() {
-        VariableNames = new ArrayList<String>(1);
-        MethodNames = new ArrayList<String>(1);
+        VariableNames = new HashMap();
+        MethodNames = new HashMap();
     }
 }
