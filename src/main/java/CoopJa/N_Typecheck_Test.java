@@ -43,7 +43,7 @@ public class N_Typecheck_Test {
 
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
-        for (int i = 0; i < fooTester.classDeclarationList.size(); i++) {
+        for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes
             classlist.add(i, fooTester.classDeclarationList.get(i));
             ClassListAll.put(fooTester.classDeclarationList.get(i).identifier.getTokenString(), new Storage());
         }
@@ -289,9 +289,9 @@ public class N_Typecheck_Test {
             System.out.println();
         }
 
-    } //end Main()
+    } //end Main() //////////////////////////////////////PASS MAP AROUND TO MAINTAIN SCOPE XXXXXXXXXXXXXXXX
 
-    public static void VariableDeclarationTypecheck(PVariableDeclaration input) throws Exception {
+    public static void VariableDeclarationTypecheck(HashMap<String,Storage> map, PVariableDeclaration input) throws Exception {
 
         AccessModifierTypecheck(input.accessModifier, false);
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
@@ -300,11 +300,14 @@ public class N_Typecheck_Test {
             System.out.println("Declaration Access Modifier Type: NONE");
         }
 
-        ///////////////////////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxcan an improper type be put in?? XXXXXXXXXX check
+        ///////////////////////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX check
+        //class check (object of class?) if so, token = IDENTIFIER
+        //valid primitive types (tokens): KEYWORD_INT,KEYWORD_DOUBLE,KEYWORD_CHAR,KEYWORD_BOOLEAN,KEYWORD_STRING,KEYWORD_AUTO
         System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
+        //add name to list
         System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
 
-        VarDeclarCheck(input.variableType.getTokenString(), input.identifier.getTokenString()); //check if var has already been declared
+        VarDeclarCheck(input); //check if var has already been declared
 
 
 
@@ -380,21 +383,21 @@ public class N_Typecheck_Test {
 
     }
 
-    public static void VarDeclarCheck(String type, String name) throws Exception { //MAKE ANOTHER FOR FUNCTIONS XXXXXXXXXXXXXXXXXXXXX
+    public static void VarDeclarCheck(Token type, Token name) throws Exception { //MAKE ANOTHER FOR FUNCTIONS XXXXXXXXXXXXXXXXXXXXX
 
-        Storage tempStor = ClassListAll.get(ClassString); //get list
+        Storage tempStor = ClassListAll.get(ClassString); //get list ////XXXXXXXXXXX MERGE with other method already, do all Var Dec stuff there, pass map in to maintain scope
 
-        if (tempStor.VariableNames.containsValue(name)) { //collision
+        if (tempStor.VariableNames.containsKey(name)) { //collision
             throw new Exception("Variable Declaration Error: Variable with same name already defined");
         } else { //store new var
-            tempStor.VariableNames.put(type, name);
+            tempStor.VariableNames.put(name, lol);
             ClassListAll.put(ClassString, tempStor); //this updates the key/value in hashmap
         }
     }
 
     public static void ClassTypecheck(PClassDeclaration input) throws Exception {
 
-        AccessModifierTypecheck(input.accessModifier, true); //not really useful here, but will be later, used to cause exception if error
+        AccessModifierTypecheck(input.accessModifier, true);
         System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
 
         System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
@@ -414,7 +417,7 @@ public class N_Typecheck_Test {
     }
 
     public static void AccessModifierTypecheck(Token input, boolean isClass) throws Exception {
-        //access modifier required in class, but will fail at parser level
+        //access modifier required in class, but will fail at parser level if not there
         if (isClass) {
             if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
                 //good
@@ -435,10 +438,10 @@ public class N_Typecheck_Test {
 
 class Storage {
 
-    HashMap<String,String> VariableNames; //type, name
-    HashMap<String,String> MethodNames;
+    HashMap<String,VarStor> VariableNames; //name, object
+    HashMap<String,FunctStor> MethodNames;
 
-    public Storage(HashMap<String,String> vars, HashMap<String,String> funct) {
+    public Storage(HashMap<String,VarStor> vars, HashMap<String,FunctStor> funct) {
         VariableNames = vars;
         MethodNames = funct;
     }
@@ -446,5 +449,31 @@ class Storage {
     public Storage() {
         VariableNames = new HashMap();
         MethodNames = new HashMap();
+    }
+}
+
+class VarStor { //stores var info
+
+    Token Type;
+    Token AccessModifier;
+
+    public VarStor(Token t_in, Token am_in) {
+        Type = t_in;
+        AccessModifier = am_in;
+    }
+}
+
+class FunctStor { //store method stuff
+
+    Token ReturnType;
+    Token AccessModifier;
+    ArrayList<VarStor> Parameters; //ordered list of paramteres stored as VarStor objs
+    HashMap<String,VarStor> VariableNames; //stores all method vars declared inside it
+
+    public FunctStor(Token Return_temp, Token AM_temp, ArrayList<VarStor> Params_temp, HashMap<String,VarStor> VN_temp) { //convert to tokens?? XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx
+        ReturnType = Return_temp;
+        AccessModifier = AM_temp;
+        Parameters = Params_temp;
+        VariableNames = VN_temp;
     }
 }

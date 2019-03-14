@@ -9,8 +9,8 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
     public Token accessModifier;   // OPTIONAL
     public Token returnType;       // REQUIRED
     public Token identifier;       // REQUIRED
-    public ArrayList<PVariableDeclaration> variableDeclarations;
-    public ArrayList<PStatement> statementList;
+    public ArrayList<PVariableDeclaration> variableDeclarations; //parameters list (declared vars)
+    public ArrayList<PStatement> statementList; //all stmts in body
 
     public PStatementFunctionDeclaration(Token accessModifier, Token returnType, Token identifier, ArrayList<PVariableDeclaration> variableDeclarations, ArrayList<PStatement> statementList){
         this.accessModifier = accessModifier;
