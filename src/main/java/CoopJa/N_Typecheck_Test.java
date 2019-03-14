@@ -17,7 +17,7 @@ public class N_Typecheck_Test {
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
-                "if (1){" +
+                "if (1 == 1){" +
                 "int i = 0;" +
                 "}" +
                 "else{" +
@@ -33,7 +33,7 @@ public class N_Typecheck_Test {
         MainParser parsers = new MainParser();
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
 
-        System.out.println("");
+        System.out.println();
 
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
@@ -76,7 +76,79 @@ public class N_Typecheck_Test {
                     System.out.println("Declaration Identifier Type: " + tempVar.identifier.getType() + " " + tempVar.identifier.getTokenString());
                     System.out.println("Declaration Body: ");
                     if (tempVar.assignment != null) {
-                        System.out.println("PExpression assignment STILL NEED TO DO XXXXXXX");
+
+                        if (tempVar.assignment instanceof PExpressionStub) {
+                            System.out.println("Instance of PExpressionStub");
+                            PExpressionStub tempExp = (PExpressionStub)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionBinOp) {
+                            System.out.println("Instance of PExpressionBinOp");
+                            PExpressionBinOp tempExp = (PExpressionBinOp)tempVar.assignment;
+                            //2 pexpressions 1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionIdentifierReference) {
+                            System.out.println("Instance of PExpressionIdentifierReference");
+                            PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)tempVar.assignment;
+                            //1 token 1 pexpr
+                        }
+                        if (tempVar.assignment instanceof PExpressionVariable) {
+                            System.out.println("Instance of PExpressionVariable");
+                            PExpressionVariable tempExp = (PExpressionVariable)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PStatementFunctionCall) {
+                            System.out.println("Instance of PStatementFunctionCall");
+                            PStatementFunctionCall tempExp = (PStatementFunctionCall)tempVar.assignment;
+                            //1 Token , 1 ArrayList<PExpression>
+                        }
+                        if (tempVar.assignment instanceof PExpressionAtomBooleanLiteral) {
+                            System.out.println("Instance of PExpressionAtomBooleanLiteral");
+                            PExpressionAtomBooleanLiteral tempExp = (PExpressionAtomBooleanLiteral)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionAtomNullLiteral) {
+                            System.out.println("Instance of PExpressionAtomNullLiteral");
+                            PExpressionAtomNullLiteral tempExp = (PExpressionAtomNullLiteral)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionAtomNumberLiteral) {
+                            System.out.println("Instance of PExpressionAtomNumberLiteral");
+                            PExpressionAtomNumberLiteral tempExp = (PExpressionAtomNumberLiteral)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionAtomObjectConstruction) {
+                            System.out.println("Instance of PExpressionAtomObjectConstruction");
+                            PExpressionAtomObjectConstruction tempExp = (PExpressionAtomObjectConstruction)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PExpressionAtomStringLiteral) {
+                            System.out.println("Instance of PExpressionAtomStringLiteral");
+                            PExpressionAtomStringLiteral tempExp = (PExpressionAtomStringLiteral)tempVar.assignment;
+                            //1 token
+                        }
+                        if (tempVar.assignment instanceof PIdentifierReference) {
+                            System.out.println("Instance of PIdentifierReference");
+                            PIdentifierReference tempExp = (PIdentifierReference)tempVar.assignment;
+                            //1 Token , 1 PStatement
+                        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     } else {
                         System.out.println("Declaration PExpression assignment Empty");
                     }
@@ -95,12 +167,91 @@ public class N_Typecheck_Test {
                     System.out.println("Declaration Body: Variable Declarations");
                     if (tempFunc.variableDeclarations != null) {
                         System.out.println("ArrayList<PVariableDeclaration> variableDeclarations STILL NEED TO DO XXXXXXX");
+                        System.out.println("done above------------ XXXXXXXX");
                     } else {
                         System.out.println("Declaration ArrayList<PVariableDeclaration> variableDeclarations Empty");
                     }
                     System.out.println("Declaration Body: Statement List");
                     if (tempFunc.statementList != null) {
                         System.out.println("ArrayList<PStatement> statementList STILL NEED TO DO XXXXXXX");
+                        System.out.println("NEED TO ADD LOOP TO DO ALL ARRAYLIST OF PSTATEMENTS XXXXXXX");
+                        
+                        for (int k = 0; k < tempFunc.statementList.size(); k++) {
+
+                            System.out.println();
+
+                            if (tempFunc.statementList.get(k) instanceof PExpressionIdentifierReference) {
+                                System.out.println("Instance of PExpressionIdentifierReference");
+                                PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)tempFunc.statementList.get(k);
+                                //1 token 1 pexpr
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PIdentifierReference) {
+                                System.out.println("Instance of PIdentifierReference");
+                                PIdentifierReference tempExp = (PIdentifierReference)tempFunc.statementList.get(k);
+                                //1 token 1 pstmt
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementBreak) {
+                                System.out.println("Instance of PStatementBreak");
+                                PStatementBreak tempExp = (PStatementBreak)tempFunc.statementList.get(k);
+                                //1 token
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementForStatement) {
+                                System.out.println("Instance of PStatementForStatement");
+                                PStatementForStatement tempExp = (PStatementForStatement)tempFunc.statementList.get(k);
+                                //1 PStatement ,  1 PExpression,  1 PStatement , 1 ArrayList<PStatement>
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementFunctionCall) {
+                                System.out.println("Instance of PStatementFunctionCall");
+                                PStatementFunctionCall tempExp = (PStatementFunctionCall)tempFunc.statementList.get(k);
+                                //1 Token , 1 ArrayList<PExpression>
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementFunctionDeclaration) {
+                                System.out.println("Instance of PStatementFunctionDeclaration");
+                                PStatementFunctionDeclaration tempExp = (PStatementFunctionDeclaration)tempFunc.statementList.get(k);
+                                //handled above
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementIfStatement) {
+                                System.out.println("Instance of PStatementIfStatement");
+                                PStatementIfStatement tempExp = (PStatementIfStatement)tempFunc.statementList.get(k);
+                                //1 PExpression , 1 ArrayList<PStatement> , 1 ArrayList<PStatement>
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementPrintln) {
+                                System.out.println("Instance of PStatementPrintln");
+                                PStatementPrintln tempExp = (PStatementPrintln)tempFunc.statementList.get(k);
+                                //1 token
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementReturn) {
+                                System.out.println("Instance of PStatementReturn");
+                                PStatementReturn tempExp = (PStatementReturn)tempFunc.statementList.get(k);
+                                //1 pexpr
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PStatementWhileStatement) {
+                                System.out.println("Instance of PStatementWhileStatement");
+                                PStatementWhileStatement tempExp = (PStatementWhileStatement)tempFunc.statementList.get(k);
+                                //1 PExpression , 1 ArrayList<PStatement>
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PVariableAssignment) {
+                                System.out.println("Instance of PVariableAssignment");
+                                PVariableAssignment tempExp = (PVariableAssignment)tempFunc.statementList.get(k);
+                                //1 token, 1 pexpr
+                            }
+                            if (tempFunc.statementList.get(k) instanceof PVariableDeclaration) {
+                                System.out.println("Instance of PVariableDeclaration");
+                                PVariableDeclaration tempExp = (PVariableDeclaration)tempFunc.statementList.get(k);
+                                //already handled
+                            }
+                        }
+
+
+
+
+
+
+
+
+
+
+
                     } else {
                         System.out.println("Declaration ArrayList<PStatement> statementList Empty");
                     }
