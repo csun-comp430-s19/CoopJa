@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class PClassDeclaration {
     // Access Mod, Identifier, list of statements
-    public Token accessModifier;
+    public Token accessModifier; //REQUIRED
     public Token identifier;       // REQUIRED
     public Token extendsIdentifier; // If null, no extends
     public ArrayList<PDeclaration> declarationList;

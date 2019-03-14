@@ -2,11 +2,18 @@ package CoopJa;
 
 import org.typemeta.funcj.parser.Input;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class N_Typecheck_Test {
 
-    public static void main(String[] args){
+    public static HashMap<String,Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
+
+    public static void main(String[] args) throws Exception {
+
+
         String foo = "public class foo{public int foo4 = 0;}" +
                 "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
@@ -17,7 +24,7 @@ public class N_Typecheck_Test {
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
-                "if (1 == 1){" +
+                "if (1){" +
                 "int i = 0;" +
                 "}" +
                 "else{" +
@@ -32,13 +39,13 @@ public class N_Typecheck_Test {
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
-
         System.out.println();
 
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
         for (int i = 0; i < fooTester.classDeclarationList.size(); i++) {
             classlist.add(i, fooTester.classDeclarationList.get(i));
+            ClassListAll.put(fooTester.classDeclarationList.get(i).identifier.getTokenString(), new Storage());
         }
 
         System.out.println("Class list loaded");
@@ -47,17 +54,31 @@ public class N_Typecheck_Test {
             PClassDeclaration tempClass = classlist.get(i);
             int x = i + 1;
             System.out.println("Current Class: #" + x);
-            System.out.println("Class Access Modifier Type: " + tempClass.accessModifier.getType() + " " + tempClass.accessModifier.getTokenString());
-            System.out.println("Class Identifier Type: " + tempClass.identifier.getType() + " " + tempClass.identifier.getTokenString());
-            System.out.print("Class Extends a Class?: ");
-            if (tempClass.extendsIdentifier != null) {
-                System.out.println("yes " + tempClass.extendsIdentifier.getType() + " " + tempClass.extendsIdentifier.getTokenString());
-            } else {
-                System.out.println("no");
-            }
+
+            ClassTypecheck(tempClass);
+
+
+
+
+
+//            System.out.println("Class Access Modifier Type: " + tempClass.accessModifier.getType() + " " + tempClass.accessModifier.getTokenString());
+//            System.out.println("Class Identifier (Name): " + tempClass.identifier.getType() + " " + tempClass.identifier.getTokenString());
+//            System.out.print("Class Extends a Class?: ");
+//            if (tempClass.extendsIdentifier != null) {
+//                System.out.println("yes " + tempClass.extendsIdentifier.getType() + " " + tempClass.extendsIdentifier.getTokenString());
+//            } else {
+//                System.out.println("no");
+//            }
+
+
+
 
             ArrayList<PDeclaration> tempDeclar = tempClass.declarationList;
             System.out.println("Class #" + x + " Declarations Amount: " + tempDeclar.size());
+
+
+
+
             System.out.println("Declarations Begin: ");
 
             for (int j = 0; j < tempDeclar.size(); j++){
@@ -175,7 +196,7 @@ public class N_Typecheck_Test {
                     if (tempFunc.statementList != null) {
                         System.out.println("ArrayList<PStatement> statementList STILL NEED TO DO XXXXXXX");
                         System.out.println("NEED TO ADD LOOP TO DO ALL ARRAYLIST OF PSTATEMENTS XXXXXXX");
-                        
+
                         for (int k = 0; k < tempFunc.statementList.size(); k++) {
 
                             System.out.println();
@@ -264,6 +285,60 @@ public class N_Typecheck_Test {
             System.out.println();
         }
 
+    } //end Main()
+
+    public static void ClassTypecheck(PClassDeclaration input) throws Exception {
+
+        AccessModifierTypecheck(input.accessModifier, true); //not really useful here, but will be later, used to cause exception if error
+        System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
+
+        System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
+
+        System.out.print("Class Extends a Class?: ");
+        if (input.extendsIdentifier != null) {
+            if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) {
+                System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString());
+            } else { //class extends class that does not exist (yet)
+                throw new Exception("Class Error: Class Extends Class that does not exist");
+            }
+        } else {
+            System.out.println("no");
+        }
+
     }
 
+    public static void AccessModifierTypecheck(Token input, boolean isClass) throws Exception {
+        //access modifier required in class, but will fail at parser level
+        if (isClass) {
+            if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
+                //good
+            } else {
+                throw new Exception("Class Typecheck Error: Class Access Modifier Invalid");
+            }
+        } else { //not class, access modifier may be blank
+            if (input == null || input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
+                //good
+            } else {
+                throw new Exception("Declaration Error: Access Modifier Invalid");
+            }
+        }
+
+    }
+
+}
+
+class Storage {
+
+    ArrayList<String> VariableNames;
+    ArrayList<String> MethodNames;
+
+    public Storage(ArrayList<String> vars, ArrayList<String> funct) {
+        VariableNames = vars;
+        MethodNames = funct;
+    }
+
+    public Storage() {
+        VariableNames = new ArrayList<String>(1);
+        MethodNames = new ArrayList<String>(1);
+    }
 }
