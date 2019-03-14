@@ -12,7 +12,7 @@ public class N_Typecheck_Test {
 
     public static void main(String[] args) throws Exception {
 
-
+		//
         String foo = "public class foo{public int foo4 = 0;}" +
                 "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
