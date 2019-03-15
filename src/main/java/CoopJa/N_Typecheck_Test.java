@@ -8,12 +8,11 @@ import java.util.HashMap;
 public class N_Typecheck_Test {
 
     public static HashMap<String,Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
-    public static String ClassString = "";
+    public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
 
     public static void main(String[] args) throws Exception {
 
-
-        String foo = "public class foo{public int foo4 = 0;}" +
+        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
                 "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
                 //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
@@ -35,90 +34,58 @@ public class N_Typecheck_Test {
                 "}" +
                 "}";
 
-        ArrayList<Token> tokenList = Token.tokenize(foo);
+        ArrayList<Token> tokenList = Token.tokenize(foo); //tokenize example string
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
-        MainParser parsers = new MainParser();
-        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        MainParser parsers = new MainParser(); //create MainParser object
+        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
         System.out.println();
 
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
-        for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes
+        for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes into above ArrayList
             classlist.add(i, fooTester.classDeclarationList.get(i));
             ClassListAll.put(fooTester.classDeclarationList.get(i).identifier.getTokenString(), new Storage());
         }
 
         System.out.println("Class list loaded");
 
-        for (int i = 0; i < classlist.size(); i++) {
-            PClassDeclaration tempClass = classlist.get(i);
-            int x = i + 1;
+        for (int i = 0; i < classlist.size(); i++) { //for each class
+            PClassDeclaration tempClass = classlist.get(i); //assign first class to a temp var
+            int x = i + 1; //used for printing
             System.out.println("Current Class: #" + x);
 
-            ClassTypecheck(tempClass);
+            ClassTypecheck(tempClass); //typecheck the current class declaration
 
-
-
-            ArrayList<PDeclaration> tempDeclar = tempClass.declarationList;
-            System.out.println("Class #" + x + " Declarations Amount: " + tempDeclar.size());
-
-
-
+            ArrayList<PDeclaration> tempDeclar = tempClass.declarationList; //pull out the declarations for this current class
+            System.out.println("Class #" + x + " Declarations Amount: " + tempDeclar.size()); //how many declaration stmts are there?
 
             System.out.println("Declarations Begin: ");
 
-            for (int j = 0; j < tempDeclar.size(); j++){
+            for (int j = 0; j < tempDeclar.size(); j++) { //for each declaration, either it is a PVariableDeclaration or a PStatementFunctionDeclaration
 
-                int y = j + 1;
+                int y = j + 1; //used for printing
 
                 if (tempDeclar.get(j) instanceof PVariableDeclaration) { //handle class variable declarations
                     System.out.println("Declaration #" + y + " is instance of PVariableDeclaration");
-                    PVariableDeclaration tempVar = (PVariableDeclaration)tempDeclar.get(j);
+                    PVariableDeclaration tempVar = (PVariableDeclaration)tempDeclar.get(j); //cast the PDeclaration obj into its proper form in a temp var
 
                     Storage t_S = ClassListAll.get(ClassString); //pull out Storage obj of the current class
                     HashMap<String,VarStor> t_VS = t_S.VariableNames; //pull the vars out of the Storage object
-
-                    t_VS = VariableDeclarationTypecheck(t_VS, tempVar); //call VDT with this list of vars (Scope) and overwrite it with VDT return
-
+                    HashMap<String,VarStor> t_NEWVars; //holds new info after VDT call
+                    t_NEWVars = VariableDeclarationTypecheck(t_VS, tempVar); //call VDT with this list of vars (Scope) and get new info
+                    t_VS.putAll(t_NEWVars); //add new info to old map
                     t_S.VariableNames = t_VS; //replace Storage object var list with updated copy
-
                     ClassListAll.put(ClassString, t_S); //replace the old Storage obj by adding it back to class hashmap with class string
 
                 }
 
-                if (tempDeclar.get(j) instanceof PStatementFunctionDeclaration) { //TBD...XXXXXXX
+                if (tempDeclar.get(j) instanceof PStatementFunctionDeclaration) { //for each method declaration
                     System.out.println("Declaration #" + y + " is instance of PStatementFunctionDeclaration");
-                    PStatementFunctionDeclaration tempFunc = (PStatementFunctionDeclaration)tempDeclar.get(j);
-                    if (tempFunc.accessModifier != null) {
-                        System.out.println("Declaration Access Modifier Type: " + tempFunc.accessModifier.getType() + " " + tempFunc.accessModifier.getTokenString());
-                    } else {
-                        System.out.println("Declaration Access Modifier Type: NONE");
-                    }
-                    System.out.println("Declaration Return Type: " + tempFunc.returnType.getType() + " " + tempFunc.returnType.getTokenString());
-                    System.out.println("Declaration Identifier Type: " + tempFunc.identifier.getType() + " " + tempFunc.identifier.getTokenString());
-                    System.out.println("Declaration Body: Variable Declarations");
-                    if (tempFunc.variableDeclarations != null) {
-                        System.out.println("ArrayList<PVariableDeclaration> variableDeclarations STILL NEED TO DO XXXXXXX");
-                        System.out.println("done above------------ XXXXXXXX");
-                    } else {
-                        System.out.println("Declaration ArrayList<PVariableDeclaration> variableDeclarations Empty");
-                    }
-                    System.out.println("Declaration Body: Statement List");
-                    if (tempFunc.statementList != null) {
-                        System.out.println("ArrayList<PStatement> statementList STILL NEED TO DO XXXXXXX");
-                        System.out.println("NEED TO ADD LOOP TO DO ALL ARRAYLIST OF PSTATEMENTS XXXXXXX");
+                    PStatementFunctionDeclaration tempFunc = (PStatementFunctionDeclaration)tempDeclar.get(j); //cast PDeclaration object to its proper type
 
-                        for (int k = 0; k < tempFunc.statementList.size(); k++) {
-
-                            PStatement tempStmtExp = tempFunc.statementList.get(k);
-
-                            TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp);
-
-                        }
-
-                    } else {
-                        System.out.println("Declaration ArrayList<PStatement> statementList Empty");
-                    }
+                    Storage tempSendClassStor = ClassListAll.get(ClassString); //retrieve current class's Storage object
+                    Storage replaceClassStor = MethodDeclarationTypecheck(tempSendClassStor, tempFunc); //call MDT, send it current class's Stor obj & the PStatementFunctionDeclaration obj, returns an updated Stor obj after typechecking the method
+                    ClassListAll.put(ClassString, replaceClassStor); //update the class's stor obj with method info
                 }
                 System.out.println("End Declaration #" + y);
                 System.out.println();
@@ -130,9 +97,10 @@ public class N_Typecheck_Test {
 
     } //end Main()
 
-    public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration
+    public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
-        AccessModifierTypecheck(input.accessModifier, false);
+        HashMap<String,VarStor> mapNEW = new HashMap<>(); //used to hold new vars
+        AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
             System.out.println("Declaration Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
         } else {
@@ -145,7 +113,7 @@ public class N_Typecheck_Test {
             System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
         } else if (input.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //is type of var AUTO? (token = KEYWORD_AUTO)
             System.out.println("Auto Type");
-            //do AUTO stuff later XXXXXXX
+            //do AUTO stuff later XXXXXXX, maybe a boolean if it is an auto, and before assignment and storing etc, check bool and evaluate the type
             System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
         } else if (input.variableType.getType() == Token.TokenType.IDENTIFIER) { //is the type of the var a Class? (token = IDENTIFIER)
             System.out.println("Variable Declared of a Class");
@@ -155,40 +123,133 @@ public class N_Typecheck_Test {
             } else { //class not declared yet
                 throw new Exception("Variable Declaration Error: Class of Variable Type not defined");
             }
-        } else {
+        } else { //if all else fails, invalid type
             throw new Exception("Variable Declaration Error: Variable Type unrecognized");
         }
 
-        if (map.containsKey(input.identifier.getTokenString())) { //check if var already exists in scope
+        if (map.containsKey(input.identifier.getTokenString())) { //check if var already exists in scope (given map obj)
             throw new Exception("Variable Declaration Error: Variable with same name already defined in scope");
         } else { //if not, add it as a new var
-            VarStor tempVS = new VarStor(input.variableType, input.accessModifier);
-            map.put(input.identifier.getTokenString(), tempVS);
+            VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
+            mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
             System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
         }
 
-        TEMP_unused_code_for_Expressions__VARDEC(input); ////XXXXXXXXXXXXXXXXXXXXXXXX fix
+        TEMP_unused_code_for_Expressions__VARDEC(input); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
 
-        return map;
+        return mapNEW; //return the updated map of all defined variables in current scope
 
     }
 
-    public static void ClassTypecheck(PClassDeclaration input) throws Exception {
+    public static Storage MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws Exception { //input: a class's Storage object & function declaration
 
-        AccessModifierTypecheck(input.accessModifier, true);
+        AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
+        if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
+            System.out.println("Declaration Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
+        } else {
+            System.out.println("Declaration Access Modifier Type: NONE");
+        }
+
+        //check if return type is valid, primitive types tokens: KEYWORD_INT,KEYWORD_DOUBLE,KEYWORD_CHAR,KEYWORD_BOOLEAN,KEYWORD_STRING
+        if (input.returnType.getType() == Token.TokenType.KEYWORD_INT || input.returnType.getType() == Token.TokenType.KEYWORD_DOUBLE || input.returnType.getType() == Token.TokenType.KEYWORD_CHAR || input.returnType.getType() == Token.TokenType.KEYWORD_BOOLEAN || input.returnType.getType() == Token.TokenType.KEYWORD_STRING) {
+            System.out.println("Primitive Return Type");
+            System.out.println("Method Declaration Return Type: " + input.returnType.getType() + " " + input.returnType.getTokenString());
+        } else if (input.returnType.getType() == Token.TokenType.KEYWORD_AUTO) { //is return type AUTO? (token = KEYWORD_AUTO)
+            System.out.println("Auto Type");
+            //do AUTO stuff later XXXXXXX, AUTO return type allowed?
+            System.out.println("Method Declaration Return Type: " + input.returnType.getType() + " " + input.returnType.getTokenString());
+        } else if (input.returnType.getType() == Token.TokenType.IDENTIFIER) { //is return type a Class? (token = IDENTIFIER)
+            System.out.println("Method Returns Type of Class");
+            if (ClassListAll.containsKey(input.returnType.getTokenString())) { //check all class list for name
+                System.out.println("Class Found");
+                System.out.println("Method Returns Type of Class: " + input.returnType.getType() + " " + input.returnType.getTokenString());
+            } else { //class not declared yet
+                throw new Exception("Method Declaration Error: Class of Return Type not defined");
+            }
+        } else { //if all else fails, invalid type
+            throw new Exception("Method Declaration Error: Return Type unrecognized");
+        }
+
+        FunctStor tempFS = new FunctStor(); //store all function stuff
+        //check if method name already exists in scope (given map obj), check both var names and method names
+        if (map.VariableNames.containsKey(input.identifier.getTokenString()) || map.MethodNames.containsKey(input.identifier.getTokenString())) {
+            throw new Exception("Method Declaration Error: Variable or Method with same name already defined in scope");
+        } else { //if not, add it as a new var
+            System.out.println("Method Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+            tempFS.AccessModifier = input.accessModifier;
+            tempFS.ReturnType = input.returnType;
+            tempFS.Classname = ClassString;
+            //two more things to add: params & stmts, to FunctStor at this point
+            map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+        }
+
+        //deal with params
+        if (input.variableDeclarations != null) { //if method has params
+            System.out.println("Method Parameters:");
+            HashMap<String,VarStor> tempClassVars = map.VariableNames; //grab list of all class vars
+            HashMap<String,VarStor> tempFunctionVars = map.MethodNames.get(input.identifier.getTokenString()).VariableNames; //grab all method vars
+            HashMap<String,VarStor> combinedVars = new HashMap<>(); //define hashmap to store all vars the method needs to know about
+            combinedVars.putAll(tempClassVars); //add class vars to combined vars list
+            if (tempFunctionVars != null) { //if stuff is in list ///PUTALL ISSUE: here it will fail if you put "...size() != 0" but down it will fail if you put "... != null"
+                combinedVars.putAll(tempFunctionVars); //add method vars to combined vars list, ie merge them
+            } else { //if the list is empty, it will fail to putall
+                //do nothing since empty, no need to merge
+            }
+            for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
+                HashMap<String,VarStor> output; //declare var for return of VDT()
+                output = VariableDeclarationTypecheck(combinedVars, input.variableDeclarations.get(i));
+                combinedVars.putAll(output); //add new vars to combined vars list
+                VarStor tempStor = output.get(input.identifier.getTokenString()); //just used to show how to get the VarStor obj
+                tempFS.Parameters.add(i, tempStor); //add param to FunctStor object, ordered
+            }
+        } else { //no method params
+            System.out.println("Method has no Parameters");
+        }
+
+        HashMap<String,VarStor> methodBodyVars = new HashMap<>(); //store all method vars here
+        if (input.statementList != null) {
+            System.out.println("Method Declaration Body: Statement List");
+            for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
+                PStatement tempStmtExp = input.statementList.get(k);
+
+                TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp);
+                ///NOTE: if there is a variable declaration, it needs to be added to a list after
+                ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars"
+
+            }
+        } else {
+            System.out.println("Method Body has no statements");
+        }
+
+        if (methodBodyVars.size() != 0) { //yes method body vars ///PUTALL ISSUE: here, it will not work correctly if you say "... != null", but above it will fail if you put "...size() != 0"
+            tempFS.VariableNames.putAll(methodBodyVars); //XXXXXXXXXX Fix, right now it is EMPTY, used to give all var names for method
+            //all 5 parts of tempFS (FunctStor) obj added, need to replace this FunctStor object for this method in map
+        } else { //no method body vars, empty
+            //do nothing since empty
+        }
+
+        map.MethodNames.put(input.identifier.getTokenString(), tempFS); //update FunctStor (before was blank), replace previous entry
+
+        return map; //return class Storage object updated
+
+    }
+
+    public static void ClassTypecheck(PClassDeclaration input) throws Exception { //typecheck the class declaration
+
+        AccessModifierTypecheck(input.accessModifier, true); //make sure the access modifier is valid
         System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
 
         System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
-        ClassString = input.identifier.getTokenString();
+        ClassString = input.identifier.getTokenString(); //assign current class name
 
-        System.out.print("Class Extends a Class?: ");
-        if (input.extendsIdentifier != null) {
-            if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) {
-                System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString());
+        System.out.print("Class Extends a Class?: "); //find out if this current class extends another class (based on its declaration)
+        if (input.extendsIdentifier != null) { //the class does extend another
+            if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) { //check if this class (that the working class is supposed to extend) is known yet/exists
+                System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString()); //it does exist
             } else { //class extends class that does not exist (yet)
                 throw new Exception("Class Error: Class Extends Class that does not exist");
             }
-        } else {
+        } else { //the class does not extend another
             System.out.println("no");
         }
 
