@@ -59,7 +59,6 @@ public class N_Typecheck_Test {
 
 
 
-
 //            System.out.println("Class Access Modifier Type: " + tempClass.accessModifier.getType() + " " + tempClass.accessModifier.getTokenString());
 //            System.out.println("Class Identifier (Name): " + tempClass.identifier.getType() + " " + tempClass.identifier.getTokenString());
 //            System.out.print("Class Extends a Class?: ");
@@ -291,7 +290,7 @@ public class N_Typecheck_Test {
 
     } //end Main() //////////////////////////////////////PASS MAP AROUND TO MAINTAIN SCOPE XXXXXXXXXXXXXXXX
 
-    public static void VariableDeclarationTypecheck(HashMap<String,Storage> map, PVariableDeclaration input) throws Exception {
+    public static void VariableDeclarationTypecheck(PVariableDeclaration input) throws Exception {
 
         AccessModifierTypecheck(input.accessModifier, false);
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
@@ -307,7 +306,7 @@ public class N_Typecheck_Test {
         //add name to list
         System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
 
-        VarDeclarCheck(input); //check if var has already been declared
+        //VarDeclarCheck(input); //check if var has already been declared
 
 
 
@@ -383,7 +382,7 @@ public class N_Typecheck_Test {
 
     }
 
-    public static void VarDeclarCheck(Token type, Token name) throws Exception { //MAKE ANOTHER FOR FUNCTIONS XXXXXXXXXXXXXXXXXXXXX
+/*    public static void VarDeclarCheck(Token type, Token name) throws Exception { //MAKE ANOTHER FOR FUNCTIONS XXXXXXXXXXXXXXXXXXXXX
 
         Storage tempStor = ClassListAll.get(ClassString); //get list ////XXXXXXXXXXX MERGE with other method already, do all Var Dec stuff there, pass map in to maintain scope
 
@@ -393,9 +392,10 @@ public class N_Typecheck_Test {
             tempStor.VariableNames.put(name, lol);
             ClassListAll.put(ClassString, tempStor); //this updates the key/value in hashmap
         }
-    }
+    }*/
 
-    public static void ClassTypecheck(PClassDeclaration input) throws Exception {
+
+    public static void ClassTypecheck(PClassDeclaration input) throws TypeCheckerException {
 
         AccessModifierTypecheck(input.accessModifier, true);
         System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
@@ -408,27 +408,27 @@ public class N_Typecheck_Test {
             if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) {
                 System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString());
             } else { //class extends class that does not exist (yet)
-                throw new Exception("Class Error: Class Extends Class that does not exist");
+                throw new TypeCheckerException("Class Error: Class Extends Class that does not exist");
             }
         } else {
             System.out.println("no");
         }
-
     }
 
-    public static void AccessModifierTypecheck(Token input, boolean isClass) throws Exception {
+
+    public static void AccessModifierTypecheck(Token input, boolean isClass) throws TypeCheckerException {
         //access modifier required in class, but will fail at parser level if not there
         if (isClass) {
             if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
                 //good
             } else {
-                throw new Exception("Class Typecheck Error: Class Access Modifier Invalid");
+                throw new TypeCheckerException("Class Typecheck Error: Class Access Modifier Invalid");
             }
         } else { //not class, access modifier may be blank
             if (input == null || input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
                 //good
             } else {
-                throw new Exception("Declaration Error: Access Modifier Invalid");
+                throw new TypeCheckerException("Declaration Error: Access Modifier Invalid");
             }
         }
 
