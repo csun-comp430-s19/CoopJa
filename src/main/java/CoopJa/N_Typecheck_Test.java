@@ -16,7 +16,7 @@ public class N_Typecheck_Test {
         String foo = "public class foo{public int foo4 = 0;}" +
                 "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
-                "public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
+                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
                 "public int foo3 = 0;" +
                 "public int main(){" +
                 "foo.foo4(); " +
@@ -59,19 +59,6 @@ public class N_Typecheck_Test {
 
 
 
-
-//            System.out.println("Class Access Modifier Type: " + tempClass.accessModifier.getType() + " " + tempClass.accessModifier.getTokenString());
-//            System.out.println("Class Identifier (Name): " + tempClass.identifier.getType() + " " + tempClass.identifier.getTokenString());
-//            System.out.print("Class Extends a Class?: ");
-//            if (tempClass.extendsIdentifier != null) {
-//                System.out.println("yes " + tempClass.extendsIdentifier.getType() + " " + tempClass.extendsIdentifier.getTokenString());
-//            } else {
-//                System.out.println("no");
-//            }
-
-
-
-
             ArrayList<PDeclaration> tempDeclar = tempClass.declarationList;
             System.out.println("Class #" + x + " Declarations Amount: " + tempDeclar.size());
 
@@ -84,102 +71,22 @@ public class N_Typecheck_Test {
 
                 int y = j + 1;
 
-                if (tempDeclar.get(j) instanceof PVariableDeclaration) {
+                if (tempDeclar.get(j) instanceof PVariableDeclaration) { //handle class variable declarations
                     System.out.println("Declaration #" + y + " is instance of PVariableDeclaration");
                     PVariableDeclaration tempVar = (PVariableDeclaration)tempDeclar.get(j);
 
-                    VariableDeclarationTypecheck(tempVar);
+                    Storage t_S = ClassListAll.get(ClassString); //pull out Storage obj of the current class
+                    HashMap<String,VarStor> t_VS = t_S.VariableNames; //pull the vars out of the Storage object
 
+                    t_VS = VariableDeclarationTypecheck(t_VS, tempVar); //call VDT with this list of vars (Scope) and overwrite it with VDT return
 
+                    t_S.VariableNames = t_VS; //replace Storage object var list with updated copy
 
-//                    if (tempVar.accessModifier != null) {
-//                        System.out.println("Declaration Access Modifier Type: " + tempVar.accessModifier.getType() + " " + tempVar.accessModifier.getTokenString());
-//                    } else {
-//                        System.out.println("Declaration Access Modifier Type: NONE");
-//                    }
-//                    System.out.println("Declaration Variable Type: " + tempVar.variableType.getType() + " " + tempVar.variableType.getTokenString());
-//                    System.out.println("Declaration Identifier Type: " + tempVar.identifier.getType() + " " + tempVar.identifier.getTokenString());
-//                    System.out.println("Declaration Body: ");
-//                    if (tempVar.assignment != null) {
-//
-//                        if (tempVar.assignment instanceof PExpressionStub) {
-//                            System.out.println("Instance of PExpressionStub");
-//                            PExpressionStub tempExp = (PExpressionStub)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionBinOp) {
-//                            System.out.println("Instance of PExpressionBinOp");
-//                            PExpressionBinOp tempExp = (PExpressionBinOp)tempVar.assignment;
-//                            //2 pexpressions 1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionIdentifierReference) {
-//                            System.out.println("Instance of PExpressionIdentifierReference");
-//                            PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)tempVar.assignment;
-//                            //1 token 1 pexpr
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionVariable) {
-//                            System.out.println("Instance of PExpressionVariable");
-//                            PExpressionVariable tempExp = (PExpressionVariable)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PStatementFunctionCall) {
-//                            System.out.println("Instance of PStatementFunctionCall");
-//                            PStatementFunctionCall tempExp = (PStatementFunctionCall)tempVar.assignment;
-//                            //1 Token , 1 ArrayList<PExpression>
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionAtomBooleanLiteral) {
-//                            System.out.println("Instance of PExpressionAtomBooleanLiteral");
-//                            PExpressionAtomBooleanLiteral tempExp = (PExpressionAtomBooleanLiteral)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionAtomNullLiteral) {
-//                            System.out.println("Instance of PExpressionAtomNullLiteral");
-//                            PExpressionAtomNullLiteral tempExp = (PExpressionAtomNullLiteral)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionAtomNumberLiteral) {
-//                            System.out.println("Instance of PExpressionAtomNumberLiteral");
-//                            PExpressionAtomNumberLiteral tempExp = (PExpressionAtomNumberLiteral)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionAtomObjectConstruction) {
-//                            System.out.println("Instance of PExpressionAtomObjectConstruction");
-//                            PExpressionAtomObjectConstruction tempExp = (PExpressionAtomObjectConstruction)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PExpressionAtomStringLiteral) {
-//                            System.out.println("Instance of PExpressionAtomStringLiteral");
-//                            PExpressionAtomStringLiteral tempExp = (PExpressionAtomStringLiteral)tempVar.assignment;
-//                            //1 token
-//                        }
-//                        if (tempVar.assignment instanceof PIdentifierReference) {
-//                            System.out.println("Instance of PIdentifierReference");
-//                            PIdentifierReference tempExp = (PIdentifierReference)tempVar.assignment;
-//                            //1 Token , 1 PStatement
-//                        }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//                    } else {
-//                        System.out.println("Declaration PExpression assignment Empty");
-//                    }
+                    ClassListAll.put(ClassString, t_S); //replace the old Storage obj by adding it back to class hashmap with class string
+
                 }
 
-                if (tempDeclar.get(j) instanceof PStatementFunctionDeclaration) {
+                if (tempDeclar.get(j) instanceof PStatementFunctionDeclaration) { //TBD...XXXXXXX
                     System.out.println("Declaration #" + y + " is instance of PStatementFunctionDeclaration");
                     PStatementFunctionDeclaration tempFunc = (PStatementFunctionDeclaration)tempDeclar.get(j);
                     if (tempFunc.accessModifier != null) {
@@ -203,79 +110,11 @@ public class N_Typecheck_Test {
 
                         for (int k = 0; k < tempFunc.statementList.size(); k++) {
 
-                            System.out.println();
+                            PStatement tempStmtExp = tempFunc.statementList.get(k);
 
-                            if (tempFunc.statementList.get(k) instanceof PExpressionIdentifierReference) {
-                                System.out.println("Instance of PExpressionIdentifierReference");
-                                PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)tempFunc.statementList.get(k);
-                                //1 token 1 pexpr
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PIdentifierReference) {
-                                System.out.println("Instance of PIdentifierReference");
-                                PIdentifierReference tempExp = (PIdentifierReference)tempFunc.statementList.get(k);
-                                //1 token 1 pstmt
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementBreak) {
-                                System.out.println("Instance of PStatementBreak");
-                                PStatementBreak tempExp = (PStatementBreak)tempFunc.statementList.get(k);
-                                //1 token
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementForStatement) {
-                                System.out.println("Instance of PStatementForStatement");
-                                PStatementForStatement tempExp = (PStatementForStatement)tempFunc.statementList.get(k);
-                                //1 PStatement ,  1 PExpression,  1 PStatement , 1 ArrayList<PStatement>
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementFunctionCall) {
-                                System.out.println("Instance of PStatementFunctionCall");
-                                PStatementFunctionCall tempExp = (PStatementFunctionCall)tempFunc.statementList.get(k);
-                                //1 Token , 1 ArrayList<PExpression>
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementFunctionDeclaration) {
-                                System.out.println("Instance of PStatementFunctionDeclaration");
-                                PStatementFunctionDeclaration tempExp = (PStatementFunctionDeclaration)tempFunc.statementList.get(k);
-                                //handled above
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementIfStatement) {
-                                System.out.println("Instance of PStatementIfStatement");
-                                PStatementIfStatement tempExp = (PStatementIfStatement)tempFunc.statementList.get(k);
-                                //1 PExpression , 1 ArrayList<PStatement> , 1 ArrayList<PStatement>
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementPrintln) {
-                                System.out.println("Instance of PStatementPrintln");
-                                PStatementPrintln tempExp = (PStatementPrintln)tempFunc.statementList.get(k);
-                                //1 token
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementReturn) {
-                                System.out.println("Instance of PStatementReturn");
-                                PStatementReturn tempExp = (PStatementReturn)tempFunc.statementList.get(k);
-                                //1 pexpr
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PStatementWhileStatement) {
-                                System.out.println("Instance of PStatementWhileStatement");
-                                PStatementWhileStatement tempExp = (PStatementWhileStatement)tempFunc.statementList.get(k);
-                                //1 PExpression , 1 ArrayList<PStatement>
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PVariableAssignment) {
-                                System.out.println("Instance of PVariableAssignment");
-                                PVariableAssignment tempExp = (PVariableAssignment)tempFunc.statementList.get(k);
-                                //1 token, 1 pexpr
-                            }
-                            if (tempFunc.statementList.get(k) instanceof PVariableDeclaration) {
-                                System.out.println("Instance of PVariableDeclaration");
-                                PVariableDeclaration tempExp = (PVariableDeclaration)tempFunc.statementList.get(k);
-                                //already handled
-                            }
+                            TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp);
+
                         }
-
-
-
-
-
-
-
-
-
-
 
                     } else {
                         System.out.println("Declaration ArrayList<PStatement> statementList Empty");
@@ -289,9 +128,9 @@ public class N_Typecheck_Test {
             System.out.println();
         }
 
-    } //end Main() //////////////////////////////////////PASS MAP AROUND TO MAINTAIN SCOPE XXXXXXXXXXXXXXXX
+    } //end Main()
 
-    public static void VariableDeclarationTypecheck(HashMap<String,Storage> map, PVariableDeclaration input) throws Exception {
+    public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration
 
         AccessModifierTypecheck(input.accessModifier, false);
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
@@ -300,20 +139,79 @@ public class N_Typecheck_Test {
             System.out.println("Declaration Access Modifier Type: NONE");
         }
 
-        ///////////////////////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX check
-        //class check (object of class?) if so, token = IDENTIFIER
-        //valid primitive types (tokens): KEYWORD_INT,KEYWORD_DOUBLE,KEYWORD_CHAR,KEYWORD_BOOLEAN,KEYWORD_STRING,KEYWORD_AUTO
-        System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
-        //add name to list
-        System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+        //check if type of var is valid, primitive types tokens: KEYWORD_INT,KEYWORD_DOUBLE,KEYWORD_CHAR,KEYWORD_BOOLEAN,KEYWORD_STRING
+        if (input.variableType.getType() == Token.TokenType.KEYWORD_INT || input.variableType.getType() == Token.TokenType.KEYWORD_DOUBLE || input.variableType.getType() == Token.TokenType.KEYWORD_CHAR || input.variableType.getType() == Token.TokenType.KEYWORD_BOOLEAN || input.variableType.getType() == Token.TokenType.KEYWORD_STRING) {
+            System.out.println("Primitive Type");
+            System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
+        } else if (input.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //is type of var AUTO? (token = KEYWORD_AUTO)
+            System.out.println("Auto Type");
+            //do AUTO stuff later XXXXXXX
+            System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
+        } else if (input.variableType.getType() == Token.TokenType.IDENTIFIER) { //is the type of the var a Class? (token = IDENTIFIER)
+            System.out.println("Variable Declared of a Class");
+            if (ClassListAll.containsKey(input.variableType.getTokenString())) { //check all class list for name
+                System.out.println("Class Found");
+                System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
+            } else { //class not declared yet
+                throw new Exception("Variable Declaration Error: Class of Variable Type not defined");
+            }
+        } else {
+            throw new Exception("Variable Declaration Error: Variable Type unrecognized");
+        }
 
-        VarDeclarCheck(input); //check if var has already been declared
+        if (map.containsKey(input.identifier.getTokenString())) { //check if var already exists in scope
+            throw new Exception("Variable Declaration Error: Variable with same name already defined in scope");
+        } else { //if not, add it as a new var
+            VarStor tempVS = new VarStor(input.variableType, input.accessModifier);
+            map.put(input.identifier.getTokenString(), tempVS);
+            System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+        }
 
+        TEMP_unused_code_for_Expressions__VARDEC(input); ////XXXXXXXXXXXXXXXXXXXXXXXX fix
 
+        return map;
 
+    }
 
-        ////////////////MORE TO DO XXXXXXXXXXXXX below
+    public static void ClassTypecheck(PClassDeclaration input) throws Exception {
 
+        AccessModifierTypecheck(input.accessModifier, true);
+        System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
+
+        System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
+        ClassString = input.identifier.getTokenString();
+
+        System.out.print("Class Extends a Class?: ");
+        if (input.extendsIdentifier != null) {
+            if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) {
+                System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString());
+            } else { //class extends class that does not exist (yet)
+                throw new Exception("Class Error: Class Extends Class that does not exist");
+            }
+        } else {
+            System.out.println("no");
+        }
+
+    }
+
+    public static void AccessModifierTypecheck(Token input, boolean isClass) throws Exception {
+        //access modifier required in class, but will fail at parser level if not there
+        if (isClass) {
+            if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
+                //good
+            } else {
+                throw new Exception("Class Typecheck Error: Class Access Modifier Invalid");
+            }
+        } else { //not class, access modifier may be blank
+            if (input == null || input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
+                //good
+            } else {
+                throw new Exception("Declaration Error: Access Modifier Invalid");
+            }
+        }
+    }
+
+    public static void TEMP_unused_code_for_Expressions__VARDEC(PVariableDeclaration input) {
         System.out.println("Declaration Body: ");
         if (input.assignment != null) {
 
@@ -375,65 +273,70 @@ public class N_Typecheck_Test {
         } else {
             System.out.println("Declaration PExpression assignment Empty");
         }
-
-
-
-
-
-
     }
 
-    public static void VarDeclarCheck(Token type, Token name) throws Exception { //MAKE ANOTHER FOR FUNCTIONS XXXXXXXXXXXXXXXXXXXXX
-
-        Storage tempStor = ClassListAll.get(ClassString); //get list ////XXXXXXXXXXX MERGE with other method already, do all Var Dec stuff there, pass map in to maintain scope
-
-        if (tempStor.VariableNames.containsKey(name)) { //collision
-            throw new Exception("Variable Declaration Error: Variable with same name already defined");
-        } else { //store new var
-            tempStor.VariableNames.put(name, lol);
-            ClassListAll.put(ClassString, tempStor); //this updates the key/value in hashmap
+    public static void TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp) {
+        if (tempStmtExp instanceof PExpressionIdentifierReference) {
+            System.out.println("Instance of PExpressionIdentifierReference");
+            PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)tempStmtExp;
+            //1 token 1 pexpr
+        }
+        if (tempStmtExp instanceof PIdentifierReference) {
+            System.out.println("Instance of PIdentifierReference");
+            PIdentifierReference tempExp = (PIdentifierReference)tempStmtExp;
+            //1 token 1 pstmt
+        }
+        if (tempStmtExp instanceof PStatementBreak) {
+            System.out.println("Instance of PStatementBreak");
+            PStatementBreak tempExp = (PStatementBreak)tempStmtExp;
+            //1 token
+        }
+        if (tempStmtExp instanceof PStatementForStatement) {
+            System.out.println("Instance of PStatementForStatement");
+            PStatementForStatement tempExp = (PStatementForStatement)tempStmtExp;
+            //1 PStatement ,  1 PExpression,  1 PStatement , 1 ArrayList<PStatement>
+        }
+        if (tempStmtExp instanceof PStatementFunctionCall) {
+            System.out.println("Instance of PStatementFunctionCall");
+            PStatementFunctionCall tempExp = (PStatementFunctionCall)tempStmtExp;
+            //1 Token , 1 ArrayList<PExpression>
+        }
+        if (tempStmtExp instanceof PStatementFunctionDeclaration) {
+            System.out.println("Instance of PStatementFunctionDeclaration");
+            PStatementFunctionDeclaration tempExp = (PStatementFunctionDeclaration)tempStmtExp;
+            //handled above
+        }
+        if (tempStmtExp instanceof PStatementIfStatement) {
+            System.out.println("Instance of PStatementIfStatement");
+            PStatementIfStatement tempExp = (PStatementIfStatement)tempStmtExp;
+            //1 PExpression , 1 ArrayList<PStatement> , 1 ArrayList<PStatement>
+        }
+        if (tempStmtExp instanceof PStatementPrintln) {
+            System.out.println("Instance of PStatementPrintln");
+            PStatementPrintln tempExp = (PStatementPrintln)tempStmtExp;
+            //1 token
+        }
+        if (tempStmtExp instanceof PStatementReturn) {
+            System.out.println("Instance of PStatementReturn");
+            PStatementReturn tempExp = (PStatementReturn)tempStmtExp;
+            //1 pexpr
+        }
+        if (tempStmtExp instanceof PStatementWhileStatement) {
+            System.out.println("Instance of PStatementWhileStatement");
+            PStatementWhileStatement tempExp = (PStatementWhileStatement)tempStmtExp;
+            //1 PExpression , 1 ArrayList<PStatement>
+        }
+        if (tempStmtExp instanceof PVariableAssignment) {
+            System.out.println("Instance of PVariableAssignment");
+            PVariableAssignment tempExp = (PVariableAssignment)tempStmtExp;
+            //1 token, 1 pexpr
+        }
+        if (tempStmtExp instanceof PVariableDeclaration) {
+            System.out.println("Instance of PVariableDeclaration");
+            PVariableDeclaration tempExp = (PVariableDeclaration)tempStmtExp;
+            //already handled
         }
     }
-
-    public static void ClassTypecheck(PClassDeclaration input) throws Exception {
-
-        AccessModifierTypecheck(input.accessModifier, true);
-        System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
-
-        System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
-        ClassString = input.identifier.getTokenString();
-
-        System.out.print("Class Extends a Class?: ");
-        if (input.extendsIdentifier != null) {
-            if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) {
-                System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString());
-            } else { //class extends class that does not exist (yet)
-                throw new Exception("Class Error: Class Extends Class that does not exist");
-            }
-        } else {
-            System.out.println("no");
-        }
-
-    }
-
-    public static void AccessModifierTypecheck(Token input, boolean isClass) throws Exception {
-        //access modifier required in class, but will fail at parser level if not there
-        if (isClass) {
-            if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
-                //good
-            } else {
-                throw new Exception("Class Typecheck Error: Class Access Modifier Invalid");
-            }
-        } else { //not class, access modifier may be blank
-            if (input == null || input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
-                //good
-            } else {
-                throw new Exception("Declaration Error: Access Modifier Invalid");
-            }
-        }
-
-    }
-
 }
 
 class Storage {
@@ -457,9 +360,9 @@ class VarStor { //stores var info
     Token Type;
     Token AccessModifier;
 
-    public VarStor(Token t_in, Token am_in) {
-        Type = t_in;
-        AccessModifier = am_in;
+    public VarStor(Token type_in, Token accessmodifier_in) {
+        Type = type_in;
+        AccessModifier = accessmodifier_in;
     }
 }
 
@@ -467,13 +370,19 @@ class FunctStor { //store method stuff
 
     Token ReturnType;
     Token AccessModifier;
+    String Classname; //name of the class the function is located
     ArrayList<VarStor> Parameters; //ordered list of paramteres stored as VarStor objs
     HashMap<String,VarStor> VariableNames; //stores all method vars declared inside it
 
-    public FunctStor(Token Return_temp, Token AM_temp, ArrayList<VarStor> Params_temp, HashMap<String,VarStor> VN_temp) { //convert to tokens?? XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx
+    public FunctStor(Token Return_temp, Token AM_temp, String class_temp, ArrayList<VarStor> Params_temp, HashMap<String,VarStor> VN_temp) { //convert to tokens?? XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXxx
         ReturnType = Return_temp;
         AccessModifier = AM_temp;
+        Classname = class_temp;
         Parameters = Params_temp;
         VariableNames = VN_temp;
+    }
+
+    public FunctStor() {
+
     }
 }
