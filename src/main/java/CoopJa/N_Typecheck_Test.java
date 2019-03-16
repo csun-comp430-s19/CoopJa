@@ -43,6 +43,7 @@ public class N_Typecheck_Test {
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
         for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes into above ArrayList
+            //Map classes to their storage.
             classlist.add(i, fooTester.classDeclarationList.get(i));
             ClassListAll.put(fooTester.classDeclarationList.get(i).identifier.getTokenString(), new Storage());
         }
@@ -64,7 +65,7 @@ public class N_Typecheck_Test {
             for (int j = 0; j < tempDeclar.size(); j++) { //for each declaration, either it is a PVariableDeclaration or a PStatementFunctionDeclaration
 
                 int y = j + 1; //used for printing
-
+                
                 if (tempDeclar.get(j) instanceof PVariableDeclaration) { //handle class variable declarations
                     System.out.println("Declaration #" + y + " is instance of PVariableDeclaration");
                     PVariableDeclaration tempVar = (PVariableDeclaration)tempDeclar.get(j); //cast the PDeclaration obj into its proper form in a temp var
@@ -72,7 +73,9 @@ public class N_Typecheck_Test {
                     Storage t_S = ClassListAll.get(ClassString); //pull out Storage obj of the current class
                     HashMap<String,VarStor> t_VS = t_S.VariableNames; //pull the vars out of the Storage object
                     HashMap<String,VarStor> t_NEWVars; //holds new info after VDT call
-                    t_NEWVars = VariableDeclarationTypecheck(t_VS, tempVar); //call VDT with this list of vars (Scope) and get new info
+                    //returns a map entry for this variable if it passes the typecheck.
+                    //class storage is passed since we need to have the scope to check expressions. Might as well not pass t_VS.
+                    t_NEWVars = VariableDeclarationTypecheck(t_VS, tempVar, t_S); //call VDT with this list of vars (Scope) and get new info
                     t_VS.putAll(t_NEWVars); //add new info to old map
                     t_S.VariableNames = t_VS; //replace Storage object var list with updated copy
                     ClassListAll.put(ClassString, t_S); //replace the old Storage obj by adding it back to class hashmap with class string
@@ -97,7 +100,7 @@ public class N_Typecheck_Test {
 
     } //end Main()
 
-    public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
+    public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input, Storage containingClassMembers) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
         HashMap<String,VarStor> mapNEW = new HashMap<>(); //used to hold new vars
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
@@ -112,7 +115,7 @@ public class N_Typecheck_Test {
             System.out.println("Primitive Type");
             System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
         } else if (input.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //is type of var AUTO? (token = KEYWORD_AUTO)
-            System.out.println("Auto Type");
+            System.out.println("Auto Type"); 
             //do AUTO stuff later XXXXXXX, maybe a boolean if it is an auto, and before assignment and storing etc, check bool and evaluate the type
             System.out.println("Declaration Variable Type: " + input.variableType.getType() + " " + input.variableType.getTokenString());
         } else if (input.variableType.getType() == Token.TokenType.IDENTIFIER) { //is the type of the var a Class? (token = IDENTIFIER)
@@ -128,6 +131,7 @@ public class N_Typecheck_Test {
         }
 
         if (map.containsKey(input.identifier.getTokenString())) { //check if var already exists in scope (given map obj)
+            //Works bc scope passed is of the containing class.
             throw new Exception("Variable Declaration Error: Variable with same name already defined in scope");
         } else { //if not, add it as a new var
             VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
@@ -135,7 +139,8 @@ public class N_Typecheck_Test {
             System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
         }
 
-        TEMP_unused_code_for_Expressions__VARDEC(input); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
+        //passing in old map bc int new_var = new_var should throw new_var not declared.
+        TEMP_unused_code_for_Expressions__VARDEC(input, containingClassMembers); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
 
         return mapNEW; //return the updated map of all defined variables in current scope
 
@@ -197,7 +202,7 @@ public class N_Typecheck_Test {
             }
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String,VarStor> output; //declare var for return of VDT()
-                output = VariableDeclarationTypecheck(combinedVars, input.variableDeclarations.get(i));
+                output = VariableDeclarationTypecheck(combinedVars, input.variableDeclarations.get(i), map);
                 combinedVars.putAll(output); //add new vars to combined vars list
                 VarStor tempStor = output.get(input.identifier.getTokenString()); //just used to show how to get the VarStor obj
                 tempFS.Parameters.add(i, tempStor); //add param to FunctStor object, ordered
@@ -272,7 +277,8 @@ public class N_Typecheck_Test {
         }
     }
 
-    public static void TEMP_unused_code_for_Expressions__VARDEC(PVariableDeclaration input) {
+    //Should return a type.
+    public static void TEMP_unused_code_for_Expressions__VARDEC(PVariableDeclaration input, Storage containingClassMembers) throws Exception{
         System.out.println("Declaration Body: ");
         if (input.assignment != null) {
 
@@ -299,6 +305,10 @@ public class N_Typecheck_Test {
             if (input.assignment instanceof PStatementFunctionCall) {
                 System.out.println("Instance of PStatementFunctionCall");
                 PStatementFunctionCall tempExp = (PStatementFunctionCall)input.assignment;
+                //Do we need to check if the function being called exists, or has it been checked by this point.
+                //_will just typecheck here again for safety.
+                //Function call token doesn't have return type member, so we have to get it.
+                checkFunctionCallExists(tempExp, containingClassMembers);               
                 //1 Token , 1 ArrayList<PExpression>
             }
             if (input.assignment instanceof PExpressionAtomBooleanLiteral) {
@@ -398,7 +408,42 @@ public class N_Typecheck_Test {
             //already handled
         }
     }
-}
+    
+    public static void checkFunctionCallExists(PStatementFunctionCall tempExp, Storage containingClassMembers) throws Exception
+    {
+      //Get the functions in the storage.
+      /*(i)(!) because we check class's PStatements (functions) after vars, 
+        methods used in a line before they're declared will throw an exception.
+      */
+      HashMap<String,FunctStor> methodsInScope = containingClassMembers.MethodNames;
+      //check if the function call doesn't exist.
+      if(!(methodsInScope.containsKey(tempExp.identifier.getTokenString())))
+      {
+        //we throw an exception
+          throw new Exception("Method Call Error: Method "+tempExp.identifier.getTokenString()+" does not exist.");
+      }
+      else //we check if the signature is a match, so param vs arg types.
+      {
+        FunctStor possMatch = methodsInScope.get(tempExp);
+
+        //(!) The parser should have checked that the params are the same length?
+        if(possMatch.Parameters.size() != tempExp.expressionsInput.size())
+            throw new Exception("Method Call Error: Method "+tempExp.identifier.getTokenString()+" does not exist.");
+          
+        for(int param = 0; param < possMatch.Parameters.size(); param++)
+        { 
+          //No good. Needs better way to distinguish Types of tokens, or better var names, because Type.TokenType ??
+          //Token argType = TEMP_unused_code_for_Expressions__VARDEC(tempExp.expressionsInput.get(param));
+          //Go through list of parameters. 
+          //if(possMatch.Parameters.get(param).Type.TokenType != argType.TokenType)
+          //   throw new Exception("Method Call Error: Method parameter"+param+" expected type " + 
+          //                  possMatch.Parameters.get(param).Type.getTokenString()+
+          //                "but instead got type " + tempExp.identifier.getTokenString());
+        }
+      }//End check signature matcch.
+    }//End checkFunctionCallExists( ).
+
+}//End TypChecker class
 
 class Storage {
 
