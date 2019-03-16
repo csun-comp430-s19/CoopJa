@@ -19,7 +19,7 @@ public class N_Typecheck_Test {
                 "public int foo3 = 0;" +
                 "public int main(){" +
                 "foo.foo4(); " +
-                "foo9 = (1 + 9)*5;" +
+                "foo3 = (1 + 9)*5;" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
