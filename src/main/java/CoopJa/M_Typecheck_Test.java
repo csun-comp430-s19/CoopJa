@@ -4,7 +4,6 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class M_Typecheck_Test {
 
@@ -41,7 +40,7 @@ public class M_Typecheck_Test {
         MainParser parsers = new MainParser();
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
         System.out.println();
-        ClassExpressionTypechecker cTypeChkr = new ClassExpressionTypechecker(fooTester);
+        MExpressionTypeChecker cTypeChkr = new MExpressionTypeChecker(fooTester);
         cTypeChkr.typeCheck();
 
 
@@ -60,10 +59,10 @@ public class M_Typecheck_Test {
     }*/
 }
 
-class ClassExpressionTypechecker {
+class MExpressionTypeChecker {
     public Scope classStorage = new Scope();
     private PProgram input;
-    public ClassExpressionTypechecker(PProgram input){
+    public MExpressionTypeChecker(PProgram input){
         this.input = input;
     }
 
