@@ -4,6 +4,7 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class M_Typecheck_Test {
 
@@ -13,10 +14,13 @@ public class M_Typecheck_Test {
         String foo = "public class foo{public int foo4 = 0;}" +
                 "public class foo6 extends foo{public int foo4 = 1;}" +
                 "public class foo2{" +
-                "public int foo3 = 0 + 1;" +
-                "public int bar;" + //to test no assignment
+                "public string foo3 = 1 + \"string thingy\";" +
+                "public string foo966;" +
+                "public int foo8 = 1;" +
+                "public int bar = foo8;" +
                 "public int main(){" +
                 "foo.foo4(); " +
+                "foo9 = foo3;" +
                 "foo9 = (1 + 9)*5;" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
@@ -37,12 +41,9 @@ public class M_Typecheck_Test {
         MainParser parsers = new MainParser();
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
         System.out.println();
+        ClassExpressionTypechecker cTypeChkr = new ClassExpressionTypechecker(fooTester);
+        cTypeChkr.typeCheck();
 
-        for (PClassDeclaration classDeclaration : fooTester.classDeclarationList) {
-            //ClassTypecheckExpression(classDeclaration);
-            ClassExpressionTypechecker cTypeChkr = new ClassExpressionTypechecker(classDeclaration);
-            cTypeChkr.typeCheck();
-        }
 
     }
 
@@ -61,27 +62,41 @@ public class M_Typecheck_Test {
 
 class ClassExpressionTypechecker {
     public Scope classStorage = new Scope();
-    private PClassDeclaration input;
-    public ClassExpressionTypechecker(PClassDeclaration input){
+    private PProgram input;
+    public ClassExpressionTypechecker(PProgram input){
         this.input = input;
     }
 
     public void typeCheck() throws TypeCheckerException{
-        for (Object declaration: input.declarationList){
-            if (declaration instanceof PVariableDeclaration){
-                typeCheckVariableDec((PVariableDeclaration)declaration);
-            }
-            else if (declaration instanceof PStatementFunctionDeclaration){
-                typeCheckFunction((PStatementFunctionDeclaration)declaration);
+        for (PClassDeclaration classDeclaration : input.classDeclarationList) {
+            for (Object declaration: classDeclaration.declarationList){
+                if (declaration instanceof PVariableDeclaration){
+                    typeCheckVariableDec((PVariableDeclaration)declaration);
+                }
+                else if (declaration instanceof PStatementFunctionDeclaration){
+                    typeCheckFunction((PStatementFunctionDeclaration)declaration);
+                }
             }
         }
+
+
     }
 
     private void typeCheckVariableDec(PVariableDeclaration varDec) throws TypeCheckerException{
         //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
         classStorage.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
         if (varDec.assignment != null){ //assuming there is an expression to be checked
-            getType(varDec.assignment);//compare types with assignment
+            Token.TokenType assignment = getType(varDec.assignment);
+            if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+                if (!varDec.variableType.getTokenString().equals("string"))
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        varDec.variableType.getType() + " got " + assignment);
+
+            }
+            else if (assignment != varDec.variableType.getType()) {//compare types with assignment
+                throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        varDec.variableType.getType() + " got " + assignment);
+            }
         }
 
     }
@@ -92,15 +107,30 @@ class ClassExpressionTypechecker {
     }
 
     //idea, recursive methodology
-    public Token.TokenType getType(PExpression exp){
+    public Token.TokenType getType(PExpression exp) throws TypeCheckerException{
         if (exp instanceof PExpressionAtomNumberLiteral)
-            return Token.TokenType.NUMBER; //Expand here once we have more than just ints
+            return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
         if (exp instanceof PExpressionAtomStringLiteral)
-            return Token.TokenType.STRING;
+            return Token.TokenType.KEYWORD_STRING;
         if (exp instanceof PExpressionAtomBooleanLiteral)
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
+        if (exp instanceof PExpressionVariable){ //if variable was declared before refer to the hashmap
+            return classStorage.VariableNames.get(((PExpressionVariable) exp).variable.getTokenString()).getType();
+        }
         if (exp instanceof PExpressionBinOp){
-
+            //recursivly do both hands of the expressions
+            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
+            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs);
+            if (lhs != rhs){
+                if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
+                        (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
+                    return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
+                else //anything else must fail
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        lhs + " got " + rhs);
+            }
+            //if the two sides match just return the type of one of the sides
+            return lhs;
         }
         return null;
     }
@@ -116,7 +146,7 @@ class Scope{
     }
 
     public Scope() {
-        VariableNames = new HashMap();
-        MethodNames = new HashMap();
+        VariableNames = new HashMap<String,Token>();
+        MethodNames = new HashMap<String,Token>();
     }
 }
