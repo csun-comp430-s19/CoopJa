@@ -19,7 +19,7 @@ public class N_Typecheck_Test {
                 "public int foo3 = 0;" +
                 "public int main(){" +
                 "foo.foo4(); " +
-                "foo9 = (1 + 9)*5;" +
+                "foo3 = (1 + 9)*5;" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
@@ -40,6 +40,11 @@ public class N_Typecheck_Test {
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
         System.out.println();
 
+        TypecheckMain(fooTester); //call typechecker with parsed program obj
+
+    } //end Main()
+
+    public static void TypecheckMain(PProgram fooTester) throws Exception { //typechecker
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
         for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes into above ArrayList
@@ -97,8 +102,7 @@ public class N_Typecheck_Test {
             System.out.println("End of Class #" + x);
             System.out.println();
         }
-
-    } //end Main()
+    }
 
     public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input, Storage containingClassMembers) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
@@ -210,6 +214,8 @@ public class N_Typecheck_Test {
         } else { //no method params
             System.out.println("Method has no Parameters");
         }
+
+        ////XXXXXXXXXXXXXXXXXXXX need to add parameters to method var list
 
         HashMap<String,VarStor> methodBodyVars = new HashMap<>(); //store all method vars here
         if (input.statementList != null) {
