@@ -15,6 +15,7 @@ public class M_Typecheck_Test {
                 "public class foo2{" +
                 "public string foo3 = 1 + \"string thingy\";" +
                 "public string foo966;" +
+                "public boolean foofi = true | 1 < 2;" +
                 "public int foo8 = 1;" +
                 "public int bar = foo8;" +
                 "public int main(){" +
@@ -128,8 +129,33 @@ class MExpressionTypeChecker {
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                         lhs + " got " + rhs);
             }
+            Token.TokenType output = lhs;//at this point we already detirmined lhs and rhs are the same type
+            //check if the operator is the right type for the expression
+            Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
+            if (operator == Token.TokenType.SYMBOL_PLUS ||
+                operator == Token.TokenType.SYMBOL_MINUS ||
+                operator == Token.TokenType.SYMBOL_ASTERISK ||
+                operator == Token.TokenType.SYMBOL_SLASH){ //number operations
+                if(output != Token.TokenType.KEYWORD_INT)
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+            }
+            else if (operator == Token.TokenType.SYMBOL_AMPERSAND||
+                operator == Token.TokenType.SYMBOL_BAR){
+                if(output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+            }
+            else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
+                    operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
+                    operator == Token.TokenType.SYMBOL_LESSTHAN ||
+                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
+                    operator == Token.TokenType.SYMBOL_EQUALS ||
+                    operator == Token.TokenType.SYMBOL_NOTEQUAL){
+                if(output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+                output = Token.TokenType.KEYWORD_BOOLEAN;
+            }
             //if the two sides match just return the type of one of the sides
-            return lhs;
+            return output;
         }
         return null;
     }
