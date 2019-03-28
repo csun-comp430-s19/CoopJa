@@ -28,6 +28,7 @@ public class M_Typecheck_UnitTests {
                 "public string foo966;" +
                 "public int foo8 = 1;" +
                 "public int bar = foo8;" +
+                "public boolean foofi = true | 1 < 2;" +
                 "}";
         testTypecheck(foo);
     }
@@ -52,8 +53,15 @@ public class M_Typecheck_UnitTests {
     @Test
     public void testGoodBoolean() {
         String foo = "public class foo2{" +
-                "public boolean foo3;" +
-                "public boolean = foo3 + True" +
+                "public boolean foo= false | true;" +
+                "}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testGoodComplexBoolean() {
+        String foo = "public class foo2{" +
+                "public boolean foofi = true | 1 < 2;" +
                 "}";
         testTypecheck(foo);
     }
