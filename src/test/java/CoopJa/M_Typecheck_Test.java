@@ -86,7 +86,7 @@ class MExpressionTypeChecker {
         //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
         classStorage.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
         if (varDec.assignment != null){ //assuming there is an expression to be checked
-            Token.TokenType assignment = getType(varDec.assignment);
+            Token.TokenType assignment = getType(varDec.assignment); //BODY
             if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
                 if (!varDec.variableType.getTokenString().equals("string"))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +

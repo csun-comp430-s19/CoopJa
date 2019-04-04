@@ -12,27 +12,32 @@ public class N_Typecheck_Test {
 
     public static void main(String[] args) throws Exception {
 
-        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
-                "public class foo6 extends foo{public int foo4 = 1;}" +
-                "public class foo2{" +
-                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
-                "public int foo3 = 0;" +
-                "public int main(){" +
-                "foo.foo4(); " +
-                "foo3 = (1 + 9)*5;" +
-                "for (int i = 0; i < 9; i = i+1;){" +
-                "foo = foo + 5;" +
-                "}" +
-                "if (1 == 1){" +
-                "int i = 0;" +
-                "}" +
-                "else{" +
-                "int i = 1;" +
-                "}" +
-                "int i = 2;" +
-                "return;" +
-                "}" +
+//        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
+//                "public class foo6 extends foo{public int foo4 = 1;}" +
+//                "public class foo2{" +
+//                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
+//                "public int foo3 = 0;" +
+//                "public int main(){" +
+//                "foo.foo4(); " +
+//                "foo3 = (1 + 9)*5;" +
+//                "for (int i = 0; i < 9; i = i+1;){" +
+//                "foo = foo + 5;" +
+//                "}" +
+//                "if (1 == 1){" +
+//                "int i = 0;" +
+//                "}" +
+//                "else{" +
+//                "int i = 1;" +
+//                "}" +
+//                "int i = 2;" +
+//                "return;" +
+//                "}" +
+//                "}";
+
+        String foo = "public class example {" +
+                "public String cool = \"Cool1\" + \"Nice\";" +
                 "}";
+
 
         ArrayList<Token> tokenList = Token.tokenize(foo); //tokenize example string
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -104,6 +109,81 @@ public class N_Typecheck_Test {
         }
     }
 
+    //idea, recursive methodology
+    public static Token.TokenType getType(PExpression exp) throws TypeCheckerException {
+        if (exp instanceof PExpressionAtomNumberLiteral)
+            return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
+        if (exp instanceof PExpressionAtomStringLiteral)
+            return Token.TokenType.KEYWORD_STRING;
+        if (exp instanceof PExpressionAtomBooleanLiteral)
+            return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
+        if (exp instanceof PExpressionVariable) { //changed XXXXXXXXX CHANGE TO CHECK VARIABLES IN SCOPE XXXXXXXXXXXXXXXXXXXXXXXZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ~~~~~
+            return ((PExpressionVariable) exp).variable.getType();
+        }
+        if (exp instanceof PExpressionBinOp){
+            //recursivly do both hands of the expressions
+            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
+            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs);
+            if (lhs != rhs){
+                if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
+                        (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
+                    return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
+                else //anything else must fail
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                            lhs + " got " + rhs);
+            }
+            Token.TokenType output = lhs;//at this point we already detirmined lhs and rhs are the same type
+            //check if the operator is the right type for the expression
+            Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
+            if (operator == Token.TokenType.SYMBOL_PLUS ||
+                    operator == Token.TokenType.SYMBOL_MINUS ||
+                    operator == Token.TokenType.SYMBOL_ASTERISK ||
+                    operator == Token.TokenType.SYMBOL_SLASH){ //number operations
+                if(output != Token.TokenType.KEYWORD_INT) /////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+            }
+            else if (operator == Token.TokenType.SYMBOL_AMPERSAND||
+                    operator == Token.TokenType.SYMBOL_BAR){
+                if(output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+            }
+            else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
+                    operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
+                    operator == Token.TokenType.SYMBOL_LESSTHAN ||
+                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
+                    operator == Token.TokenType.SYMBOL_EQUALS ||
+                    operator == Token.TokenType.SYMBOL_NOTEQUAL){
+                if(output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
+                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+                output = Token.TokenType.KEYWORD_BOOLEAN;
+            }
+            //if the two sides match just return the type of one of the sides
+            return output;
+        }
+        return null;
+    }
+
+    public static void typeCheckVariableDec(PVariableDeclaration varDec) throws TypeCheckerException {
+        System.out.println("Checking Variable Declaration Body");
+        if (varDec.assignment != null) { //assuming there is an expression to be checked
+            Token.TokenType assignment = getType(varDec.assignment); //BODY
+            System.out.println("Variable Declared as Type: " + varDec.variableType.getType());
+            System.out.println("VarDec Assignment Type is: " + assignment);
+            if (assignment == Token.TokenType.KEYWORD_STRING) {
+                if (varDec.variableType.getType() != assignment) //string = not string
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                            varDec.variableType.getType() + " got " + assignment);
+            }
+            if (assignment == Token.TokenType.IDENTIFIER) {
+                System.out.println("IDENTIFIER Dectected");
+                //TBD DO IDENTIFIER STUFF XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            }
+        } else {
+            System.out.println("Empty VarDec Body");
+        }
+        System.out.println("Variable Declaration is Valid");
+    }
+
     public static HashMap<String,VarStor> VariableDeclarationTypecheck(HashMap<String,VarStor> map, PVariableDeclaration input, Storage containingClassMembers) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
         HashMap<String,VarStor> mapNEW = new HashMap<>(); //used to hold new vars
@@ -144,10 +224,11 @@ public class N_Typecheck_Test {
         }
 
         //passing in old map bc int new_var = new_var should throw new_var not declared.
-        TEMP_unused_code_for_Expressions__VARDEC(input, containingClassMembers); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
+        /////TEMP_unused_code_for_Expressions__VARDEC(input, containingClassMembers); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
+
+        typeCheckVariableDec(input); //check variable declaration, is it valid?
 
         return mapNEW; //return the updated map of all defined variables in current scope
-
     }
 
     public static Storage MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws Exception { //input: a class's Storage object & function declaration
@@ -293,7 +374,7 @@ public class N_Typecheck_Test {
                 PExpressionStub tempExp = (PExpressionStub)input.assignment;
                 //1 token
             }
-            if (input.assignment instanceof PExpressionBinOp) {
+            if (input.assignment instanceof PExpressionBinOp) { //----------------
                 System.out.println("Instance of PExpressionBinOp");
                 PExpressionBinOp tempExp = (PExpressionBinOp)input.assignment;
                 //2 pexpressions 1 token
@@ -303,7 +384,7 @@ public class N_Typecheck_Test {
                 PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference)input.assignment;
                 //1 token 1 pexpr
             }
-            if (input.assignment instanceof PExpressionVariable) {
+            if (input.assignment instanceof PExpressionVariable) { //----------------
                 System.out.println("Instance of PExpressionVariable");
                 PExpressionVariable tempExp = (PExpressionVariable)input.assignment;
                 //1 token
@@ -317,7 +398,7 @@ public class N_Typecheck_Test {
                 checkFunctionCallExists(tempExp, containingClassMembers);               
                 //1 Token , 1 ArrayList<PExpression>
             }
-            if (input.assignment instanceof PExpressionAtomBooleanLiteral) {
+            if (input.assignment instanceof PExpressionAtomBooleanLiteral) { //----------------
                 System.out.println("Instance of PExpressionAtomBooleanLiteral");
                 PExpressionAtomBooleanLiteral tempExp = (PExpressionAtomBooleanLiteral)input.assignment;
                 //1 token
@@ -327,7 +408,7 @@ public class N_Typecheck_Test {
                 PExpressionAtomNullLiteral tempExp = (PExpressionAtomNullLiteral)input.assignment;
                 //1 token
             }
-            if (input.assignment instanceof PExpressionAtomNumberLiteral) {
+            if (input.assignment instanceof PExpressionAtomNumberLiteral) { //----------------
                 System.out.println("Instance of PExpressionAtomNumberLiteral");
                 PExpressionAtomNumberLiteral tempExp = (PExpressionAtomNumberLiteral)input.assignment;
                 //1 token
@@ -337,7 +418,7 @@ public class N_Typecheck_Test {
                 PExpressionAtomObjectConstruction tempExp = (PExpressionAtomObjectConstruction)input.assignment;
                 //1 token
             }
-            if (input.assignment instanceof PExpressionAtomStringLiteral) {
+            if (input.assignment instanceof PExpressionAtomStringLiteral) { //----------------
                 System.out.println("Instance of PExpressionAtomStringLiteral");
                 PExpressionAtomStringLiteral tempExp = (PExpressionAtomStringLiteral)input.assignment;
                 //1 token
