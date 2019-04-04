@@ -34,6 +34,8 @@ public class N_Typecheck_Test {
 //                "}" +
 //                "}";
 
+        //"public String cool = \"Cool1\" + 1;" + //\"Nice\";" +
+        
         String foo = "public class example {" +
                 "public String cool = \"Cool1\" + \"Nice\";" +
                 "}";
@@ -123,40 +125,75 @@ public class N_Typecheck_Test {
         if (exp instanceof PExpressionBinOp){
             //recursivly do both hands of the expressions
             Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
+            
             Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs);
-            if (lhs != rhs){
+            
+            if (lhs != rhs) //The operand types do not match.
+            {
+                //Allows string & integer concatenation
                 if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
                         (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
                     return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
                 else //anything else must fail
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
-                            lhs + " got " + rhs);
+                            lhs.name() + " got " + rhs.name());
             }
-            Token.TokenType output = lhs;//at this point we already detirmined lhs and rhs are the same type
+            
+            Token.TokenType output = lhs;//at this point we already determined lhs and rhs are the same type
             //check if the operator is the right type for the expression
             Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
-            if (operator == Token.TokenType.SYMBOL_PLUS ||
-                    operator == Token.TokenType.SYMBOL_MINUS ||
+            //System.out.println("\t"+rhs.name()+"_"+operator.name()+"_"+lhs.name());
+            /********** + *************/
+            if (operator == Token.TokenType.SYMBOL_PLUS) //plus operator works w/ ints and strings.
+            {
+                
+                if((output != Token.TokenType.KEYWORD_STRING) && (output != Token.TokenType.KEYWORD_INT))
+                {
+                  throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+                }
+            }/********** numeric ops *************/
+            else if(operator == Token.TokenType.SYMBOL_MINUS || //number operations
                     operator == Token.TokenType.SYMBOL_ASTERISK ||
-                    operator == Token.TokenType.SYMBOL_SLASH){ //number operations
+                    operator == Token.TokenType.SYMBOL_SLASH ||
+                    /****** BITWISE OPS ******/
+                    operator == Token.TokenType.SYMBOL_SHIFTRIGHT ||
+                    operator == Token.TokenType.SYMBOL_SHIFTLEFT ||
+                    operator == Token.TokenType.SYMBOL_AMPERSAND ||
+                    operator == Token.TokenType.SYMBOL_BAR ||
+                    operator == Token.TokenType.SYMBOL_CARET ||
+                    operator == Token.TokenType.SYMBOL_TILDE)
+            {
                 if(output != Token.TokenType.KEYWORD_INT) /////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            }
-            else if (operator == Token.TokenType.SYMBOL_AMPERSAND||
-                    operator == Token.TokenType.SYMBOL_BAR){
-                if(output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            }
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+            }/********* DOUBLE EQUALS *******/
+            else if ((operator == Token.TokenType.SYMBOL_DOUBLEEQUALS) || //plus operator works w/ ints and strings.
+                     (operator == Token.TokenType.SYMBOL_NOTEQUAL))
+            {   /*Add more valid operand types for double equals if necessary.*/
+                if((output != Token.TokenType.KEYWORD_INT) &&
+                   (output != Token.TokenType.KEYWORD_BOOLEAN))
+                {
+                  throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type: Expected type"+ 
+                                                  /*Token.TokenType.KEYWORD_INT.name().split("_")[0] + */
+                                                  output.name());
+                }
+                output = Token.TokenType.KEYWORD_BOOLEAN;
+            }/********** Boolean ops ***********/
+            else if (operator == Token.TokenType.SYMBOL_DOUBLEAMPERSAND ||
+                    operator == Token.TokenType.SYMBOL_DOUBLEBAR)
+            {
+                if(output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already determined lhs and rhs are the same type
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+            }/************ numeric equality ops ***********/
             else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
                     operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
                     operator == Token.TokenType.SYMBOL_LESSTHAN ||
-                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
-                    operator == Token.TokenType.SYMBOL_EQUALS ||
-                    operator == Token.TokenType.SYMBOL_NOTEQUAL){
+                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL)
+            {
                 if(output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
                 output = Token.TokenType.KEYWORD_BOOLEAN;
-            }
+            }/*****     *****/
+            //else if( operator == 
             //if the two sides match just return the type of one of the sides
             return output;
         }
@@ -165,14 +202,19 @@ public class N_Typecheck_Test {
 
     public static void typeCheckVariableDec(PVariableDeclaration varDec) throws TypeCheckerException {
         System.out.println("Checking Variable Declaration Body");
-        if (varDec.assignment != null) { //assuming there is an expression to be checked
+        if (varDec.assignment != null) //assuming there is an expression to be checked
+        {
+            
             Token.TokenType assignment = getType(varDec.assignment); //BODY
-            System.out.println("Variable Declared as Type: " + varDec.variableType.getType());
-            System.out.println("VarDec Assignment Type is: " + assignment);
-            if (assignment == Token.TokenType.KEYWORD_STRING) {
+            //System.out.println("Variable Declared as Type: " + varDec.variableType.getType());
+            //System.out.println("VarDec Assignment Type is: " + assignment);
+            if (assignment == Token.TokenType.KEYWORD_STRING) 
+            {
                 if (varDec.variableType.getType() != assignment) //string = not string
+                {
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                             varDec.variableType.getType() + " got " + assignment);
+                }
             }
             if (assignment == Token.TokenType.IDENTIFIER) {
                 System.out.println("IDENTIFIER Dectected");
