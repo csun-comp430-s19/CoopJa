@@ -35,7 +35,7 @@ public class N_Typecheck_Test {
 //                "}";
 
         String foo = "public class example {" +
-                "public String cool = \"Cool1\";" +
+                "public String cool = \"Cool1\" + \"yeah\";" +
                 "public void method1(int one, int two) {" +
                 "int one = 1;" +
                 "}" +
@@ -447,7 +447,9 @@ public class N_Typecheck_Test {
             if (input.assignment instanceof PStatementFunctionCall) {
                 System.out.println("Instance of PStatementFunctionCall");
                 PStatementFunctionCall tempExp = (PStatementFunctionCall) input.assignment;
-                //Do we need to check if the function being called exists, or has it been checked by this point.
+                ////XXXXXXX this method should now be obsolete, with the implementation of getType() etc, the one we need to work on is the ...PSTATEMENT temp method()
+                ////XXXXXXX if this is not the case, what is not being handled?
+                //Do we need to check if the function being called exists, or has it been checked by this point. ---> no, this is called during function evaluation / declaration, but that's fine XXXXXXXXXXXX
                 //_will just typecheck here again for safety.
                 //Function call token doesn't have return type member, so we have to get it.
                 checkFunctionCallExists(tempExp, containingClassMembers);
