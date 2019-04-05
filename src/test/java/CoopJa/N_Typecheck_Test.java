@@ -378,6 +378,11 @@ public class N_Typecheck_Test {
 
         System.out.print("Class Extends a Class?: "); //find out if this current class extends another class (based on its declaration)
         if (input.extendsIdentifier != null) { //the class does extend another
+            //Check if the class extends itself.
+            if(input.extendsIdentifier.getTokenString().equals(ClassString))
+            {
+                throw new Exception("Class Error: Class cannot extend itself.");
+            }
             if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) { //check if this class (that the working class is supposed to extend) is known yet/exists
                 System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString()); //it does exist
             } else { //class extends class that does not exist (yet)
