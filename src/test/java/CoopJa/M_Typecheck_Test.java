@@ -20,8 +20,9 @@ public class M_Typecheck_Test {
                 "public int bar = foo8;" +
                 "public int main(){" +
                 "foo.foo4(); " +
-                "foo9 = foo3;" +
-                "foo9 = (1 + 9)*5;" +
+                "int foo67; " +
+                "string foo9 = foo3;" +
+                "foo67 = (1 + 9)*5;" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo = foo + 5;" +
                 "}" +
@@ -71,10 +72,10 @@ class MExpressionTypeChecker {
         for (PClassDeclaration classDeclaration : input.classDeclarationList) {
             for (Object declaration: classDeclaration.declarationList){
                 if (declaration instanceof PVariableDeclaration){
-                    typeCheckVariableDec((PVariableDeclaration)declaration);
+                    typeCheckVariableDec((PVariableDeclaration)declaration, classStorage);
                 }
                 else if (declaration instanceof PStatementFunctionDeclaration){
-                    typeCheckFunction((PStatementFunctionDeclaration)declaration);
+                    typeCheckFunction((PStatementFunctionDeclaration)declaration, classStorage);
                 }
             }
         }
@@ -82,11 +83,11 @@ class MExpressionTypeChecker {
 
     }
 
-    private void typeCheckVariableDec(PVariableDeclaration varDec) throws TypeCheckerException{
+    private void typeCheckVariableDec(PVariableDeclaration varDec, Scope currentScope) throws TypeCheckerException{
         //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
-        classStorage.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
+        currentScope.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
         if (varDec.assignment != null){ //assuming there is an expression to be checked
-            Token.TokenType assignment = getType(varDec.assignment); //BODY
+            Token.TokenType assignment = getType(varDec.assignment, currentScope); //BODY
             if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
                 if (!varDec.variableType.getTokenString().equals("string"))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
@@ -98,16 +99,49 @@ class MExpressionTypeChecker {
                         varDec.variableType.getType() + " got " + assignment);
             }
         }
-
     }
 
-    private void typeCheckFunction(PStatementFunctionDeclaration funcDec) throws TypeCheckerException{
+    //hehe varAss...
+    private void typeCheckVariableAssignment(PVariableAssignment varAss, Scope currentScope) throws TypeCheckerException{
+        //similar to typecheck VariableDec, however we have to look in the hashtable for the assignee
+        //since we don't declare it here
+        Token.TokenType assignment = getType(varAss.value, currentScope);
+        Token assigneeToken = currentScope.VariableNames.get(varAss.identifier.getTokenString());
+        if (assigneeToken == null)
+            throw new TypeCheckerException(varAss.identifier.getTokenString() + " not declared");
+        Token.TokenType assignee = assigneeToken.getType();
+        if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+            if (!assignee.equals("string"))
+                throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        assignee + " got " + assignment);
+
+        }
+        else if (assignment != assignee){
+            throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        assignee + " got " + assignment);
+        }
+    }
+
+    private void typeCheckFunction(PStatementFunctionDeclaration funcDec, Scope currentScope) throws TypeCheckerException{
         //add method names with their return types to the scope
-        classStorage.MethodNames.put(funcDec.identifier.getTokenString(), funcDec.returnType);
+        currentScope.MethodNames.put(funcDec.identifier.getTokenString(), funcDec.returnType);
+        Scope functionStorage = currentScope.Copy();//data within this scope should not affect data outside its scope
+        for (PStatement statement : funcDec.statementList){
+            typeCheckStatement(statement, currentScope);
+        }
+    }
+
+    private void typeCheckStatement(PStatement statement, Scope currentScope) throws TypeCheckerException{
+        if (statement instanceof  PVariableDeclaration){
+            typeCheckVariableDec((PVariableDeclaration) statement, currentScope);
+        }
+        if (statement instanceof PVariableAssignment){
+            typeCheckVariableAssignment((PVariableAssignment) statement, currentScope);
+        }
     }
 
     //idea, recursive methodology
-    public Token.TokenType getType(PExpression exp) throws TypeCheckerException{
+    public Token.TokenType getType(PExpression exp, Scope currentScope) throws TypeCheckerException{
         if (exp instanceof PExpressionAtomNumberLiteral)
             return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
         if (exp instanceof PExpressionAtomStringLiteral)
@@ -115,12 +149,12 @@ class MExpressionTypeChecker {
         if (exp instanceof PExpressionAtomBooleanLiteral)
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
         if (exp instanceof PExpressionVariable){ //if variable was declared before refer to the hashmap
-            return classStorage.VariableNames.get(((PExpressionVariable) exp).variable.getTokenString()).getType();
+            return currentScope.VariableNames.get(((PExpressionVariable) exp).variable.getTokenString()).getType();
         }
         if (exp instanceof PExpressionBinOp){
             //recursivly do both hands of the expressions
-            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
-            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs);
+            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs, currentScope);
+            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs, currentScope);
             if (lhs != rhs){
                 if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
                         (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
@@ -173,5 +207,12 @@ class Scope{
     public Scope() {
         VariableNames = new HashMap<String,Token>();
         MethodNames = new HashMap<String,Token>();
+    }
+
+    public Scope Copy(){
+        HashMap<String,Token> copyVariableNames = new HashMap<String, Token>(VariableNames);
+        HashMap<String,Token> copyMethodNames = new HashMap<String, Token>(MethodNames);
+        Scope scopeCopy = new Scope(copyVariableNames, copyMethodNames);
+        return  scopeCopy;
     }
 }
