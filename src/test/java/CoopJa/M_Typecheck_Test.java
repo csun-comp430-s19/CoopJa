@@ -87,7 +87,7 @@ class MExpressionTypeChecker {
         //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
         currentScope.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
         if (varDec.assignment != null){ //assuming there is an expression to be checked
-            Token.TokenType assignment = getType(varDec.assignment, currentScope); //BODY
+            Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
             if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
                 if (!varDec.variableType.getTokenString().equals("string"))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
@@ -105,7 +105,7 @@ class MExpressionTypeChecker {
     private void typeCheckVariableAssignment(PVariableAssignment varAss, Scope currentScope) throws TypeCheckerException{
         //similar to typecheck VariableDec, however we have to look in the hashtable for the assignee
         //since we don't declare it here
-        Token.TokenType assignment = getType(varAss.value, currentScope);
+        Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
         Token assigneeToken = currentScope.VariableNames.get(varAss.identifier.getTokenString());
         if (assigneeToken == null)
             throw new TypeCheckerException(varAss.identifier.getTokenString() + " not declared");
@@ -119,6 +119,22 @@ class MExpressionTypeChecker {
         else if (assignment != assignee){
             throw new TypeCheckerException("TypeCheck Error: Expected " +
                         assignee + " got " + assignment);
+        }
+    }
+
+    private void typeCheckIfStatement (PStatementIfStatement ifStatement, Scope currentScope) throws TypeCheckerException{
+        Scope ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
+        Scope elseScope = currentScope.Copy();
+        //check if expression is boolean
+        if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
+            throw new TypeCheckerException("Expression in IF statement not a Boolean");
+        //typecheck elements in if statement
+        for (PStatement statement: ifStatement.statementList){
+            typeCheckStatement(statement, ifScope);
+        }
+        //typecheck elements in else statement
+        for (PStatement statement: ifStatement.elseStatementList){
+            typeCheckStatement(statement, elseScope);
         }
     }
 
@@ -138,10 +154,13 @@ class MExpressionTypeChecker {
         if (statement instanceof PVariableAssignment){
             typeCheckVariableAssignment((PVariableAssignment) statement, currentScope);
         }
+        if (statement instanceof  PStatementIfStatement){
+            typeCheckIfStatement((PStatementIfStatement) statement, currentScope);
+        }
     }
 
     //idea, recursive methodology
-    public Token.TokenType getType(PExpression exp, Scope currentScope) throws TypeCheckerException{
+    public Token.TokenType getExpressionType(PExpression exp, Scope currentScope) throws TypeCheckerException{
         if (exp instanceof PExpressionAtomNumberLiteral)
             return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
         if (exp instanceof PExpressionAtomStringLiteral)
@@ -153,8 +172,8 @@ class MExpressionTypeChecker {
         }
         if (exp instanceof PExpressionBinOp){
             //recursivly do both hands of the expressions
-            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs, currentScope);
-            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs, currentScope);
+            Token.TokenType lhs = getExpressionType(((PExpressionBinOp) exp).lhs, currentScope);
+            Token.TokenType rhs = getExpressionType(((PExpressionBinOp) exp).rhs, currentScope);
             if (lhs != rhs){
                 if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
                         (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
@@ -182,7 +201,7 @@ class MExpressionTypeChecker {
                     operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
                     operator == Token.TokenType.SYMBOL_LESSTHAN ||
                     operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
-                    operator == Token.TokenType.SYMBOL_EQUALS ||
+                    operator == Token.TokenType.SYMBOL_DOUBLEEQUALS ||
                     operator == Token.TokenType.SYMBOL_NOTEQUAL){
                 if(output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
                     throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
