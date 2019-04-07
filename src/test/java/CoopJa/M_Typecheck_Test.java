@@ -23,8 +23,11 @@ public class M_Typecheck_Test {
                 "int foo67; " +
                 "string foo9 = foo3;" +
                 "foo67 = (1 + 9)*5;" +
+                "while (foo67 < 60) {" +
+                "foo67 = foo67 + 1;"+
+                "}" +
                 "for (int i = 0; i < 9; i = i+1;){" +
-                "foo = foo + 5;" +
+                "foo8 = foo8 + 5;" +
                 "}" +
                 "if (1 == 1){" +
                 "int i = 0;" +
@@ -138,6 +141,28 @@ class MExpressionTypeChecker {
         }
     }
 
+    private void typeCheckForStatement (PStatementForStatement forStatement, Scope currentScope) throws TypeCheckerException{
+        Scope forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
+        if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
+            throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
+        typeCheckStatement(forStatement.statement1, forScope); //typecheck variable decleration
+        if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
+            throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
+        //we're going to ignore the third part of the for loop for now.....
+        for (PStatement statement: forStatement.statementList){
+            typeCheckStatement(statement, forScope);
+        }
+    }
+
+    private void typeCheckWhileStatement (PStatementWhileStatement whileStatement, Scope currentScope) throws TypeCheckerException{
+        Scope whileScope = currentScope.Copy();
+        if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
+            throw new TypeCheckerException("While Loop Expression must be of type BOOLEAN");
+        for (PStatement statement: whileStatement.statementList){
+            typeCheckStatement(statement, whileScope);
+        }
+    }
+
     private void typeCheckFunction(PStatementFunctionDeclaration funcDec, Scope currentScope) throws TypeCheckerException{
         //add method names with their return types to the scope
         currentScope.MethodNames.put(funcDec.identifier.getTokenString(), funcDec.returnType);
@@ -156,6 +181,12 @@ class MExpressionTypeChecker {
         }
         if (statement instanceof  PStatementIfStatement){
             typeCheckIfStatement((PStatementIfStatement) statement, currentScope);
+        }
+        if (statement instanceof PStatementForStatement){
+            typeCheckForStatement((PStatementForStatement) statement, currentScope);
+        }
+        if (statement instanceof PStatementWhileStatement){
+            typeCheckWhileStatement((PStatementWhileStatement) statement, currentScope);
         }
     }
 
