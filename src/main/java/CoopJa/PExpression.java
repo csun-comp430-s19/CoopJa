@@ -14,4 +14,8 @@ public interface PExpression {
 
     //other:
     //PExpressionStub
+
+    String generateString() throws CodeGenException;
+
+ 
 }

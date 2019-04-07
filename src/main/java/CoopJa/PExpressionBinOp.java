@@ -55,4 +55,9 @@ public class PExpressionBinOp implements PExpression, PExpressionAtom {
         this.rhs = rhs;
         this.operatorToken = operatorToken;
     }
+
+    @Override
+    public String generateString() throws CodeGenException {
+        return "(" + lhs.generateString() + ")" + operatorToken.getTokenString() + "(" + rhs.generateString() + ")";
+    }
 }
