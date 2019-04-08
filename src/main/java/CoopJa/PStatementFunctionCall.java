@@ -14,4 +14,10 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
         this.expressionsInput = expressionsInput;
 
     }
+
+    // TODO: Generate function declarations AND calls
+    @Override
+    public String generateString() throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Function Call");
+    }
 }

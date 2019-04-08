@@ -6,4 +6,10 @@ public class PExpressionVariable implements  PExpression, PExpressionAtom{
     public PExpressionVariable(Token variable){
         this.variable = variable;
     }
+
+
+    @Override
+    public String generateString() throws CodeGenException {
+        return variable.getTokenString();
+    }
 }

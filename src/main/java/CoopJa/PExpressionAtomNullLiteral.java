@@ -5,4 +5,9 @@ public class PExpressionAtomNullLiteral implements PExpressionAtom {
     public PExpressionAtomNullLiteral(Token literalToken){
         this.literalToken = literalToken;
     }
+
+    @Override
+    public String generateString() {
+        return "NULL";
+    }
 }

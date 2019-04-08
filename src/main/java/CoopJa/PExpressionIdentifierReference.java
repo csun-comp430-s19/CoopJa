@@ -8,4 +8,9 @@ public class PExpressionIdentifierReference implements PStatement, PExpression, 
         this.identifier = identifier;
         this.next = next;
     }
+
+    @Override
+    public String generateString() throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "expression identifier reference");
+    }
 }
