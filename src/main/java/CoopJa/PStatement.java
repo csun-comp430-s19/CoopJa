@@ -15,5 +15,7 @@ public interface PStatement {
     //PStatementWhileStatement
     //PVariableAssignment
     //PVariableDeclaration
-
+    
+    //(!) Might implement later
+    //String generateString() throws CodeGenException;
 }
