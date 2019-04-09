@@ -187,6 +187,7 @@ public class C_CodeGenTest {
         String UPGRADEloc = loc + "\\tcc"; //where tcc compiler is in our proj folder
         String fileloc;
         String dothis = "tcc "; //command to compile the file, NOT execute, must be done separately
+        final String COMMAND_1;
         System.out.println();
         System.out.println(file.getPath());
         System.out.println(file.getName());
@@ -197,9 +198,40 @@ public class C_CodeGenTest {
         }
         dothis += fileloc + "\\" + file.getName();
         Runtime rt = Runtime.getRuntime();
-        rt.exec("cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + dothis + ""); //execute the tcc compiler and compile the given file
+        COMMAND_1 = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + dothis + "";
+        Process PROCESS_1 = rt.exec(COMMAND_1); //execute the tcc compiler and compile the given file
         //NOTE: output file is currently set to default location with tcc.exe XXXXXXX
         //NOTE: currently output file is not executed or read XXXXXX
-    }// end COMPILER()
+        ////RUNFILE(PROCESS_1, UPGRADEloc, file);
+    } // end COMPILER()
+
+    public static void RUNFILE(Process inputProcess, String UPGRADEloc, File file) throws IOException {
+        String[] split = file.getName().split("\\.");
+        System.out.println(split[0]);
+        String two = UPGRADEloc + "\\" + split[0] + ".exe"; // + "\" & start cmd.exe /k \"" + dothis + ""
+        System.out.println(two);
+        String three = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + two;
+        Runtime rt = Runtime.getRuntime();
+        Process newprocess = rt.exec(three);
+
+        BufferedReader stdInput = new BufferedReader(new
+                InputStreamReader(newprocess.getInputStream()));
+
+        BufferedReader stdError = new BufferedReader(new
+                InputStreamReader(newprocess.getErrorStream()));
+
+// read the output from the command
+        System.out.println("Here is the standard output of the command:\n");
+        String s = null;
+        while ((s = stdInput.readLine()) != null) {
+            System.out.println(s);
+        }
+
+// read any errors from the attempted command
+        System.out.println("Here is the standard error of the command (if any):\n");
+        while ((s = stdError.readLine()) != null) {
+            System.out.println(s);
+        }
+    }
 
 }
