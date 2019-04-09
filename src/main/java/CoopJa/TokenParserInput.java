@@ -10,6 +10,10 @@ public class TokenParserInput implements Input<Token> {
     private int position;
     private final TokenParserInput other;
 
+    public ArrayList<Token> getTokenList() {
+        return tokenList;
+    }
+
     public TokenParserInput(ArrayList<Token> tokenList){
         this.tokenList = tokenList;
         position = 0;
