@@ -1,12 +1,13 @@
 package CoopJa;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 
 public class M_Typecheck_UnitTests {
-    public void testTypecheck(final String input) {
+    public MExpressionTypeChecker createTypechecker(final String input) {
         try {
             ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
             Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -14,23 +15,67 @@ public class M_Typecheck_UnitTests {
             PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
             System.out.println();
             MExpressionTypeChecker typeChecker = new MExpressionTypeChecker(fooTester);
-            typeChecker.typeCheck(); //call typechecker with parsed program obj
+            return typeChecker;
         } catch (Exception e) {
-            System.err.println("Error detected properly");
+            System.err.println("Unexpected Parser Error");
             System.err.println(e);
+            return null;
         }
     }
 
+    public void testWorkingTypeChecker(MExpressionTypeChecker typeChecker, String testName){
+        try {
+            typeChecker.typeCheck();
+        }
+        catch (TypeCheckerException e){
+            System.out.println("test failed unexpectadly");
+            System.out.println(e);
+        }
+    }
+
+
     @Test
     public void testAll() {
-        String foo = "public class foo2{" +
+        String foo = "public class foo{public int foo4 = 0;}" +
+                "public class foo6 extends foo{public int foo4 = 1;}" +
+                "public class foo2{" +
                 "public string foo3 = 1 + \"string thingy\";" +
                 "public string foo966;" +
+                "public boolean foofi = true | 1 < 2;" +
                 "public int foo8 = 1;" +
                 "public int bar = foo8;" +
-                "public boolean foofi = true | 1 < 2;" +
+                "public int main(){" +
+                "foo.foo4(); " +
+                "int foo67; " +
+                "string foo9 = foo3;" +
+                "foo67 = (1 + 9)*5;" +
+                "while (foo67 < 60) {" +
+                "foo67 = foo67 + 1;"+
+                "}" +
+                "for (int i = 0; i < 9; i = i+1;){" +
+                "foo8 = foo8 + 5;" +
+                "}" +
+                "if (1 == 1){" +
+                "int i = 0;" +
+                "}" +
+                "else{" +
+                "int i = 1;" +
+                "}" +
+                "int i = 2;" +
+                "return;" +
+                "}" +
                 "}";
-        testTypecheck(foo);
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testAll");
+    }
+
+    @Test
+    public  void testGoodIntAssignment(){
+        String foo = "public class foo2{" +
+                "public int foo3 = (1 + 1) / 2;" +
+                "}";
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testGoodIntAssignment");
     }
 
     @Test
@@ -38,39 +83,184 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public int foo3 = \"string thingy\";" +
                 "}";
-        testTypecheck(foo);
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
+
 
     @Test
     public void testBadBoolean() {
         String foo = "public class foo2{" +
                 "public boolean foo3;" +
-                "public boolean = foo3 + 1" +
+                "public boolean foo4 = foo3 + 1;" +
                 "}";
-        testTypecheck(foo);
+
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
+
 
     @Test
     public void testGoodBoolean() {
         String foo = "public class foo2{" +
                 "public boolean foo= false | true;" +
                 "}";
-        testTypecheck(foo);
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testGoodBoolean");
     }
+
 
     @Test
     public void testGoodComplexBoolean() {
         String foo = "public class foo2{" +
-                "public boolean foofi = true | 1 < 2;" +
+                "public boolean foofi = (true | 1 < 2) && (1==1+1);" +
                 "}";
-        testTypecheck(foo);
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testGoodComplexBoolean");
     }
+
 
     @Test
     public void testGoodStringIntConcat() {
         String foo = "public class foo2{" +
                 "public string foo3 = \"string thingy\" + 1;" +
                 "}";
-        testTypecheck(foo);
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testGoodStringIntConcat");
+    }
+
+    @Test
+    public void testGoodIfStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "if (1 == 1){" +
+                "}" +
+                "else{" +
+                "}" +
+                "return;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typeChecker, "testGoodIfStatement");
+    }
+
+    @Test
+    public void testBadIfStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "if (1 + 1){" +
+                "}" +
+                "else{" +
+                "}" +
+                "return;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    @Test
+    public void testGoodWhileStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "while( 3 < 5 ){" +
+                "}" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typeChecker, "testGoodWhileStatement");
+    }
+
+    @Test
+    public void testBadWhileStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "while( \"Phosphophyllite\" ){" +
+                "}" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    @Test
+    public void testGoodForStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "}" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typeChecker, "testGoodForStatement");
+    }
+
+    @Test
+    public void testBadForStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i + 10; i=i+1;){" +
+                "}" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    @Test
+    public void testBadScopeWhile(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "while( true ){" +
+                "int i = 1;" +
+                "}" +
+                "i = 2;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    @Test
+    public void testBadScopeIfStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "if (1 == 1){" +
+                "int i;" +
+                "}" +
+                "else{" +
+                "i = i + 1;" +
+                "}" +
+                "return;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(NullPointerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    @Test
+    public void testGoodScopeForStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "i = 3;" +
+                "}" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typeChecker, "testGoodScopeForStatement");
+    }
+
+    @Test
+    public void testBadScopeForStatement(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "}" +
+                "i = 9;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 }
