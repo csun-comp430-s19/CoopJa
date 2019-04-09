@@ -24,7 +24,7 @@ public class C_CodeGenTest {
 
     private static StringBuilder programContentString;
 
-    private static final String MAIN_END = "system(\"pause\");\n" + ///XXXXXXXXXXwill clean up later
+    private static final String MAIN_END = "" + ///XXXXXXXXXXwill clean up later
             "\treturn 0;\n" +
                     "}";
 
@@ -183,8 +183,8 @@ public class C_CodeGenTest {
     }
 
     public static void COMPILER(File file) throws IOException {
-        final String loc = "C:\\Users\\NSA\\Documents\\GitHub\\CoopJa"; //location of our project on your computer !!_NOTICE_!!
-        String UPGRADEloc = loc + "\\tcc"; //where tcc compiler is in our proj folder
+        final String loc = ""; //location of our project on your computer !!_NOTICE_!!
+        String UPGRADEloc = loc + "tcc"; //where tcc compiler is in our proj folder
         String fileloc;
         String dothis = "tcc "; //command to compile the file, NOT execute, must be done separately
         final String COMMAND_1;
@@ -196,21 +196,29 @@ public class C_CodeGenTest {
         } else {
             fileloc = file.getPath();
         }
-        dothis += fileloc + "\\" + file.getName();
+        dothis += fileloc + "..\\" + file.getName();
         Runtime rt = Runtime.getRuntime();
-        COMMAND_1 = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + dothis + "";
+        //COMMAND_1 = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + dothis + "";
+        //COMMAND_1 = "cmd.exe /k print hello";
+        COMMAND_1 = "tcc\\tcc.exe HelloWorld.c";
         Process PROCESS_1 = rt.exec(COMMAND_1); //execute the tcc compiler and compile the given file
+        try {
+            PROCESS_1.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         //NOTE: output file is currently set to default location with tcc.exe XXXXXXX
         //NOTE: currently output file is not executed or read XXXXXX
-        ////RUNFILE(PROCESS_1, UPGRADEloc, file);
+        RUNFILE(PROCESS_1, UPGRADEloc, file);
     } // end COMPILER()
 
     public static void RUNFILE(Process inputProcess, String UPGRADEloc, File file) throws IOException {
         String[] split = file.getName().split("\\.");
         System.out.println(split[0]);
-        String two = UPGRADEloc + "\\" + split[0] + ".exe"; // + "\" & start cmd.exe /k \"" + dothis + ""
+        String two = split[0] + ".exe"; // + "\" & start cmd.exe /k \"" + dothis + ""
         System.out.println(two);
-        String three = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + two;
+        //String three = "cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /c \"" + two;
+        String three = "HelloWorld.exe";
         Runtime rt = Runtime.getRuntime();
         Process newprocess = rt.exec(three);
 
