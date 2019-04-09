@@ -24,14 +24,14 @@ public class C_CodeGenTest {
 
     private static StringBuilder programContentString;
 
-    private static final String MAIN_END =
+    private static final String MAIN_END = "system(\"pause\");\n" + ///XXXXXXXXXXwill clean up later
             "\treturn 0;\n" +
                     "}";
 
     private static StringBuilder finalOutputProgramString;// = new StringBuilder(programHeader);
 
     public C_CodeGenTest() {
-        programHeader = new StringBuilder("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>");
+        programHeader = new StringBuilder("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>"); ////XXXXXXXXXXXXXXxwill clean up later
         //This var will hold the string of the program content going inside main().
         programContentString = new StringBuilder();
         functionsStrBuilder = new StringBuilder("\n");//newline separates functions from main().
@@ -138,6 +138,7 @@ public class C_CodeGenTest {
         //filename is the name of the file plus extension
 
         File fileout;
+        System.out.println();
         if (dir.length() != 0) { //if dir is not blank
             System.out.println("dir not blank");
             if (!dir.exists()) { //if dir doesnt exist
@@ -166,6 +167,9 @@ public class C_CodeGenTest {
             System.err.println(e);
             //throw error?
         }
+
+        COMPILER(fileout); //////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 } //end writeCompleteFile
 
     public static ArrayList<String> StringtoArrayList(String input) { //input a string, output will be an arraylist separating all new lines in the string
@@ -177,4 +181,25 @@ public class C_CodeGenTest {
         }
         return out;
     }
+
+    public static void COMPILER(File file) throws IOException {
+        final String loc = "C:\\Users\\NSA\\Documents\\GitHub\\CoopJa"; //location of our project on your computer !!_NOTICE_!!
+        String UPGRADEloc = loc + "\\tcc"; //where tcc compiler is in our proj folder
+        String fileloc;
+        String dothis = "tcc "; //command to compile the file, NOT execute, must be done separately
+        System.out.println();
+        System.out.println(file.getPath());
+        System.out.println(file.getName());
+        if (file.getPath().equals(file.getName())) { //location of the file is in root dir?
+            fileloc = loc; //save the location of the file if not specified (proj dir by default)
+        } else {
+            fileloc = file.getPath();
+        }
+        dothis += fileloc + "\\" + file.getName();
+        Runtime rt = Runtime.getRuntime();
+        rt.exec("cmd.exe /c cd \"" + UPGRADEloc + "\" & start cmd.exe /k \"" + dothis + ""); //execute the tcc compiler and compile the given file
+        //NOTE: output file is currently set to default location with tcc.exe XXXXXXX
+        //NOTE: currently output file is not executed or read XXXXXX
+    }// end COMPILER()
+
 }
