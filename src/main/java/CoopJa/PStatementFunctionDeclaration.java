@@ -1,6 +1,7 @@
 package CoopJa;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
     // Function declarations work similar to variable declarations
@@ -20,4 +21,8 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         this.statementList = statementList;
     }
 
+    @Override
+    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Function Declaration");
+    }
 }

@@ -2,6 +2,7 @@ package CoopJa;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class PExpressionBinOp implements PExpression, PExpressionAtom {
@@ -57,7 +58,7 @@ public class PExpressionBinOp implements PExpression, PExpressionAtom {
     }
 
     @Override
-    public String generateString() throws CodeGenException {
-        return "(" + lhs.generateString() + ")" + operatorToken.getTokenString() + "(" + rhs.generateString() + ")";
+    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        return "(" + lhs.generateString(globalMembers, localMembers) + ")" + operatorToken.getTokenString() + "(" + rhs.generateString(globalMembers, localMembers) + ")";
     }
 }

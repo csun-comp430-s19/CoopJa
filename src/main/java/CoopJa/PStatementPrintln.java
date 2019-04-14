@@ -1,5 +1,7 @@
 package CoopJa;
 
+import java.util.LinkedHashMap;
+
 public class PStatementPrintln implements PStatement{
     public Token printStringToken;
 
@@ -21,4 +23,9 @@ public class PStatementPrintln implements PStatement{
       //(!) Should assume that println will ultimately receive a single string type.
       return "printf(\"%s\\n\","+this.printStringToken.getTokenString()+");";
     }//end generateString
+
+    @Override
+    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Println");
+    }
 }

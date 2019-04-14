@@ -1,5 +1,7 @@
 package CoopJa;
 
+import java.util.LinkedHashMap;
+
 public class PExpressionVariable implements  PExpression, PExpressionAtom{
     public Token variable;
 
@@ -9,7 +11,7 @@ public class PExpressionVariable implements  PExpression, PExpressionAtom{
 
 
     @Override
-    public String generateString() throws CodeGenException {
+    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         return variable.getTokenString();
     }
 }

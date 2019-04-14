@@ -1,6 +1,7 @@
 package CoopJa;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class PStatementForStatement implements PStatement {
     public PStatement statement1;
@@ -13,5 +14,10 @@ public class PStatementForStatement implements PStatement {
         this.expression = expression;
         this.statement2 = statement2;
         this.statementList = statementList;
+    }
+
+    @Override
+    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "For Loop");
     }
 }

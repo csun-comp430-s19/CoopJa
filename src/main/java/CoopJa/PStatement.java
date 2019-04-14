@@ -1,5 +1,7 @@
 package CoopJa;
 
+import java.util.LinkedHashMap;
+
 public interface PStatement {
     //classes that implement this class
 
@@ -18,4 +20,5 @@ public interface PStatement {
     
     //(!) Might implement later
     //String generateString() throws CodeGenException;
+    String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException;
 }

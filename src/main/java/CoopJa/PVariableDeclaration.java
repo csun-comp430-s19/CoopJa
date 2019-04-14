@@ -1,6 +1,8 @@
 package CoopJa;
 
 
+import java.util.LinkedHashMap;
+
 //(!)(!) Not tested. 4/8/19
 public class PVariableDeclaration implements PStatement, PDeclaration {
     // The following ways are how a Variable can be declared, and thus what info it may contain
@@ -70,5 +72,9 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
       
       return returnVarDecString.toString();
     }//end generateString()
-    
+
+    @Override
+    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
+    }
 }//end class PVariableDeclaration
