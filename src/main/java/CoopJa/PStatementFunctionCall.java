@@ -30,13 +30,14 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
         }
         // Rest
         for (int i = 0; i < expressionsInput.size(); i++){
-            expressionListString.append(expressionsInput.get(i));
+            expressionListString.append(expressionsInput.get(i).generateString(globalClassName, globalMembers, localMembers));
             if (i < expressionsInput.size()-1){
                 expressionListString.append(",");
             }
         }
         // Now we can make the string
-        return identifier.getTokenString() + "(" + expressionListString + ")";
+        // TODO: The first parameter shouldn't always be "this", it's dependent on the parent function. In particular,  the identifier reference here matters, work needs to be done on this, but classes currently aren't fully working
+        return globalClassName + "_" +  identifier.getTokenString() + "(" + "this" + ", " + expressionListString.toString() + ")";
     }
 
     @Override

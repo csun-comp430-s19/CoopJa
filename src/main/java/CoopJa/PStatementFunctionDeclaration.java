@@ -68,7 +68,7 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         if (identifier.getTokenString().equals("main")) {
             funcDecString.append("int main(int argc, char** argv){\n" +
                     "    struct " + globalClassName + " mainClass = {};\n" +
-                    "    " + globalClassName + "_main(&mainClass);\n" +
+                    "    return " + globalClassName + "_main(&mainClass);\n" +
                     "}");
         }
 

@@ -22,15 +22,12 @@ public class PStatementIfStatement implements PStatement {
 
 
         ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
-
-        ifStatmentString.append("}");
         // Else statement exists? Then do that too
         if (elseStatementList != null){
             ifStatmentString.append("else{\n");
-            ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
+            ifStatmentString.append(PStatement.generateCodeStatementBlock(elseStatementList, globalClassName, localMembers, globalMembers)+ "}");
 
         }
-        ifStatmentString.append("}");
         // Then return
         return ifStatmentString.toString();
     }

@@ -20,8 +20,8 @@ public class PStatementForStatement implements PStatement {
     public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "For Loop");
         StringBuilder forString = new StringBuilder();
-        forString.append("for(" + statement1.generateCodeStatement(globalClassName, globalMembers, localMembers) + ","
-                + expression.generateString(globalClassName, globalMembers, localMembers) + "," + statement2.generateCodeStatement(globalClassName, globalMembers, localMembers) +
+        forString.append("for(" + statement1.generateCodeStatement(globalClassName, globalMembers, localMembers) + ";"
+                + expression.generateString(globalClassName, globalMembers, localMembers) + ";" + statement2.generateCodeStatement(globalClassName, globalMembers, localMembers) +
                 "){\n");
         forString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers));
         forString.append("}\n");

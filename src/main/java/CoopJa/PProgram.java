@@ -31,7 +31,7 @@ public class PProgram {
                 "}" +
                 "}";*/
 
-        String foo = "public class foo{" +
+        /*String foo = "public class foo{" +
                 "public int favoriteNumber;" +
                 "public int main(){" +
                 "println(\"Hello World!\");" +
@@ -39,7 +39,40 @@ public class PProgram {
                 "int foo2 = 1;" +
                 "int foo3 = 2;" +
                 "foo3 = 3;" +
+                "return 0;" +
                 "}" +
+                "}";*/
+
+
+        // Fizz Buzz example
+        String foo = "public class test{\n" +
+                "    public int moduloHack(int x, int n){\n" +
+                "        int p;\n" +
+                "        int q;\n" +
+                "        int m;\n" +
+                "        q = x/n;\n" +
+                "        p = q*n;\n" +
+                "        m = x - p;\n" +
+                "        return m;\n" +
+                "    }\n" +
+                "    \n" +
+                "    public int main(){\n" +
+                "        for (int i = 0; i <= 45; i = i + 1;){\n" +
+                "            if (moduloHack(i, 15) == 0){\n" +
+                "                println(\"FizzBuzz\");\n" +
+                "            } \n" +
+                "            else{\n" +
+                "                if (moduloHack(i, 3)){\n" +
+                "                    println(\"Fizz\");\n" +
+                "                }\n" +
+                "                else{\n" +
+                "                    if (moduloHack(i ,5)){\n" +
+                "                        println(\"Buzz\");\n" +
+                "                    }else{}\n" +
+                "                }\n" +
+                "            }\n" +
+                "        }\n" +
+                "    }\n" +
                 "}";
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
