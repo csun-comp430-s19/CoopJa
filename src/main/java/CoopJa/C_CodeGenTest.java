@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.lang.StringBuilder;
 
 
-public class C_CodeGenTest {
+public class C_CodeGenTest 
+{
     /*(!) Can include stdio.h by default or
       can add it if there's a println statement,
       in that case not making it final.
@@ -14,32 +15,40 @@ public class C_CodeGenTest {
     //"#include <stdio.h>\n"; //(i)unimplemented)Should be empty, bc will add header files dynamically as needed.
 
     //(i)(unimplemented)There should be a newline between the headers & the functions.
+    
+    private static StringBuilder structSectionStrBuilder;
 
-    private static StringBuilder functionsStrBuilder;// = new StringBuilder();
+    private static StringBuilder functionSectionStrBuilder;// = new StringBuilder();
 
     private static final String MAIN_START =
-            "\n" +
+                    "\n" +
                     "int main(int argc, char **argv)\n" +
                     "{\n";
 
-    private static StringBuilder programContentString;
+    private static StringBuilder programContentStrBuilder;
 
     private static final String MAIN_END = "" + ///XXXXXXXXXXwill clean up later
-            "\treturn 0;\n" +
+                    "\treturn 0;\n" +
                     "}";
 
-    private static StringBuilder finalOutputProgramString;// = new StringBuilder(programHeader);
+    private static StringBuilder finalOutputProgramStrBuilder;// = new StringBuilder(programHeader);
 
-    public C_CodeGenTest() {
-        programHeader = new StringBuilder("#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>"); ////XXXXXXXXXXXXXXxwill clean up later
+    public C_CodeGenTest() 
+    {
+        programHeader = new StringBuilder("#include <stdio.h>\n");
+                              // "#include <stdio.h>\n"+
+                              // "#include <stdlib.h>\n"+
+                              // "#include <string.h>"); ////XXXXXXXXXXXXXXxwill clean up later
+
+        structSectionStrBuilder = new StringBuilder();
+        functionSectionStrBuilder = new StringBuilder("\n");//newline separates functions from main().
         //This var will hold the string of the program content going inside main().
-        programContentString = new StringBuilder();
-        functionsStrBuilder = new StringBuilder("\n");//newline separates functions from main().
-        finalOutputProgramString = new StringBuilder();
+        programContentStrBuilder = new StringBuilder();
+        finalOutputProgramStrBuilder = new StringBuilder();
     }
 
-    public static void main(String[] args) throws IOException {
-
+    public static void main(String[] args) throws IOException 
+    {
         String programString = "public class example {" +
                 "public String cool = \"Cool1\" + \"yeah\";" +
                 "public void method1(int one, int two)" +
@@ -47,7 +56,6 @@ public class C_CodeGenTest {
                 "int one = 1;" +
                 "}" +
                 "}";
-
 
         //Get a println statement expression.
         String printLineString = "println(\"Print Me\")";
@@ -69,24 +77,210 @@ public class C_CodeGenTest {
         //Instantiate class to use the members.
         C_CodeGenTest codeGenerator = new C_CodeGenTest();
         //(!) Will pass PProgram eventually.
-        codeGenerator.generateCode(printLnExpression);
+        //codeGenerator.generateCode(printLnExpression);
+        codeGenerator.generateCode(programExpression);
 
-    }
-
+    }// main()
 
     //(!) Will make accept a PProgram & will return String, for now just prints.
-    public void generateCode(PStatementPrintln printLnExpression) throws IOException {
+    public void generateCode(final PProgram pProgram) //throws IOException 
+    {
+        //Get reference to pProgram
+        PProgram inputProgram = pProgram;
+        try 
+        {
+            //Go through the class declarations.
+            for(PClassDeclaration classDeclaration : inputProgram.classDeclarationList)
+            {   
+                //generate the code for the class Declarations.
+                generateCode(classDeclaration, 0);
+            } //(!) Delete unneeded lines after this in this method.
+            //Add / append the program content until it's all processed.
+            //Can be in a loop if needed.
+            //_(!)programContentStrBuilder.insert(0, getIndents(printLnExpression.getScope()));
+          /*Actually, since we are diving into the code linearly, the scope will be directly known by
+            this program.
+          */
+            //Don't have any info on scope, I believe, so don't know how many \t to prepend.
+
+            //Add the necessary header files.
+            // if(printLnExpression.includeRequired())
+            // {
+            // if( ! (includeExists(programHeader, printLnExpression.includeRequired())))
+            // programHeader.append(printLnExpression.includeRequired());
+            // }
+
+            //System.out.println(printLnExpression.generateString());
+            //System.out.println("Class: "+fooTester2.getClass());
+
+        } 
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+        }
+
+        //Append the program headers
+        finalOutputProgramStrBuilder.append(programHeader.toString());
+        //Append structs to the program
+        finalOutputProgramStrBuilder.append(structSectionStrBuilder.toString());
+        //Append any functions.
+        finalOutputProgramStrBuilder.append(functionSectionStrBuilder.toString());
+        //Append the main start
+        finalOutputProgramStrBuilder.append(MAIN_START); //not a stringBuilder.
+
+        //Append the program content to the programHeader at this point.
+        finalOutputProgramStrBuilder.append(programContentStrBuilder.toString());
+        //Separate the program content from the return statement. 
+        //_ Can be added in programContentStrBuilder building? (?)
+        finalOutputProgramStrBuilder.append("\n");
+
+        //Append the program Footer to the finalOutputProgramStrBuilder.
+        finalOutputProgramStrBuilder.append(MAIN_END);
+
+        System.out.println(finalOutputProgramStrBuilder);
+
+        //Send the program to be written to a file in the current dir.
+        String outputFileName = "HelloWorld.c";
+
+        //will make better solution later XXXXXXX
+        //this converts the string to an arraylist of strings, for writing purposes need platform's line separator.
+        //ArrayList<String> progLines = StringtoArrayList(finalOutputProgramStrBuilder.toString());
+        //writeCompleteFile(progLines, new File(""), outputFileName); //write output to a file
+
+    }//end generateCode PProgram
+    
+    public static void generateCode(final PClassDeclaration classDeclaration, final int scopeLevel)
+    {
+        //scopeLevel is not used since classDeclaration should be in the 0th scope, but here for consistency.
+        /*This class is responsible for making the complete struct & its members.*/
+        /*(!)(?) How will class extension be handled? 
+          One possibility is just adding the same members from the class that's being extended.
+        */
+        
+        StringBuilder structStrBuilder = new StringBuilder(
+                                          "typedef struct"+ "\n" + /*classDeclaration.identifier.getTokenString()*/
+                                          "{\n");
+        //Now we add any variable & function declarations it might have.
+        for(PDeclaration pDeclaration : classDeclaration.declarationList)
+        {   
+            //Increment the scope level to tab it.
+            //generateCode will return a string of the pDeclaration
+            /*(i)Functions should be added in 3 places: 
+                inside struct they're declared,
+                function area above main(),
+                in program content inside main() assigned to function() * of struct (member).
+                The identifier in struct takes precedence, just as identifier of struct instance
+                takes precedence over struct name.
+                //Constructor will be treated differently. It will just be an initial assignment in main().
+            */
+            if(pDeclaration instanceof PVariableDeclaration)
+            {                
+                generateCode((PVariableDeclaration)pDeclaration, scopeLevel+1, structStrBuilder);                
+            }
+            if(pDeclaration instanceof PStatementFunctionDeclaration)
+            {      
+                generateCode((PStatementFunctionDeclaration)pDeclaration, scopeLevel+1, structStrBuilder);
+            }
+        }//end adding struct member declarations.
+
+        //Add the name of the struct so we can declare like: MyClass classInstance;
+        structStrBuilder.append("} " + classDeclaration.identifier.getTokenString() + ";\n");
+        //Add the entire struct to the struct section.
+        structSectionStrBuilder.append(structStrBuilder.toString());
+    }
+    
+    //This method adds to the class' static members for function section &, but it adds t
+    public static void generateCode(final PStatementFunctionDeclaration functionDeclaration, final int scopeLevel, StringBuilder structStrBuilder)
+    {
+      /* This method's job is to generate the code for the struct's methods*/
+      //(!)(!) Check if it's a constructor, so we need the name of the class, else in previous callback
+      //_ we can check before calling this function, and call another function instead.
+      StringBuilder functionSectionBuilder = new StringBuilder();
+      StringBuilder functionInMainBuilder = new StringBuilder();
+      // StringBuilder functionPtrInStructBuilder = new StringBuilder();
+      
+      
+      /*Begin add function to struct as function pointer*/
+      addTabs(structStrBuilder, scopeLevel);
+      //Make it a function pointer.
+      structStrBuilder.append(functionDeclaration.returnType.getTokenString() +
+                                " (*" + functionDeclaration.identifier.getTokenString() + ")");
+                                // "(");
+      //Add parameters list.
+      structStrBuilder.append("(");
+      //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
+      for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
+      {
+          generateCodeParameter(structStrBuilder, functionDeclaration.variableDeclarations.get(i));
+          if(i+1 < functionDeclaration.variableDeclarations.size())
+              structStrBuilder.append(", ");
+      }
+      structStrBuilder.append(");\n");
+      /*End add function pointer to struct.*/
+      
+      /*Begin add function to function section*/
+      //(!)(!) Try keeping both the member & declared function w/ the same name, see if there's a conflict.
+      functionSectionBuilder.append(functionDeclaration.returnType.getTokenString() +
+                                    functionDeclaration.identifier.getTokenString());
+      //Add parameters list. 
+      functionSectionBuilder.append("(");
+      //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
+      for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
+      {
+          generateCodeParameter(functionSectionBuilder, functionDeclaration.variableDeclarations.get(i));
+          if(i+1 < functionDeclaration.variableDeclarations.size())
+              functionSectionBuilder.append(", ");
+      }
+      functionSectionBuilder.append(")\n");
+      //Build the body of the function.
+      functionSectionBuilder.append("{\n");
+      //Add the statements in the body.
+
+      
+      //Add the return if any.
+      //Close the body of the function.
+      functionSectionBuilder.append("}\n");
+      //Add it to the static function
+      functionSectionStrBuilder.append(functionSectionBuilder.toString());
+      /*End add function to function section*/
+
+      /*Begin add function in main()*/
+      /*End add function in main()*/
+      
+    } // generateCode for functionDeclarations.
+    
+    public static void generateCode(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder structStrBuilder)
+    {
+      /* This method's job is to generate the code for the structs methods & variables. or branch*/
+    }// generateCode for varDeclarations.
+
+    public static void generateCodeParameter(StringBuilder structStrBuilder, final PVariableDeclaration parameterDeclaration)
+    {
+        structStrBuilder.append(parameterDeclaration.variableType.getTokenString() + " " + parameterDeclaration.identifier.getTokenString());
+    }//code generation parameters.
+
+    public static void addTabs(StringBuilder strB, final int scopeLevel)
+    {
+        for(int i = 0; i < scopeLevel; i++)
+        {
+            strB.append("\t");
+        }
+    }//addTabs
+/********************************************************************************************/
+    //(!) Will make accept a PProgram & will return String, for now just prints.
+    public void generateCode(PStatementPrintln printLnExpression) throws IOException 
+    {
         try {
             //Add / append the program content until it's all processed.
             //Can be in a loop if needed.
-            this.programContentString.insert(0, "\t");
-            //_(!)programContentString.insert(0, getIndents(printLnExpression.getScope()));
+            this.programContentStrBuilder.insert(0, "\t");
+            //_(!)programContentStrBuilder.insert(0, getIndents(printLnExpression.getScope()));
           /*Actually, since we are diving into the code linearly, the scope will be directly known by
             this program.
           */
 
             //Don't have any info on scope, I believe, so don't know how many \t to prepend.
-            this.programContentString.append(printLnExpression.generateString());
+            this.programContentStrBuilder.append(printLnExpression.generateString());
 
 
             //Add the necessary header files.
@@ -99,35 +293,41 @@ public class C_CodeGenTest {
             //System.out.println(printLnExpression.generateString());
             //System.out.println("Class: "+fooTester2.getClass());
 
-        } catch (CodeGenException e) {
+        } 
+        catch (CodeGenException e) 
+        {
             e.printStackTrace();
         }
 
         //Append the program headers
-        finalOutputProgramString.append(programHeader.toString());
+        finalOutputProgramStrBuilder.append(programHeader.toString());
+        //Append structs to the program
+        finalOutputProgramStrBuilder.append(structSectionStrBuilder.toString());
+        
         //Append any functions.
-        finalOutputProgramString.append(functionsStrBuilder.toString());
+        finalOutputProgramStrBuilder.append(functionSectionStrBuilder.toString());
         //Append the main start
-        finalOutputProgramString.append(MAIN_START); //not a stringBuilder.
+        finalOutputProgramStrBuilder.append(MAIN_START); //not a stringBuilder.
 
         //Append the program content to the programHeader at this point.
-        finalOutputProgramString.append(programContentString.toString());
+        finalOutputProgramStrBuilder.append(programContentStrBuilder.toString());
         //Separate the program content from the return statement. 
-        //_ Can be added in programContentString building? (?)
-        finalOutputProgramString.append("\n");
+        //_ Can be added in programContentStrBuilder building? (?)
+        finalOutputProgramStrBuilder.append("\n");
 
-        //Append the program Footer to the finalOutputProgramString.
-        finalOutputProgramString.append(MAIN_END);
+        //Append the program Footer to the finalOutputProgramStrBuilder.
+        finalOutputProgramStrBuilder.append(MAIN_END);
 
-        System.out.println(finalOutputProgramString);
+        System.out.println(finalOutputProgramStrBuilder);
 
+        //(!) Stopped copying to other method(PProgram ) from here.
         //Send the program to be written to a file in the current dir.
         String tempfilename = "HelloWorld.c";
 
 
         //will make better solution later XXXXXXX
         //this converts the string to an arraylist of strings, for writing purposes
-        ArrayList<String> progLines = StringtoArrayList(finalOutputProgramString.toString());
+        ArrayList<String> progLines = StringtoArrayList(finalOutputProgramStrBuilder.toString());
 
         writeCompleteFile(progLines, new File(""), tempfilename); //write output to a file
 
@@ -170,7 +370,7 @@ public class C_CodeGenTest {
 
         COMPILER(fileout); //////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-} //end writeCompleteFile
+    } //end writeCompleteFile
 
     public static ArrayList<String> StringtoArrayList(String input) { //input a string, output will be an arraylist separating all new lines in the string
         ArrayList<String> out = new ArrayList<>();
