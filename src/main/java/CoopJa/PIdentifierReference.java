@@ -14,14 +14,14 @@ public class PIdentifierReference implements PStatement, PExpressionAtom{
     }
 
     @Override
-    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Identifier Reference");
-        return identifier.getTokenString() + "->" + next.generateCodeStatement(globalMembers, localMembers);
+        return identifier.getTokenString() + "->" + next.generateCodeStatement(null, null, null);
     }
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Identifier Reference");
-        return generateString(globalMembers, localMembers);
+        return generateString(globalClassName, null, null);
     }
 }

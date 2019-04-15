@@ -9,7 +9,7 @@ public class PExpressionAtomNullLiteral implements PExpressionAtom {
     }
 
     @Override
-    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) {
         return "NULL";
     }
 }

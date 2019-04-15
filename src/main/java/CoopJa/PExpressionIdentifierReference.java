@@ -14,14 +14,14 @@ public class PExpressionIdentifierReference implements PStatement, PExpression, 
     }
 
     @Override
-    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "expression identifier reference");
-        return identifier.getTokenString() + "->" + next.generateString(globalMembers, localMembers);
+        return identifier.getTokenString() + "->" + next.generateString(null, null, null);
     }
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Expression Identifier Reference");
-        return generateString(globalMembers, localMembers);
+        return generateString(globalClassName, globalMembers, localMembers);
     }
 }

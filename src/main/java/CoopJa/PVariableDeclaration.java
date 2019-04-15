@@ -74,7 +74,18 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
     }//end generateString()
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
-        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
+        StringBuilder varDecString = new StringBuilder();
+        varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());
+        if (assignment != null){
+            varDecString.append(" = " + assignment.generateString(globalClassName, globalMembers, localMembers));
+        }
+        return varDecString.toString();
+    }
+
+    @Override
+    public String getIdentiferString() {
+        return identifier.getTokenString();
     }
 }//end class PVariableDeclaration

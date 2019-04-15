@@ -9,7 +9,7 @@ public class PExpressionAtomStringLiteral implements PExpressionAtom {
     }
 
     @Override
-    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         return literalToken.getTokenString();
     }
 }

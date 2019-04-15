@@ -18,11 +18,17 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
 
     // TODO: Generate function declarations AND calls
     @Override
-    public String generateString(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Function Call");
 
         // First build the expression list string
         StringBuilder expressionListString = new StringBuilder();
+
+        // Add a pointer reference if needed
+        if (globalMembers.containsKey(identifier.getTokenString())){
+            expressionListString.append(identifier.getTokenString() + "->");
+        }
+        // Rest
         for (int i = 0; i < expressionsInput.size(); i++){
             expressionListString.append(expressionsInput.get(i));
             if (i < expressionsInput.size()-1){
@@ -34,7 +40,7 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
     }
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
-        return generateString(globalMembers, localMembers);
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        return generateString(globalClassName, globalMembers, localMembers);
     }
 }

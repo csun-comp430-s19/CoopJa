@@ -69,7 +69,7 @@ public class J_CodeGen_ExpressionTest {
         PExpression fooTester2 = parsers.expressionLargeParser.parse(new TokenParserInput(fooToken)).getOrThrow();
         String testOutputExpression = null;
         try {
-            testOutputExpression = fooTester2.generateString(null, null);
+            testOutputExpression = fooTester2.generateString(null , null, null);
         } catch (CodeGenException e) {
             e.printStackTrace();
         }

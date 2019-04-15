@@ -25,7 +25,8 @@ public class PStatementPrintln implements PStatement{
     }//end generateString
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
-        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Println");
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+        //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Println");
+        return "printf(" + printStringToken.getTokenString() + ");\n    printf(\"\\n\")";
     }
 }

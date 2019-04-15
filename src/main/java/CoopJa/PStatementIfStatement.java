@@ -15,20 +15,20 @@ public class PStatementIfStatement implements PStatement {
     }
 
     @Override
-    public String generateCodeStatement(LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         StringBuilder ifStatmentString = new StringBuilder("if (");
-        ifStatmentString.append(expression.generateString(globalMembers, localMembers) + "){");
+        ifStatmentString.append(expression.generateString(globalClassName, globalMembers, localMembers) + "){\n");
         // Add in the list of statements
-        for (int i = 0; i < statementList.size(); i++){
-            ifStatmentString.append(statementList.get(i) + ";\n");
-        }
+
+
+        ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
+
         ifStatmentString.append("}");
         // Else statement exists? Then do that too
         if (elseStatementList != null){
-            ifStatmentString.append("else{");
-            for (int i = 0;  i < elseStatementList.size(); i++){
-                ifStatmentString.append(elseStatementList.get(i) + ";\n");
-            }
+            ifStatmentString.append("else{\n");
+            ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
+
         }
         ifStatmentString.append("}");
         // Then return

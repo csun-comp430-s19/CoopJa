@@ -6,4 +6,7 @@ public interface PDeclaration {
 
     //PVariableDeclaration
     //PStatementFunctionDeclaration
+    // Return a string of the identifier for the given declaration
+    // This makes code generation a bit easier
+    String getIdentiferString();
 }
