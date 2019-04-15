@@ -72,6 +72,7 @@ public class PProgram {
                 "                }\n" +
                 "            }\n" +
                 "        }\n" +
+                "        return 0;\n" +
                 "    }\n" +
                 "}";
 
