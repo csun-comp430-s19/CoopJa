@@ -68,7 +68,7 @@ public class CodeGen_UnitTests {
     public void TestNewCodeGen(String input, String expectedOutPut){
         String givenOutput = ParseToProgramString(input);
         Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
-                "\nExpected: \n" + expectedOutPut + "\nGot: " + givenOutput);
+                "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
     }
 
     public String ParseToProgramString(String inputString){
@@ -79,7 +79,7 @@ public class CodeGen_UnitTests {
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
         try {
             String programString = fooTester.generateProgramString();
-            System.out.printf("%s", programString);
+            System.out.printf( "%s","\n" + programString + "\n");
             return programString;
         } catch (CodeGenException e) {
             e.printStackTrace();
@@ -89,7 +89,7 @@ public class CodeGen_UnitTests {
 
     @Test
     public void NewFullTest(){
-        TestNewCodeGen("public class test{\n" +
+        TestNewCodeGen("public class test{\n" + //Input Starts HERE
                 "    public int moduloHack(int x, int n){\n" +
                 "        int p;\n" +
                 "        int q;\n" +
@@ -119,7 +119,7 @@ public class CodeGen_UnitTests {
                 "        return 0;\n" +
                 "    }\n" +
                 "}"
-                ,"#include <stdio.h>\n" +
+                ,"#include <stdio.h>\n" + //Output starts HERE
                         "\n" +
                         "struct test{\n" +
                         "};\n" +
@@ -159,5 +159,141 @@ public class CodeGen_UnitTests {
                         "}");
     }
 
+    @Test
+    public void NewClassCreationTest(){
+        TestNewCodeGen("public class test{}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n");
+    }
 
+    @Test
+    public void NewMethodCreationTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "}\n");
+    }
+
+    @Test
+    public void NewInitializationTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "int i;" +
+                "int j = 1;" +
+                "}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    int i;\n" +
+                "    int j = 1;\n" +
+                "}\n");
+    }
+
+    @Test
+    public void NewExpressionTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "int i = 2;" +
+                "int j = 1;" +
+                "int k = 1 + 2;" +
+                "k = i + j;" +
+                "k = i - j;" +
+                "k = i / j;" +
+                "k = i * j;" +
+                "}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    int i = 2;\n" +
+                "    int j = 1;\n" +
+                "    int k = (1)+(2);\n" +
+                "    k = (i)+(j);\n" +
+                "    k = (i)-(j);\n" +
+                "    k = (i)/(j);\n" +
+                "    k = (i)*(j);\n" +
+                "}\n");
+    }
+
+    @Test
+    public void NewIfElseTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "if(true){}" +
+                "else{}" +
+                "}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    if (1){\n" +
+                "}\n" +
+                "else{\n" +
+                "};\n" +
+                "}\n");
+    }
+
+    @Test
+    public void NewForTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "for(int i = 1; i <= 10 ; i = i + 1;){}" +
+                "}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    for(int i = 1;(i)<=(10);i = (i)+(1)){\n" +
+                "}\n" +
+                ";\n" +
+                "}\n");
+    }
+    @Test
+    public void NewWhileTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "while(true){}" +
+                "}" +
+                "}",
+                "#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    whiie(1){\n" +
+                "}\n" +
+                "}\n" +
+                ";\n" +
+                "}\n");
+    }
+    @Test
+    public void NewPrintTest(){
+        TestNewCodeGen("public class test{" +
+                "public int Main(){" +
+                "println(\"Rose Windmill\");" +
+                "}" +
+                "}","#include <stdio.h>\n" +
+                "\n" +
+                "struct test{\n" +
+                "};\n" +
+                "int test_Main (struct test* this){\n" +
+                "    printf(\"%s\\n\", \"Rose Windmill\");\n" +
+                "}\n");
+    }
 }
