@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.typemeta.funcj.parser.Input;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -296,4 +295,40 @@ public class CodeGen_UnitTests {
                 "    printf(\"%s\\n\", \"Rose Windmill\");\n" +
                 "}\n");
     }
+
+    //Non Syntax related tests ****Likely to be the only tests soon enough since alot
+    //of the tests above will fail if the syntax changes slightly
+
+    public void TestCodeGenOutput(String codeString, String expectedOutput) throws IOException{
+        String cCodeOutput = CompileAndRuncCode(codeString);
+        Assertions.assertTrue(cCodeOutput.equals(expectedOutput), "Output and Input Differ" +
+                "\nExpected: \n" + expectedOutput + "\nGot: \n" + cCodeOutput);
+    }
+    //similar to generateCFile in J_CodeGen but takes in the CoopJa code instead of the raw c code.
+    public String CompileAndRuncCode(String codeString) throws IOException{
+        String cFile = ParseToProgramString(codeString);
+        String fileName = "UnitTestFile.c";
+        try {
+            File outputFile = new File(fileName);
+            if (!outputFile.exists()) {
+                outputFile.createNewFile();
+            }
+            else{
+                outputFile.delete();
+                outputFile.createNewFile();
+            }
+
+            Writer writer = new FileWriter(outputFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+            bufferedWriter.write(cFile);
+            bufferedWriter.close();
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        J_CodeGen_ExpressionTest.COMPILER(fileName);
+        return J_CodeGen_ExpressionTest.RUNFILE("UnitTestFile.exe");
+    }
 }
+
+
