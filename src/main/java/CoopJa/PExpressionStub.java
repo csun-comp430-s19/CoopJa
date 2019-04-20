@@ -1,5 +1,7 @@
 package CoopJa;
 
+import java.util.LinkedHashMap;
+
 public class PExpressionStub implements  PExpression { //unused, just temp stuff
     Token stubToken;
     public PExpressionStub(Token stubToken){
@@ -7,7 +9,7 @@ public class PExpressionStub implements  PExpression { //unused, just temp stuff
     }
 
     @Override
-    public String generateString() throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Stub (Delte this)");
     }
 }

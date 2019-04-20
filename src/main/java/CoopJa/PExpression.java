@@ -1,6 +1,7 @@
 package CoopJa;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public interface PExpression {
     //classes that implement this class
@@ -17,7 +18,7 @@ public interface PExpression {
     //other:
     //PExpressionStub
 
-    String generateString() throws CodeGenException;
+    String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException;
 
     // TODO: REAL UNIT TESTS
     public static void main(String[] args){
@@ -31,7 +32,7 @@ public interface PExpression {
         MainParser parsers = new MainParser();
         PExpression fooTester2 = parsers.expressionLargeParser.parse(new TokenParserInput(fooToken)).getOrThrow();
         try {
-            System.out.println(fooTester2.generateString());
+            System.out.println(fooTester2.generateString(null, null, null));
         } catch (CodeGenException e) {
             e.printStackTrace();
         }
