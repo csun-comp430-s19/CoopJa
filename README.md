@@ -26,3 +26,6 @@ Results are contained in HTML under the "Outputs" directory, within a zip file n
 
 # Expression Generator
 Unit Test outputs for the Expression Generator are kept under "ExpressionGenerationUnitTest.zip" under "Outputs". Relevant test is in the tests folder. Most up-to-date code is found among expression objects and J_CodeGen_ExpressionTest.java
+
+# Code Generator
+Unit Test outputs for code generation are kept under "CodeGenUnitTests.zip" under "Outputs". Relevant test code is kept under the tests folder.
