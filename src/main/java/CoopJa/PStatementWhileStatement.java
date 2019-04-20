@@ -16,9 +16,9 @@ public class PStatementWhileStatement implements PStatement {
     public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "While Statement");
         StringBuilder whileString = new StringBuilder();
-        whileString.append("whiie(" + expression.generateString(globalClassName, globalMembers, localMembers) + "){\n");
+        whileString.append("while(" + expression.generateString(globalClassName, globalMembers, localMembers) + "){\n");
         whileString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
-        whileString.append("}\n");
+        //whileString.append("}\n");
         return whileString.toString();
 
     }

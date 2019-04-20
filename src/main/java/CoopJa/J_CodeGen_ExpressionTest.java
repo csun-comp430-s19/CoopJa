@@ -29,8 +29,11 @@ public class J_CodeGen_ExpressionTest {
                 InputStreamReader(newprocess.getInputStream()));
 
         // read the output from the command
-        String s;
+        String s, strCurrentLine;
         s = stdInput.readLine();
+        while ((strCurrentLine = stdInput.readLine()) != null) {
+            s = s + strCurrentLine;
+        }
         return s;
     }
 

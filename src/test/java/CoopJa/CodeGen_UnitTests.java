@@ -1,74 +1,13 @@
 package CoopJa;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.typemeta.funcj.parser.Input;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class CodeGen_UnitTests {
-
-    public void testCodeGen(final String inputExpr, final String inputName, final String real) {
-        J_CodeGen_ExpressionTest.generateCFile(inputExpr, inputName + ".c");
-        try {
-            J_CodeGen_ExpressionTest.COMPILER( inputName + ".c");
-            String output = J_CodeGen_ExpressionTest.RUNFILE(inputName + ".exe");
-            System.out.println(output);
-            Assertions.assertEquals(real, output, "!!_BAD_!! " + "output: " + output + " real: " + real);
-        } catch (IOException e) {
-            Assertions.assertEquals(real, "IOException");
-        }
-    }
-
-    @Test
-    public void testExpr() throws IOException, CodeGenException {
-        testCodeGen("(1) + (2)", "ExpressionTest", "3");
-    }
-
-    @Test
-    public void testLastBadinput() throws IOException, CodeGenException {
-        testCodeGen("wrong", "ExpressionTest", "IOException");
-    }
-
-    @Test
-    public void testExprMore1() throws IOException, CodeGenException {
-        testCodeGen("2 + 16 / 4 * 3 + 1 - 6", "ExpressionTest", "9");
-    }
-
-    @Test
-    public void testExprMore2() throws IOException, CodeGenException {
-        testCodeGen("63 / 1 / 3 / 7 / 1", "ExpressionTest", "3");
-    }
-
-    @Test
-    public void testExprMore3() throws IOException, CodeGenException {
-        testCodeGen("256 / 2 * 3 -50 / 5 + 26", "ExpressionTest", "400");
-    }
-
-    @Test
-    public void testExprMore4() throws IOException, CodeGenException {
-        testCodeGen("9 + 7 - 20", "ExpressionTest", "-4");
-    }
-
-    @Test
-    public void testExprMore5() throws IOException, CodeGenException {
-        testCodeGen("( 8 * 7 - 1 ) / 5", "ExpressionTest", "11");
-    }
-
-    @Test
-    public void testExprMore6() throws IOException, CodeGenException {
-        testCodeGen("38 / 3 * 2 - 5 / 2", "ExpressionTest", "22");
-    }
-
-    // Unit tests for New Parser
-    public void TestNewCodeGen(String input, String expectedOutPut){
-        String givenOutput = ParseToProgramString(input);
-        Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
-                "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
-    }
 
     public String ParseToProgramString(String inputString){
         ArrayList<Token> tokenList = Token.tokenize(inputString);
@@ -86,9 +25,149 @@ public class CodeGen_UnitTests {
         }
     }
 
+    public void TestCodeGenOutput(String codeString, String expectedOutput) throws IOException{
+        String cCodeOutput =  CompileAndRuncCode(codeString);
+        Assertions.assertTrue(cCodeOutput.equals(expectedOutput), "Output and Input Differ" +
+                "\nExpected: \n" + expectedOutput + "\nGot: \n" + cCodeOutput);
+    }
+    //similar to generateCFile in J_CodeGen but takes in the CoopJa code instead of the raw c code.
+    public String CompileAndRuncCode(String codeString) throws IOException{
+        String cFile = ParseToProgramString(codeString);
+        String fileName = "UnitTestFile.c";
+        try {
+            File outputFile = new File(fileName);
+            if (!outputFile.exists()) {
+                outputFile.createNewFile();
+            }
+            else{
+                outputFile.delete();
+                outputFile.createNewFile();
+            }
+
+            Writer writer = new FileWriter(outputFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(writer);
+            bufferedWriter.write(cFile);
+            bufferedWriter.close();
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        J_CodeGen_ExpressionTest.COMPILER(fileName);
+        return J_CodeGen_ExpressionTest.RUNFILE("UnitTestFile.exe");
+    }
+
     @Test
-    public void NewFullTest(){
-        TestNewCodeGen("public class test{\n" + //Input Starts HERE
+    public void CodeGenPrintStringTest() throws IOException{
+        TestCodeGenOutput("public class test{" +
+                "public int main(){" +
+                "println(\"Rose Windmill\");" +
+                "}" +
+                "}","Rose Windmill");
+    }
+
+    @Test
+    public void CodeGenIfElseTest() throws IOException{
+        TestCodeGenOutput("public class test{" +
+                "public int main(){" +
+                "int i = 1;" +
+                "if(i == 1){" +
+                "println(\"test \");" +
+                "}" +
+                "else{}" +
+                "int j = 2;" +
+                "if(j == 1){}" +
+                "else{" +
+                "println(\"passed\");" +
+                "}" +
+                "}" +
+                "}","test passed");
+    }
+    @Test
+    public void CodeGenWhileTest() throws IOException{
+        TestCodeGenOutput("public class test{" +
+                "public int main(){" +
+                "int i = 1;" +
+                "while(i < 4){" +
+                "println(\"hey\");" +
+                "i = i + 1;" +
+                "}" +
+                "}" +
+                "}","heyheyhey");
+    }
+    @Test
+    public  void CodeGenForTest() throws IOException{
+        TestCodeGenOutput("public class test{" +
+                "public int main(){" +
+                "for(int i = 1; i <= 3 ; i = i + 1;){" +
+                "println(\"ow\");" +
+                "}" +
+                "}" +
+                "}", "owowow");
+    }
+    //************************Test expressions*******************************
+
+    public void TestExpressionCodeGen(final String inputExpr, final String inputName, final String real) {
+        J_CodeGen_ExpressionTest.generateCFile(inputExpr, inputName + ".c");
+        try {
+            J_CodeGen_ExpressionTest.COMPILER( inputName + ".c");
+            String output = J_CodeGen_ExpressionTest.RUNFILE(inputName + ".exe");
+            System.out.println(output);
+            Assertions.assertEquals(real, output, "!!_BAD_!! " + "output: " + output + " real: " + real);
+        } catch (IOException e) {
+            Assertions.assertEquals(real, "IOException");
+        }
+    }
+
+    @Test
+    public void testExpr() throws IOException, CodeGenException {
+        TestExpressionCodeGen("(1) + (2)", "ExpressionTest", "3");
+    }
+
+    @Test
+    public void testLastBadinput() throws IOException, CodeGenException {
+        TestExpressionCodeGen("wrong", "ExpressionTest", "IOException");
+    }
+
+    @Test
+    public void testExprMore1() throws IOException, CodeGenException {
+        TestExpressionCodeGen("2 + 16 / 4 * 3 + 1 - 6", "ExpressionTest", "9");
+    }
+
+    @Test
+    public void testExprMore2() throws IOException, CodeGenException {
+        TestExpressionCodeGen("63 / 1 / 3 / 7 / 1", "ExpressionTest", "3");
+    }
+
+    @Test
+    public void testExprMore3() throws IOException, CodeGenException {
+        TestExpressionCodeGen("256 / 2 * 3 -50 / 5 + 26", "ExpressionTest", "400");
+    }
+
+    @Test
+    public void testExprMore4() throws IOException, CodeGenException {
+        TestExpressionCodeGen("9 + 7 - 20", "ExpressionTest", "-4");
+    }
+
+    @Test
+    public void testExprMore5() throws IOException, CodeGenException {
+        TestExpressionCodeGen("( 8 * 7 - 1 ) / 5", "ExpressionTest", "11");
+    }
+
+    @Test
+    public void testExprMore6() throws IOException, CodeGenException {
+        TestExpressionCodeGen("38 / 3 * 2 - 5 / 2", "ExpressionTest", "22");
+    }
+
+    //*************************************** Unit tests for Syntax **********************************
+    public void TestSyntaxCodeGen(String input, String expectedOutPut){
+        String givenOutput = ParseToProgramString(input);
+        Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
+                "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
+    }
+
+    @Test
+    public void SyntaxFullTest(){
+        TestSyntaxCodeGen("public class test{\n" + //Input Starts HERE
                 "    public int moduloHack(int x, int n){\n" +
                 "        int p;\n" +
                 "        int q;\n" +
@@ -159,8 +238,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewClassCreationTest(){
-        TestNewCodeGen("public class test{}",
+    public void SyntaxClassCreationTest(){
+        TestSyntaxCodeGen("public class test{}",
                 "#include <stdio.h>\n" +
                 "\n" +
                 "struct test{\n" +
@@ -168,8 +247,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewMethodCreationTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxMethodCreationTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){}" +
                 "}",
                 "#include <stdio.h>\n" +
@@ -181,8 +260,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewInitializationTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxInitializationTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){" +
                 "int i;" +
                 "int j = 1;" +
@@ -199,8 +278,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewExpressionTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxExpressionTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){" +
                 "int i = 2;" +
                 "int j = 1;" +
@@ -227,8 +306,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewIfElseTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxIfElseTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){" +
                 "if(true){}" +
                 "else{}" +
@@ -247,8 +326,8 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void NewForTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxForTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){" +
                 "for(int i = 1; i <= 10 ; i = i + 1;){}" +
                 "}" +
@@ -264,26 +343,8 @@ public class CodeGen_UnitTests {
                 "}\n");
     }
     @Test
-    public void NewWhileTest(){
-        TestNewCodeGen("public class test{" +
-                "public int Main(){" +
-                "while(true){}" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    whiie(1){\n" +
-                "}\n" +
-                "}\n" +
-                ";\n" +
-                "}\n");
-    }
-    @Test
-    public void NewPrintTest(){
-        TestNewCodeGen("public class test{" +
+    public void SyntaxPrintTest(){
+        TestSyntaxCodeGen("public class test{" +
                 "public int Main(){" +
                 "println(\"Rose Windmill\");" +
                 "}" +
@@ -294,40 +355,6 @@ public class CodeGen_UnitTests {
                 "int test_Main (struct test* this){\n" +
                 "    printf(\"%s\\n\", \"Rose Windmill\");\n" +
                 "}\n");
-    }
-
-    //Non Syntax related tests ****Likely to be the only tests soon enough since alot
-    //of the tests above will fail if the syntax changes slightly
-
-    public void TestCodeGenOutput(String codeString, String expectedOutput) throws IOException{
-        String cCodeOutput = CompileAndRuncCode(codeString);
-        Assertions.assertTrue(cCodeOutput.equals(expectedOutput), "Output and Input Differ" +
-                "\nExpected: \n" + expectedOutput + "\nGot: \n" + cCodeOutput);
-    }
-    //similar to generateCFile in J_CodeGen but takes in the CoopJa code instead of the raw c code.
-    public String CompileAndRuncCode(String codeString) throws IOException{
-        String cFile = ParseToProgramString(codeString);
-        String fileName = "UnitTestFile.c";
-        try {
-            File outputFile = new File(fileName);
-            if (!outputFile.exists()) {
-                outputFile.createNewFile();
-            }
-            else{
-                outputFile.delete();
-                outputFile.createNewFile();
-            }
-
-            Writer writer = new FileWriter(outputFile);
-            BufferedWriter bufferedWriter = new BufferedWriter(writer);
-            bufferedWriter.write(cFile);
-            bufferedWriter.close();
-
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-        J_CodeGen_ExpressionTest.COMPILER(fileName);
-        return J_CodeGen_ExpressionTest.RUNFILE("UnitTestFile.exe");
     }
 }
 
