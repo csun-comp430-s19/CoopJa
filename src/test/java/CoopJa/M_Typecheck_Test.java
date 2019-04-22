@@ -24,7 +24,7 @@ public class M_Typecheck_Test {
                 "string foo9 = foo3;" +
                 "foo67 = (1 + 9)*5;" +
                 "while (foo67 < 60) {" +
-                "foo67 = foo67 + 1;"+
+                "foo67 = foo67 + 1;" +
                 "}" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "foo8 = foo8 + 5;" +
@@ -50,7 +50,9 @@ public class M_Typecheck_Test {
 
 
     }
+}
 
+//MOVED TO N_TYPECHECK_TEST
 /*    public static void ClassTypecheckExpression(PClassDeclaration input) throws TypeCheckerException{
         Storage classStorage = new Storage();
         for (Object declaration: input.declarationList){
@@ -62,8 +64,8 @@ public class M_Typecheck_Test {
             }
         }
     }*/
-}
 
+/*
 class MExpressionTypeChecker {
     public Scope classStorage = new Scope();
     private PProgram input;
@@ -266,3 +268,4 @@ class Scope{
         return  scopeCopy;
     }
 }
+*/

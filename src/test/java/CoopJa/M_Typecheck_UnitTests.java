@@ -1,3 +1,5 @@
+//****************MOVED TO N_TypeChecker_UnitTests********************
+/*
 package CoopJa;
 
 import org.junit.jupiter.api.Assertions;
@@ -5,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
+
 
 public class M_Typecheck_UnitTests {
     public MExpressionTypeChecker createTypechecker(final String input) {
@@ -67,6 +70,33 @@ public class M_Typecheck_UnitTests {
                 "}";
         MExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testAll");
+    }
+
+    @Test
+    public void testNPass(){
+        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
+                "public class foo6 extends foo{public int foo4 = 1;}" +
+                "public class foo2{" +
+                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
+                "public int foo3 = 0;" +
+                "public int main(){" +
+                "foo.foo4(); " +
+                "foo3 = (1 + 9)*5;" +
+                "for (int i = 0; i < 9; i = i+1;){" +
+                "foo = foo + 5;" +
+                "}" +
+                "if (1 == 1){" +
+                "int i = 0;" +
+                "}" +
+                "else{" +
+                "int i = 1;" +
+                "}" +
+                "int i = 2;" +
+                "return;" +
+                "}" +
+                "}";
+        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        testWorkingTypeChecker(typChecker, "testGoodNTest");
     }
 
     @Test
@@ -264,3 +294,4 @@ public class M_Typecheck_UnitTests {
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 }
+*/
