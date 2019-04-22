@@ -5,7 +5,7 @@ import org.typemeta.funcj.parser.Input;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class N_Typecheck_Test {
+public class Typechecker {
 
     public static HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
@@ -35,9 +35,9 @@ public class N_Typecheck_Test {
 //                "}";
 
         String foo = "public class example {" +
-                "public String cool = \"Cool1\" + \"yeah\";" +
+                "public string cool = \"Cool1\";" +
                 "public void method1(int one, int two) {" +
-                "int one = 1;" +
+                "int three = 1;" +
                 "}" +
                 "}";
 
@@ -113,7 +113,7 @@ public class N_Typecheck_Test {
 
         //extra call to Expression and Statement Typechecker
         //this can be thought of as a SECOND typechecker that covers Expressions and statements
-        MExpressionTypeChecker cTypeChkr = new MExpressionTypeChecker(fooTester);
+        ExpressionTypeChecker cTypeChkr = new ExpressionTypeChecker(fooTester);
         cTypeChkr.typeCheck();
     }
 
@@ -639,10 +639,10 @@ class FunctStor { //store method stuff
 }
 
 //****************  EXPRESSION AND STATEMENT TYPECHECKER****************//
-class MExpressionTypeChecker {
+class ExpressionTypeChecker {
     public Scope classStorage = new Scope();
     private PProgram input;
-    public MExpressionTypeChecker(PProgram input){
+    public ExpressionTypeChecker(PProgram input){
         this.input = input;
     }
 

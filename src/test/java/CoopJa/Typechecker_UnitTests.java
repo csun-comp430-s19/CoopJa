@@ -7,7 +7,7 @@ import org.typemeta.funcj.parser.Input;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class N_Typecheck_UnitTests {
+public class Typechecker_UnitTests {
 
     public void testTypecheck(final String input) {
         try {
@@ -16,7 +16,7 @@ public class N_Typecheck_UnitTests {
             MainParser parsers = new MainParser(); //create MainParser object
             PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
             System.out.println();
-            N_Typecheck_Test.TypecheckMain(fooTester); //call typechecker with parsed program obj
+            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
         } catch (Exception e) {
             System.err.println("Error detected properly");
             System.err.println(e);
@@ -114,16 +114,27 @@ public class N_Typecheck_UnitTests {
         testTypecheck(foo);
     }
 
+    @Test
+    public void testBadMethodParamVarname() {
+        String foo = "public class example {" +
+                "public String cool = \"Cool1\" + \"yeah\";" + ///string
+                "public void method1(int one, int two) {" +
+                "int one = 1;" +
+                "}" +
+                "}";
+        testTypecheck(foo);
+    }
+
     //************ EXPRESSION AND STATEMENT UNIT TESTS ********************
 
-    public MExpressionTypeChecker createTypechecker(final String input) {
+    public ExpressionTypeChecker createTypechecker(final String input) {
         try {
             ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
             Input<Token> tokenListInput = new TokenParserInput(tokenList);
             MainParser parsers = new MainParser(); //create MainParser object
             PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
             System.out.println();
-            MExpressionTypeChecker typeChecker = new MExpressionTypeChecker(fooTester);
+            ExpressionTypeChecker typeChecker = new ExpressionTypeChecker(fooTester);
             return typeChecker;
         } catch (Exception e) {
             System.err.println("Unexpected Parser Error");
@@ -132,7 +143,7 @@ public class N_Typecheck_UnitTests {
         }
     }
 
-    public void testWorkingTypeChecker(MExpressionTypeChecker typeChecker, String testName){
+    public void testWorkingTypeChecker(ExpressionTypeChecker typeChecker, String testName){
         try {
             typeChecker.typeCheck();
         }
@@ -174,7 +185,7 @@ public class N_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testAll");
     }
 
@@ -183,7 +194,7 @@ public class N_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public int foo3 = (1 + 1) / 2;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodIntAssignment");
     }
 
@@ -192,7 +203,7 @@ public class N_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public int foo3 = \"string thingy\";" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -204,7 +215,7 @@ public class N_Typecheck_UnitTests {
                 "public boolean foo4 = foo3 + 1;" +
                 "}";
 
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -214,7 +225,7 @@ public class N_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public boolean foo= false | true;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodBoolean");
     }
 
@@ -224,7 +235,7 @@ public class N_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public boolean foofi = (true | 1 < 2) && (1==1+1);" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodComplexBoolean");
     }
 
@@ -234,7 +245,7 @@ public class N_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public string foo3 = \"string thingy\" + 1;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodStringIntConcat");
     }
 
@@ -249,7 +260,7 @@ public class N_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodIfStatement");
     }
 
@@ -264,7 +275,7 @@ public class N_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -276,7 +287,7 @@ public class N_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodWhileStatement");
     }
 
@@ -288,7 +299,7 @@ public class N_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -300,7 +311,7 @@ public class N_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodForStatement");
     }
 
@@ -312,7 +323,7 @@ public class N_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -326,7 +337,7 @@ public class N_Typecheck_UnitTests {
                 "i = 2;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -343,7 +354,7 @@ public class N_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(NullPointerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -356,7 +367,7 @@ public class N_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodScopeForStatement");
     }
 
@@ -369,7 +380,50 @@ public class N_Typecheck_UnitTests {
                 "i = 9;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    //************ UNIT TESTS originally in file "T_TypeCheck_UnitTests" ******************** (originally called "testTypeChecker()" test function, identitcal to "testTypecheck()")
+    @Test
+    public void testMethodDoubleDecker() {
+        String testProg = "public "+
+                "class testProg{"+
+                "public int testInt = method(0);"+
+                "}";
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethod() {
+        String testProg = "public "+
+                "class testProg{"+
+                "public int testInt = method(0);"+
+                "}";
+
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethodSignatureType() {
+        String testProg = "public class testProg {"+
+                "public int main(int a, int b){"+
+                "return 4;"+
+                "}"+
+                "public boolean b = True;"+
+                "public int testInt = main(4,b);"+
+                "}";
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethodSignature() {
+        String testProg = "public class testProg {"+
+                "public int main(int a){"+
+                "return 4;"+
+                "}"+
+                "public int testInt = main();"+
+                "}";
+        testTypecheck(testProg);
     }
 }
