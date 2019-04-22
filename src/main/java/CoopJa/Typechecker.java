@@ -667,7 +667,7 @@ class ExpressionTypeChecker {
         if (varDec.assignment != null){ //assuming there is an expression to be checked
             Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
             if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-                if (!varDec.variableType.getTokenString().equals("string"))
+                if (!(varDec.variableType.getTokenString().equals("String") || varDec.variableType.getTokenString().equals("string")))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                             varDec.variableType.getType() + " got " + assignment);
 
@@ -795,6 +795,8 @@ class ExpressionTypeChecker {
                     operator == Token.TokenType.SYMBOL_MINUS ||
                     operator == Token.TokenType.SYMBOL_ASTERISK ||
                     operator == Token.TokenType.SYMBOL_SLASH){ //number operations
+                if(output == Token.TokenType.KEYWORD_STRING)
+                    return Token.TokenType.KEYWORD_STRING;
                 if(output != Token.TokenType.KEYWORD_INT)
                     throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
             }

@@ -119,7 +119,7 @@ public class Typechecker_UnitTests {
         String foo = "public class example {" +
                 "public String cool = \"Cool1\" + \"yeah\";" + ///string
                 "public void method1(int one, int two) {" +
-                "int one = 1;" +
+                "int three = 1;" +
                 "}" +
                 "}";
         testTypecheck(foo);
