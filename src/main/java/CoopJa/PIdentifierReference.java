@@ -16,11 +16,11 @@ public class PIdentifierReference implements PStatement, PExpressionAtom{
     @Override
     public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Identifier Reference");
-        return identifier.getTokenString() + "->" + next.generateCodeStatement(null, null, null);
+        return identifier.getTokenString() + "->" + next.generateCodeStatement(null, null, null, 0);
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Identifier Reference");
         return generateString(globalClassName, null, null);
     }

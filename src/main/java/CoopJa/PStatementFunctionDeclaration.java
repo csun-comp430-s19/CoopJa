@@ -27,7 +27,7 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
     }
 
     //@Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Function Declaration");
         // Throw all the variable delclarations and declared variables in the statement list into the localMembers
         if (localMembers == null){
@@ -50,9 +50,9 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
                 funcDecString.append(",");
             }
         }
-        funcDecString.append("){\n");
+        funcDecString.append(")");
 
-        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers)+ "}\n");
+        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
 
         // Clear out any newly added members to the list now
         // This is almost certainly sub-optimal, but it's direct and I need to not pull my hair out

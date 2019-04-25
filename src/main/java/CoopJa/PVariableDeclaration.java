@@ -74,7 +74,7 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
     }//end generateString()
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
         StringBuilder varDecString = new StringBuilder();
         // TODO: MAKE OBJECT DELCRATIONS NOT SUCK

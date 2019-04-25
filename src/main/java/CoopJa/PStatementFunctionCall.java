@@ -41,7 +41,7 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
         return generateString(globalClassName, globalMembers, localMembers);
     }
 }

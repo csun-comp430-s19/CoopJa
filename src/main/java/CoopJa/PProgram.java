@@ -75,6 +75,15 @@ public class PProgram {
                 "        return 0;\n" +
                 "    }\n" +
                 "}";
+        /*String foo = "public class test{\n" +
+                "    public int main(){\n" +
+                "        if(true){\n" +
+                "            println(\"Hello World\");\n" +
+                "        }\n" +
+                "        else{}\n" +
+                "        return 0;\n" +
+                "    }\n" +
+                "}";*/
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
