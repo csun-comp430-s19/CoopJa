@@ -25,7 +25,7 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
         StringBuilder expressionListString = new StringBuilder();
 
         // Add a pointer reference if needed
-        if (globalMembers.containsKey(identifier.getTokenString())){
+        if (globalMembers != null && globalMembers.containsKey(identifier.getTokenString())){
             expressionListString.append(identifier.getTokenString() + "->");
         }
         // Rest

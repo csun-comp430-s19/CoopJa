@@ -45,7 +45,7 @@ public class PProgram {
 
 
         // Fizz Buzz example
-        String foo = "public class test{\n" +
+        /*String foo = "public class test{\n" +
                 "    public int moduloHack(int x, int n){\n" +
                 "        int p;\n" +
                 "        int q;\n" +
@@ -84,6 +84,30 @@ public class PProgram {
                 "        return 0;\n" +
                 "    }\n" +
                 "}";*/
+        // Object Testing
+        String foo = "public class ClassTest{\n" +
+                "    int favoriteNumber;\n" +
+                "    void setFavNumber(int number){\n" +
+                "        favoriteNumber = number;\n" +
+                "    }\n" +
+                "    void guessFavNumber(int number){\n" +
+                "        if (favoriteNumber == number){\n" +
+                "            println(\"Correct\");\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            println(\"Incorrect\");\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "public class Test{\n" +
+                "    public int main(){\n" +
+                "        println(\"Hello World!\");\n" +
+                "        ClassTest foo = new ClassTest;\n" +
+                "        foo.setFavNumber(7);\n" +
+                "        foo.guessFavNumber(7);\n" +
+                "    }\n" +
+                "}\n";
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
