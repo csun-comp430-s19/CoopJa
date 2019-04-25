@@ -77,6 +77,10 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
     public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
         StringBuilder varDecString = new StringBuilder();
+        // TODO: MAKE OBJECT DELCRATIONS NOT SUCK
+        if (variableType.getType() == Token.TokenType.IDENTIFIER){
+            varDecString.append("struct ");
+        }
         varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());
         if (assignment != null){
             varDecString.append(" = " + assignment.generateString(globalClassName, globalMembers, localMembers));
