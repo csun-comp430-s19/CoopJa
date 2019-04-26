@@ -13,7 +13,7 @@ public class PExpressionVariable implements  PExpression, PExpressionAtom{
     @Override
     public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
         StringBuilder returnString = new StringBuilder();
-        if (globalMembers.containsKey(variable.getTokenString())){
+        if (globalMembers != null && globalMembers.containsKey(variable.getTokenString())){
             //returnString.append(variable.getTokenString() + "->");
             returnString.append("this->");
         }

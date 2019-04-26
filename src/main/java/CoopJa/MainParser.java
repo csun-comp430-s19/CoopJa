@@ -333,7 +333,7 @@ public class MainParser {
         // Parsing identifier expression atoms
         identifierExpressionParser.set(varObjTypeParser.and(Combinators.choice(
                 leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a))),  // Function call
-                periodParser.andR(identifierExpressionParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PIdentifierReference(x, (PStatement)a)),
+                periodParser.andR(identifierExpressionParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PIdentifierReference(x, a)),
                 pure((Functions.F<Token, PExpressionAtom>)(x) -> new PExpressionVariable(x))
         )).map(a -> b -> b.apply(a)));
 

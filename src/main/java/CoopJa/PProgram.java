@@ -86,7 +86,8 @@ public class PProgram {
                 "}";*/
         // Object Testing
         String foo = "public class ClassTest{\n" +
-                "    int favoriteNumber;\n" +
+                "    public int favoriteNumber;\n" +
+                "    public int someOtherNumber;\n" +
                 "    void setFavNumber(int number){\n" +
                 "        favoriteNumber = number;\n" +
                 "    }\n" +
@@ -108,6 +109,9 @@ public class PProgram {
                 "        foo.guessFavNumber(7);\n" +
                 "        foo.favoriteNumber = 6;\n" +
                 "        foo.guessFavNumber(6);\n" +
+                "        foo.someOtherNumber = 5;\n" +
+                "        foo.favoriteNumber = foo.someOtherNumber;\n" +
+                "        foo.guessFavNumber(5);\n" +
                 "    }\n" +
                 "}\n";
 
