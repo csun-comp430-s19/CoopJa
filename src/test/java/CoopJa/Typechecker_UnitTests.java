@@ -5,16 +5,136 @@ import org.junit.jupiter.api.Test;
 import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public class M_Typecheck_UnitTests {
-    public MExpressionTypeChecker createTypechecker(final String input) {
+public class Typechecker_UnitTests {
+
+    public void testTypecheck(final String input) {
         try {
             ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
             Input<Token> tokenListInput = new TokenParserInput(tokenList);
             MainParser parsers = new MainParser(); //create MainParser object
             PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
             System.out.println();
-            MExpressionTypeChecker typeChecker = new MExpressionTypeChecker(fooTester);
+            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
+        } catch (Exception e) {
+            System.err.println("Error detected properly");
+            System.err.println(e);
+        }
+    }
+
+    @Test
+    public void testRegularPass() {
+        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
+            "public class foo6 extends foo{public int foo4 = 1;}" +
+            "public class foo2{" +
+            //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
+            "public int foo3 = 0;" +
+            "public int main(){" +
+            "foo.foo4(); " +
+            "foo3 = (1 + 9)*5;" +
+            "for (int i = 0; i < 9; i = i+1;){" +
+            "}" +
+            "if (1 == 1){" +
+            "int i = 0;" +
+            "}" +
+            "else{" +
+            "int i = 1;" +
+            "}" +
+            "int i = 2;" +
+            "return;" +
+            "}" +
+            "}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testImplicitExtends() { //CHANGE LATER
+        String foo = "public class foo extends foo2{public int foo4 = 0;}" +
+                "public class foo2 {int fooGood = 0;}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testProperExtends() {
+        String foo = "public class foo {public int foo4 = 0;}" +
+                "public class foo2 extends foo {int fooGood = 0;}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testBadExtends() {
+        String foo = "public class foo extends foo3 {public int foo4 = 0;}" +
+                "public class foo2 extends foo {int fooGood = 0;}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testDuplicateVar() {
+        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
+                "public class foo6 extends foo{public int foo4 = 1;}" +
+                "public class foo2{" +
+                "public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
+                "public int foo3 = 0;" +
+                "public int main(){" +
+                "foo.foo4(); " +
+                "foo3 = (1 + 9)*5;" +
+                "for (int i = 0; i < 9; i = i+1;){" +
+                "}" +
+                "if (1 == 1){" +
+                "int i = 0;" +
+                "}" +
+                "else{" +
+                "int i = 1;" +
+                "}" +
+                "int i = 2;" +
+                "return;" +
+                "}" +
+                "}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testNameCollision() {
+        String foo = "public class MainClass {public int foo = 0; public int foo = 0;}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testValidJavaConvention() { //this is valid Java convention, may or may not change, valid now
+        String foo = "public class foo {public int foo = 0;}";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testClassVarCollision() {
+        String foo = "public class foo {" +
+                "int foo = 0;" +
+                "int foo = 0; }";
+        testTypecheck(foo);
+    }
+
+    @Test
+    public void testBadMethodParamVarname() {
+        String foo = "public class example {" +
+                "public String cool = \"Cool1\" + \"yeah\";" + ///string
+                "public void method1(int one, int two) {" +
+                "int three = 1;" +
+                "}" +
+                "}";
+        testTypecheck(foo);
+    }
+
+    //************ EXPRESSION AND STATEMENT UNIT TESTS ********************
+
+    public ExpressionTypeChecker createTypechecker(final String input) {
+        try {
+            ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
+            Input<Token> tokenListInput = new TokenParserInput(tokenList);
+            MainParser parsers = new MainParser(); //create MainParser object
+            PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
+            System.out.println();
+            ExpressionTypeChecker typeChecker = new ExpressionTypeChecker(fooTester);
             return typeChecker;
         } catch (Exception e) {
             System.err.println("Unexpected Parser Error");
@@ -23,7 +143,7 @@ public class M_Typecheck_UnitTests {
         }
     }
 
-    public void testWorkingTypeChecker(MExpressionTypeChecker typeChecker, String testName){
+    public void testWorkingTypeChecker(ExpressionTypeChecker typeChecker, String testName){
         try {
             typeChecker.typeCheck();
         }
@@ -65,7 +185,7 @@ public class M_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testAll");
     }
 
@@ -74,7 +194,7 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public int foo3 = (1 + 1) / 2;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodIntAssignment");
     }
 
@@ -83,7 +203,7 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public int foo3 = \"string thingy\";" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -95,7 +215,7 @@ public class M_Typecheck_UnitTests {
                 "public boolean foo4 = foo3 + 1;" +
                 "}";
 
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -105,7 +225,7 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public boolean foo= false | true;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodBoolean");
     }
 
@@ -115,7 +235,7 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public boolean foofi = (true | 1 < 2) && (1==1+1);" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodComplexBoolean");
     }
 
@@ -125,7 +245,7 @@ public class M_Typecheck_UnitTests {
         String foo = "public class foo2{" +
                 "public string foo3 = \"string thingy\" + 1;" +
                 "}";
-        MExpressionTypeChecker typChecker = createTypechecker(foo);
+        ExpressionTypeChecker typChecker = createTypechecker(foo);
         testWorkingTypeChecker(typChecker, "testGoodStringIntConcat");
     }
 
@@ -140,7 +260,7 @@ public class M_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodIfStatement");
     }
 
@@ -155,7 +275,7 @@ public class M_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -167,7 +287,7 @@ public class M_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodWhileStatement");
     }
 
@@ -179,7 +299,7 @@ public class M_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -191,7 +311,7 @@ public class M_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodForStatement");
     }
 
@@ -203,7 +323,7 @@ public class M_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -217,7 +337,7 @@ public class M_Typecheck_UnitTests {
                 "i = 2;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -234,7 +354,7 @@ public class M_Typecheck_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(NullPointerException.class, ()-> {typeChecker.typeCheck();});
     }
 
@@ -247,7 +367,7 @@ public class M_Typecheck_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         testWorkingTypeChecker(typeChecker, "testGoodScopeForStatement");
     }
 
@@ -260,7 +380,50 @@ public class M_Typecheck_UnitTests {
                 "i = 9;" +
                 "}" +
                 "}";
-        MExpressionTypeChecker typeChecker = createTypechecker(foo);
+        ExpressionTypeChecker typeChecker = createTypechecker(foo);
         Assertions.assertThrows(TypeCheckerException.class, ()-> {typeChecker.typeCheck();});
+    }
+
+    //************ UNIT TESTS originally in file "T_TypeCheck_UnitTests" ******************** (originally called "testTypeChecker()" test function, identitcal to "testTypecheck()")
+    @Test
+    public void testMethodDoubleDecker() {
+        String testProg = "public "+
+                "class testProg{"+
+                "public int testInt = method(0);"+
+                "}";
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethod() {
+        String testProg = "public "+
+                "class testProg{"+
+                "public int testInt = method(0);"+
+                "}";
+
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethodSignatureType() {
+        String testProg = "public class testProg {"+
+                "public int main(int a, int b){"+
+                "return 4;"+
+                "}"+
+                "public boolean b = True;"+
+                "public int testInt = main(4,b);"+
+                "}";
+        testTypecheck(testProg);
+    }
+
+    @Test
+    public void testMethodSignature() {
+        String testProg = "public class testProg {"+
+                "public int main(int a){"+
+                "return 4;"+
+                "}"+
+                "public int testInt = main();"+
+                "}";
+        testTypecheck(testProg);
     }
 }
