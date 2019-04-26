@@ -18,7 +18,7 @@ public interface PExpression {
     //other:
     //PExpressionStub
 
-    String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException;
+    String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException;
 
     // TODO: REAL UNIT TESTS
     public static void main(String[] args){

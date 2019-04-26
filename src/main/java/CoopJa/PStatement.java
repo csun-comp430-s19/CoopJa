@@ -21,11 +21,11 @@ public interface PStatement {
     
     //(!) Might implement later
     //String generateString() throws CodeGenException;
-    String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException;
+    String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException;
 
     // Static helper function for parsing a list of statements within a statement block.
     // For example, everything within an if-statement, a function declaration, and such
-    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
+    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         // New level
         blockLevel++;
         // Need a stringbuilder for this

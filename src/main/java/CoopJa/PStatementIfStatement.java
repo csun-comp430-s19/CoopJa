@@ -15,7 +15,7 @@ public class PStatementIfStatement implements PStatement {
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers, int blockLevel) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         StringBuilder ifStatmentString = new StringBuilder("if (");
         ifStatmentString.append(expression.generateString(globalClassName, globalMembers, localMembers) + ")");
         // Add in the list of statements

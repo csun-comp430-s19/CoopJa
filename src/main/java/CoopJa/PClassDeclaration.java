@@ -49,7 +49,7 @@ public class PClassDeclaration {
         classString.append("struct " + identifier.getTokenString() + "{\n");
         for (int i = 0; i < variableDeclarations.size(); i++){
             classString.append("    " + variableDeclarations.get(i).generateCodeStatement(null, null, null, 0) + ";\n");
-            globalMemberList.put(variableDeclarations.get(i).identifier.getTokenString(), null);
+            globalMemberList.put(variableDeclarations.get(i).identifier.getTokenString(), variableDeclarations.get(i).variableType.getTokenString());
         }
         classString.append("};\n");
 

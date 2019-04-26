@@ -9,7 +9,7 @@ public class PExpressionAtomBooleanLiteral implements PExpressionAtom {
     }
 
     @Override
-    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) {
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) {
         return (literalToken.getType() == Token.TokenType.KEYWORD_TRUE) ? "1" : "0";
     }
 }

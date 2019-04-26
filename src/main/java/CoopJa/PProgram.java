@@ -106,6 +106,8 @@ public class PProgram {
                 "        ClassTest foo = new ClassTest;\n" +
                 "        foo.setFavNumber(7);\n" +
                 "        foo.guessFavNumber(7);\n" +
+                "        foo.favoriteNumber = 6;\n" +
+                "        foo.guessFavNumber(6);\n" +
                 "    }\n" +
                 "}\n";
 
