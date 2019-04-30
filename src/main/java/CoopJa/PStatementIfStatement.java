@@ -21,7 +21,7 @@ public class PStatementIfStatement implements PStatement {
         // Add in the list of statements
 
 
-        ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers, blockLevel)+ "\n");
+        ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
         // Else statement exists? Then do that too
         if (elseStatementList != null){
             // Stupid formatting crap that I shouldn't have to do
@@ -30,7 +30,7 @@ public class PStatementIfStatement implements PStatement {
 
             }
             ifStatmentString.append("else");
-            ifStatmentString.append(PStatement.generateCodeStatementBlock(elseStatementList, globalClassName, localMembers, globalMembers, blockLevel));
+            ifStatmentString.append(PStatement.generateCodeStatementBlock(elseStatementList, globalClassName, globalMembers, localMembers, blockLevel));
 
         }
         // Then return
