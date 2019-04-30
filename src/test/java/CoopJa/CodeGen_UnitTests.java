@@ -84,14 +84,15 @@ public class CodeGen_UnitTests {
     }
     @Test
     public void CodeGenWhileTest() throws IOException{
-        TestCodeGenOutput("public class test{" +
-                "public int main(){" +
-                "int i = 1;" +
-                "while(i < 4){" +
-                "println(\"hey\");" +
-                "i = i + 1;" +
-                "}" +
-                "}" +
+        TestCodeGenOutput(
+                "public class test{" +
+                    "public int main(){" +
+                        "int i = 1;" +
+                        "while(i < 4){" +
+                            "println(\"hey\");" +
+                            "i = i + 1;" +
+                        "}" +
+                    "}" +
                 "}","heyheyhey");
     }
     @Test
@@ -173,6 +174,73 @@ public class CodeGen_UnitTests {
                     "public int main(){" +
                         "ClassTest foo = new ClassTest;" +
                         "if(foo.AddTwo(1) == 3){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenAssignWithoutSetter() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int assignable;" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.assignable = 2;" +
+                        "if(foo.assignable == 2){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenIntegerExpressionsWithFunctionCalls() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int GimmeAOne(int x){" +
+                        "return 1;" +
+                    "}" +
+                    "public int GimmeATwo(int x){" +
+                    "   return 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "int i = foo.GimmeAOne(0) + foo.GimmeATwo(0);" +
+                        "if(i == 3){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenBooleanExpressionsWithFunctionCalls() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int GimmeAOne(int x){" +
+                        "return 1;" +
+                    "}" +
+                    "public int GimmeATwo(int x){" +
+                    "   return 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "int i = foo.GimmeAOne(0) + foo.GimmeATwo(0);" +
+                        "if(foo.GimmeAOne(0) != foo.GimmeATwo(0)){" +
                             "println(\"Success!\");" +
                         "}" +
                         "else{" +
