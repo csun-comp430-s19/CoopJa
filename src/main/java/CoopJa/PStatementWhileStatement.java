@@ -17,7 +17,7 @@ public class PStatementWhileStatement implements PStatement {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "While Statement");
         StringBuilder whileString = new StringBuilder();
         whileString.append("while(" + expression.generateString(globalClassName, globalMembers, localMembers) + ")");
-        whileString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers, blockLevel)+ "\n");
+        whileString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
         //whileString.append("}\n");
         return whileString.toString();
 
