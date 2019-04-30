@@ -95,7 +95,7 @@ public class CodeGen_UnitTests {
                 "}","heyheyhey");
     }
     @Test
-    public  void CodeGenForTest() throws IOException{
+    public void CodeGenForTest() throws IOException{
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
                 "for(int i = 1; i <= 3 ; i = i + 1;){" +
@@ -104,6 +104,84 @@ public class CodeGen_UnitTests {
                 "}" +
                 "}", "owowow");
     }
+    @Test
+    public void CodeGenClassTestFull() throws IOException{
+        //from PProgram deletion pending
+        TestCodeGenOutput("public class ClassTest{\n" +
+                "    public int favoriteNumber;\n" +
+                "    public int someOtherNumber;\n" +
+                "    void setFavNumber(int number){\n" +
+                "        favoriteNumber = number;\n" +
+                "    }\n" +
+                "    void guessFavNumber(int number){\n" +
+                "        if (favoriteNumber == number){\n" +
+                "            println(\"Correct\");\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            println(\"Incorrect\");\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "public class Test{\n" +
+                "    public int main(){\n" +
+                "        println(\"Hello World!\");\n" +
+                "        ClassTest foo = new ClassTest;\n" +
+                "        foo.setFavNumber(7);\n" +
+                "        foo.guessFavNumber(7);\n" +
+                "        foo.favoriteNumber = 6;\n" +
+                "        foo.guessFavNumber(6);\n" +
+                "        foo.someOtherNumber = 5;\n" +
+                "        foo.favoriteNumber = foo.someOtherNumber;\n" +
+                "        foo.guessFavNumber(5);\n" +
+                "    }\n" +
+                "}\n", "Hello World!CorrectCorrectCorrect");
+    }
+
+    @Test
+    public void CodeGenClassSetter() throws IOException{
+        TestCodeGenOutput(
+                "public class ClassTest{" +
+                    "public int niceInt;" +
+                    "void setNiceInt(int number){" +
+                        "niceInt = number;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.setNiceInt(1);" +
+                        "if(foo.niceInt == 1){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenFunctionCall() throws IOException{
+        TestCodeGenOutput(
+                "public class ClassTest{" +
+                    "int AddTwo(int number){" +
+                        "return number + 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "if(foo.AddTwo(1) == 3){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
     //************************Test expressions*******************************
 
     public void TestExpressionCodeGen(final String inputExpr, final String inputName, final String real) {
@@ -164,198 +242,7 @@ public class CodeGen_UnitTests {
         Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
                 "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
     }
-
-    @Test
-    public void SyntaxFullTest(){
-        TestSyntaxCodeGen("public class test{\n" + //Input Starts HERE
-                "    public int moduloHack(int x, int n){\n" +
-                "        int p;\n" +
-                "        int q;\n" +
-                "        int m;\n" +
-                "        q = x/n;\n" +
-                "        p = q*n;\n" +
-                "        m = x - p;\n" +
-                "        return m;\n" +
-                "    }\n" +
-                "    \n" +
-                "    public int main(){\n" +
-                "        for (int i = 0; i <= 45; i = i + 1;){\n" +
-                "            if (moduloHack(i, 15) == 0){\n" +
-                "                println(\"FizzBuzz\");\n" +
-                "            } \n" +
-                "            else{\n" +
-                "                if (moduloHack(i, 3)){\n" +
-                "                    println(\"Fizz\");\n" +
-                "                }\n" +
-                "                else{\n" +
-                "                    if (moduloHack(i ,5)){\n" +
-                "                        println(\"Buzz\");\n" +
-                "                    }else{}\n" +
-                "                }\n" +
-                "            }\n" +
-                "        }\n" +
-                "        return 0;\n" +
-                "    }\n" +
-                "}"
-                ,"#include <stdio.h>\n" + //Output starts HERE
-                        "\n" +
-                        "struct test{\n" +
-                        "};\n" +
-                        "int test_moduloHack (struct test* this,int x,int n){\n" +
-                        "    int p;\n" +
-                        "    int q;\n" +
-                        "    int m;\n" +
-                        "    q = (x)/(n);\n" +
-                        "    p = (q)*(n);\n" +
-                        "    m = (x)-(p);\n" +
-                        "    return m;\n" +
-                        "}\n" +
-                        "int test_main (struct test* this){\n" +
-                        "    for(int i = 0;(i)<=(45);i = (i)+(1)){\n" +
-                        "    if ((test_moduloHack(this, i,15))==(0)){\n" +
-                        "    printf(\"%s\\n\", \"FizzBuzz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "    if (test_moduloHack(this, i,3)){\n" +
-                        "    printf(\"%s\\n\", \"Fizz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "    if (test_moduloHack(this, i,5)){\n" +
-                        "    printf(\"%s\\n\", \"Buzz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "};\n" +
-                        "};\n" +
-                        "};\n" +
-                        "}\n" +
-                        ";\n" +
-                        "    return 0;\n" +
-                        "}\n" +
-                        "int main(int argc, char** argv){\n" +
-                        "    struct test mainClass = {};\n" +
-                        "    return test_main(&mainClass);\n" +
-                        "}");
-    }
-
-    @Test
-    public void SyntaxClassCreationTest(){
-        TestSyntaxCodeGen("public class test{}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n");
-    }
-
-    @Test
-    public void SyntaxMethodCreationTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxInitializationTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "int i;" +
-                "int j = 1;" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    int i;\n" +
-                "    int j = 1;\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxExpressionTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "int i = 2;" +
-                "int j = 1;" +
-                "int k = 1 + 2;" +
-                "k = i + j;" +
-                "k = i - j;" +
-                "k = i / j;" +
-                "k = i * j;" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    int i = 2;\n" +
-                "    int j = 1;\n" +
-                "    int k = (1)+(2);\n" +
-                "    k = (i)+(j);\n" +
-                "    k = (i)-(j);\n" +
-                "    k = (i)/(j);\n" +
-                "    k = (i)*(j);\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxIfElseTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "if(true){}" +
-                "else{}" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    if (1){\n" +
-                "}\n" +
-                "else{\n" +
-                "};\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxForTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "for(int i = 1; i <= 10 ; i = i + 1;){}" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    for(int i = 1;(i)<=(10);i = (i)+(1)){\n" +
-                "}\n" +
-                ";\n" +
-                "}\n");
-    }
-    @Test
-    public void SyntaxPrintTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "println(\"Rose Windmill\");" +
-                "}" +
-                "}","#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    printf(\"%s\\n\", \"Rose Windmill\");\n" +
-                "}\n");
-    }
+    //removed syntax tests due to uselessness
 }
 
 
