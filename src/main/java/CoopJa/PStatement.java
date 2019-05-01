@@ -21,11 +21,13 @@ public interface PStatement {
     
     //(!) Might implement later
     //String generateString() throws CodeGenException;
-    String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException;
+    String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException;
 
     // Static helper function for parsing a list of statements within a statement block.
     // For example, everything within an if-statement, a function declaration, and such
-    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
+        // New level
+        blockLevel++;
         // Need a stringbuilder for this
         StringBuilder blockString = new StringBuilder();
 
@@ -34,7 +36,8 @@ public interface PStatement {
         // If the declared variable was already created, throw an exception
         // Keep track of the current size (aka the tail index) of the local members list
         int localMembersTail = localMembers.size();
-
+        // Head Brace
+        blockString.append("{\n");
         for (int i = 0; i < statementList.size(); i++){
             PStatement currentStatement = statementList.get(i);
             // Check if it's a declaration
@@ -51,9 +54,18 @@ public interface PStatement {
                 }
             }*/
             // Append the statement
-            blockString.append("    " + currentStatement.generateCodeStatement(globalClassName, globalMembers, localMembers) + ";\n");
+            for (int j = 0; j < blockLevel; j++){
+                blockString.append("    ");
+            }
+            // TODO: Not this semicolon crap
+            blockString.append(currentStatement.generateCodeStatement(globalClassName, globalMembers, localMembers, blockLevel) + ";\n");
         }
+        // Properly formatted tail brace
+        for (int i = 0; i < blockLevel-1; i++){
+            blockString.append("    ");
 
+        }
+        blockString.append("}");
         // Clear out any newly added members to the list now
         // This is almost certainly sub-optimal, but it's direct and I need to not pull my hair out
         // Turn the member list to an array

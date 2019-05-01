@@ -27,7 +27,7 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
     }
 
     //@Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Function Declaration");
         // Throw all the variable delclarations and declared variables in the statement list into the localMembers
         if (localMembers == null){
@@ -35,9 +35,9 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         }
         int localOriginalTail = localMembers.size();
         // Parameters are trivial, the rest will have to be done as we go along
-        for (int i = 0; i < variableDeclarations.size(); i++){
+        /*for (int i = 0; i < variableDeclarations.size(); i++){
             localMembers.put(variableDeclarations.get(i).identifier.getTokenString(), null);
-        }
+        }*/
         // Set up the main part of the code
         StringBuilder funcDecString = new StringBuilder();
         funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (struct " + globalClassName + "* this");
@@ -50,9 +50,9 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
                 funcDecString.append(",");
             }
         }
-        funcDecString.append("){\n");
+        funcDecString.append(")");
 
-        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers)+ "}\n");
+        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
 
         // Clear out any newly added members to the list now
         // This is almost certainly sub-optimal, but it's direct and I need to not pull my hair out

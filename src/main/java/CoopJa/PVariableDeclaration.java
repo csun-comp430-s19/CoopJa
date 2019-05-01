@@ -74,12 +74,24 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
     }//end generateString()
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
         StringBuilder varDecString = new StringBuilder();
-        varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());
-        if (assignment != null){
+        // TODO: MAKE OBJECT DELCRATIONS NOT SUCK
+        if (variableType.getType() == Token.TokenType.IDENTIFIER){
+            // This is weird
+            varDecString.append("struct " + variableType.getTokenString() + " *" + identifier.getTokenString() + ", " + identifier.getTokenString() + "Original; "
+                    + identifier.getTokenString() + " = &" + identifier.getTokenString() + "Original");
+        }
+        else {
+            varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());
+        }
+        if (assignment != null && variableType.getType() != Token.TokenType.IDENTIFIER){
             varDecString.append(" = " + assignment.generateString(globalClassName, globalMembers, localMembers));
+        }
+        // TODO: This is some hack to tell if this is a global or local declaration.
+        if (localMembers != null) {
+            localMembers.put(identifier.getTokenString(), variableType.getTokenString());
         }
         return varDecString.toString();
     }

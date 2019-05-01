@@ -12,10 +12,10 @@ public class PVariableAssignment implements PStatement {
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Return Variable Assignment");
         StringBuilder assignmentString = new StringBuilder();
-        if (globalMembers.containsKey(identifier.getTokenString())){
+        if (globalMembers != null && globalMembers.containsKey(identifier.getTokenString())){
             assignmentString.append("this->");
         }
         assignmentString.append(identifier.getTokenString() + " = " + value.generateString(globalClassName, globalMembers, localMembers));

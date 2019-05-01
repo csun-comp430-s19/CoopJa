@@ -16,16 +16,14 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
 
     }
 
-    // TODO: Generate function declarations AND calls
-    @Override
-    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, String callingVar) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Function Call");
 
         // First build the expression list string
         StringBuilder expressionListString = new StringBuilder();
 
         // Add a pointer reference if needed
-        if (globalMembers.containsKey(identifier.getTokenString())){
+        if (globalMembers != null && globalMembers.containsKey(identifier.getTokenString())){
             expressionListString.append(identifier.getTokenString() + "->");
         }
         // Rest
@@ -37,11 +35,22 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
         }
         // Now we can make the string
         // TODO: The first parameter shouldn't always be "this", it's dependent on the parent function. In particular,  the identifier reference here matters, work needs to be done on this, but classes currently aren't fully working
-        return globalClassName + "_" +  identifier.getTokenString() + "(" + "this" + ", " + expressionListString.toString() + ")";
+        // TODO: suck less
+        if (globalClassName != null) {
+            return globalClassName + "_" + identifier.getTokenString() + "(" + callingVar + ", " + expressionListString.toString() + ")";
+        }
+        else{
+            return identifier.getTokenString() + "(" + callingVar + ", " + expressionListString.toString() + ")";
+        }
+    }
+    // TODO: Generate function declarations AND calls
+    @Override
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
+        return generateString(globalClassName, globalMembers, localMembers, "this");
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         return generateString(globalClassName, globalMembers, localMembers);
     }
 }

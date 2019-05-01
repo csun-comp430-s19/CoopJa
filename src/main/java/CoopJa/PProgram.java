@@ -13,7 +13,7 @@ public class PProgram {
 
     public String generateProgramString() throws CodeGenException {
         StringBuilder programString = new StringBuilder();
-        programString.append("#include <stdio.h>\n\n");
+        programString.append("#include <stdio.h>\n#include <stdbool.h>\n\n");
         for (int i = 0; i < classDeclarationList.size(); i++){
             programString.append(classDeclarationList.get(i).generateClassString());
         }
@@ -45,7 +45,7 @@ public class PProgram {
 
 
         // Fizz Buzz example
-        String foo = "public class test{\n" +
+        /*String foo = "public class test{\n" +
                 "    public int moduloHack(int x, int n){\n" +
                 "        int p;\n" +
                 "        int q;\n" +
@@ -75,6 +75,45 @@ public class PProgram {
                 "        return 0;\n" +
                 "    }\n" +
                 "}";
+        /*String foo = "public class test{\n" +
+                "    public int main(){\n" +
+                "        if(true){\n" +
+                "            println(\"Hello World\");\n" +
+                "        }\n" +
+                "        else{}\n" +
+                "        return 0;\n" +
+                "    }\n" +
+                "}";*/
+        // Object Testing
+        String foo = "public class ClassTest{\n" +
+                "    public int favoriteNumber;\n" +
+                "    public int someOtherNumber;\n" +
+                "    void setFavNumber(int number){\n" +
+                "        favoriteNumber = number;\n" +
+                "    }\n" +
+                "    void guessFavNumber(int number){\n" +
+                "        if (favoriteNumber == number){\n" +
+                "            println(\"Correct\");\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            println(\"Incorrect\");\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "public class Test{\n" +
+                "    public int main(){\n" +
+                "        println(\"Hello World!\");\n" +
+                "        ClassTest foo = new ClassTest;\n" +
+                "        foo.setFavNumber(7);\n" +
+                "        foo.guessFavNumber(7);\n" +
+                "        foo.favoriteNumber = 6;\n" +
+                "        foo.guessFavNumber(6);\n" +
+                "        foo.someOtherNumber = 5;\n" +
+                "        foo.favoriteNumber = foo.someOtherNumber;\n" +
+                "        foo.guessFavNumber(5);\n" +
+                "    }\n" +
+                "}\n";
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);

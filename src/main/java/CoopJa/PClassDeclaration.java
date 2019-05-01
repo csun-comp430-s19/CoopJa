@@ -48,15 +48,15 @@ public class PClassDeclaration {
         // First we need to create a struct that contains a list of the variable declarations
         classString.append("struct " + identifier.getTokenString() + "{\n");
         for (int i = 0; i < variableDeclarations.size(); i++){
-            classString.append("    " + variableDeclarations.get(i).generateCodeStatement(null, null, null) + ";\n");
-            globalMemberList.put(variableDeclarations.get(i).identifier.getTokenString(), null);
+            classString.append("    " + variableDeclarations.get(i).generateCodeStatement(null, null, null, 0) + ";\n");
+            globalMemberList.put(variableDeclarations.get(i).identifier.getTokenString(), variableDeclarations.get(i).variableType.getTokenString());
         }
         classString.append("};\n");
 
         // Now we need to create the functions, formatted with the class identifier, underscore, then the function name
         for (int i = 0 ; i < functionDeclarations.size(); i++){
             PStatementFunctionDeclaration currentDeclaration = functionDeclarations.get(i);
-            classString.append(currentDeclaration.generateCodeStatement(identifier.getTokenString(), globalMemberList, localMemberList));
+            classString.append(currentDeclaration.generateCodeStatement(identifier.getTokenString(), globalMemberList, localMemberList, 0));
         }
 
         return classString.toString();

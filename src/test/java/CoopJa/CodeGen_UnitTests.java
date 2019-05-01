@@ -84,26 +84,259 @@ public class CodeGen_UnitTests {
     }
     @Test
     public void CodeGenWhileTest() throws IOException{
-        TestCodeGenOutput("public class test{" +
-                "public int main(){" +
-                "int i = 1;" +
-                "while(i < 4){" +
-                "println(\"hey\");" +
-                "i = i + 1;" +
-                "}" +
-                "}" +
+        TestCodeGenOutput(
+                "public class test{" +
+                    "public int main(){" +
+                        "int i = 1;" +
+                        "while(i < 4){" +
+                            "println(\"hey\");" +
+                            "i = i + 1;" +
+                        "}" +
+                    "}" +
                 "}","heyheyhey");
     }
     @Test
-    public  void CodeGenForTest() throws IOException{
+    public void CodeGenForTest() throws IOException{
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
+                "int j = 2;" +
                 "for(int i = 1; i <= 3 ; i = i + 1;){" +
                 "println(\"ow\");" +
+                "j = i;" +
                 "}" +
                 "}" +
                 "}", "owowow");
     }
+    @Test
+    public void CodeGenClassTestFull() throws IOException{
+        //from PProgram deletion pending
+        TestCodeGenOutput("public class ClassTest{\n" +
+                "    public int favoriteNumber;\n" +
+                "    public int someOtherNumber;\n" +
+                "    void setFavNumber(int number){\n" +
+                "        favoriteNumber = number;\n" +
+                "    }\n" +
+                "    void guessFavNumber(int number){\n" +
+                "        if (favoriteNumber == number){\n" +
+                "            println(\"Correct\");\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            println(\"Incorrect\");\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "public class Test{\n" +
+                "    public int main(){\n" +
+                "        println(\"Hello World!\");\n" +
+                "        ClassTest foo = new ClassTest;\n" +
+                "        foo.setFavNumber(7);\n" +
+                "        foo.guessFavNumber(7);\n" +
+                "        foo.favoriteNumber = 6;\n" +
+                "        foo.guessFavNumber(6);\n" +
+                "        foo.someOtherNumber = 5;\n" +
+                "        foo.favoriteNumber = foo.someOtherNumber;\n" +
+                "        foo.guessFavNumber(5);\n" +
+                "    }\n" +
+                "}\n", "Hello World!CorrectCorrectCorrect");
+    }
+
+    @Test
+    public void CodeGenClassSetter() throws IOException{
+        TestCodeGenOutput(
+                "public class ClassTest{" +
+                    "public int niceInt;" +
+                    "void setNiceInt(int number){" +
+                        "niceInt = number;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.setNiceInt(1);" +
+                        "int j = 2;" +
+                        "if(foo.niceInt == 1){" +
+                            "println(\"Success!\");" +
+                            "j = 4;" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenFunctionCall() throws IOException{
+        TestCodeGenOutput(
+                "public class ClassTest{" +
+                    "int AddTwo(int number){" +
+                        "return number + 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "if(foo.AddTwo(1) == 3){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenAssignWithoutSetter() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int assignable;" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.assignable = 2;" +
+                        "if(foo.assignable == 2){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenIntegerExpressionsWithFunctionCalls() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int GimmeAOne(int x){" +
+                        "return 1;" +
+                    "}" +
+                    "public int GimmeATwo(int x){" +
+                    "   return 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "int i = foo.GimmeAOne(0) + foo.GimmeATwo(0);" +
+                        "if(i == 3){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenBooleanExpressionsWithFunctionCalls() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public int GimmeAOne(int x){" +
+                        "return 1;" +
+                    "}" +
+                    "public int GimmeATwo(int x){" +
+                    "   return 2;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "int i = foo.GimmeAOne(0) + foo.GimmeATwo(0);" +
+                        "if(foo.GimmeAOne(0) != foo.GimmeATwo(0)){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+    @Test
+    public void CodeGenReturnBooleanResult() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public bool AreTheyTheSame(int x, int y){" +
+                        "return x == y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "if(foo.AreTheyTheSame(1,1)){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenFunctionCallChainedExpression() throws IOException{//interesting behaviour, worth reviewing
+        TestCodeGenOutput(
+        "public class ClassTest{" +
+                    "public int anInt;" +
+                    "public int anotherInt;" +
+                    "public int AddOp(int x, int y){" +
+                        "return x + y;" +
+                    "}" +
+                    "public int SubtractOp(int x, int y){" +
+                        "return x - y;" +
+                    "}" +
+                    "public int MultiplyOp(int x, int y){" +
+                        "return x * y;" +
+                    "}" +
+                    "public int DivideOp(int x, int y){" +
+                        "return x / y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.anInt = 4;" +
+                        "foo.anotherInt = 2;" +
+                        "int i = foo.DivideOp(foo.anInt, foo.anotherInt);" + //...4/2=2
+                        "i = i + foo.MultiplyOp(5 - 1, 4);" + //2 + ((5-1) * 4) = 18
+                        "if(i == 18){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenMultipleObjects() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public bool AreTheyTheSame(int x, int y){" +
+                        "return x == y;" +
+                    "}" +
+                "}" +
+                "public class OtherClass{" +
+                    "public bool AreTheyDifferent(int x, int y){" +
+                        "return x != y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "OtherClass bar = new OtherClass;" +
+                        "if(foo.AreTheyTheSame(1,1) && bar.AreTheyDifferent(1,2)){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
+
     //************************Test expressions*******************************
 
     public void TestExpressionCodeGen(final String inputExpr, final String inputName, final String real) {
@@ -164,198 +397,7 @@ public class CodeGen_UnitTests {
         Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
                 "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
     }
-
-    @Test
-    public void SyntaxFullTest(){
-        TestSyntaxCodeGen("public class test{\n" + //Input Starts HERE
-                "    public int moduloHack(int x, int n){\n" +
-                "        int p;\n" +
-                "        int q;\n" +
-                "        int m;\n" +
-                "        q = x/n;\n" +
-                "        p = q*n;\n" +
-                "        m = x - p;\n" +
-                "        return m;\n" +
-                "    }\n" +
-                "    \n" +
-                "    public int main(){\n" +
-                "        for (int i = 0; i <= 45; i = i + 1;){\n" +
-                "            if (moduloHack(i, 15) == 0){\n" +
-                "                println(\"FizzBuzz\");\n" +
-                "            } \n" +
-                "            else{\n" +
-                "                if (moduloHack(i, 3)){\n" +
-                "                    println(\"Fizz\");\n" +
-                "                }\n" +
-                "                else{\n" +
-                "                    if (moduloHack(i ,5)){\n" +
-                "                        println(\"Buzz\");\n" +
-                "                    }else{}\n" +
-                "                }\n" +
-                "            }\n" +
-                "        }\n" +
-                "        return 0;\n" +
-                "    }\n" +
-                "}"
-                ,"#include <stdio.h>\n" + //Output starts HERE
-                        "\n" +
-                        "struct test{\n" +
-                        "};\n" +
-                        "int test_moduloHack (struct test* this,int x,int n){\n" +
-                        "    int p;\n" +
-                        "    int q;\n" +
-                        "    int m;\n" +
-                        "    q = (x)/(n);\n" +
-                        "    p = (q)*(n);\n" +
-                        "    m = (x)-(p);\n" +
-                        "    return m;\n" +
-                        "}\n" +
-                        "int test_main (struct test* this){\n" +
-                        "    for(int i = 0;(i)<=(45);i = (i)+(1)){\n" +
-                        "    if ((test_moduloHack(this, i,15))==(0)){\n" +
-                        "    printf(\"%s\\n\", \"FizzBuzz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "    if (test_moduloHack(this, i,3)){\n" +
-                        "    printf(\"%s\\n\", \"Fizz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "    if (test_moduloHack(this, i,5)){\n" +
-                        "    printf(\"%s\\n\", \"Buzz\");\n" +
-                        "}\n" +
-                        "else{\n" +
-                        "};\n" +
-                        "};\n" +
-                        "};\n" +
-                        "}\n" +
-                        ";\n" +
-                        "    return 0;\n" +
-                        "}\n" +
-                        "int main(int argc, char** argv){\n" +
-                        "    struct test mainClass = {};\n" +
-                        "    return test_main(&mainClass);\n" +
-                        "}");
-    }
-
-    @Test
-    public void SyntaxClassCreationTest(){
-        TestSyntaxCodeGen("public class test{}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n");
-    }
-
-    @Test
-    public void SyntaxMethodCreationTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxInitializationTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "int i;" +
-                "int j = 1;" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    int i;\n" +
-                "    int j = 1;\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxExpressionTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "int i = 2;" +
-                "int j = 1;" +
-                "int k = 1 + 2;" +
-                "k = i + j;" +
-                "k = i - j;" +
-                "k = i / j;" +
-                "k = i * j;" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    int i = 2;\n" +
-                "    int j = 1;\n" +
-                "    int k = (1)+(2);\n" +
-                "    k = (i)+(j);\n" +
-                "    k = (i)-(j);\n" +
-                "    k = (i)/(j);\n" +
-                "    k = (i)*(j);\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxIfElseTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "if(true){}" +
-                "else{}" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    if (1){\n" +
-                "}\n" +
-                "else{\n" +
-                "};\n" +
-                "}\n");
-    }
-
-    @Test
-    public void SyntaxForTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "for(int i = 1; i <= 10 ; i = i + 1;){}" +
-                "}" +
-                "}",
-                "#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    for(int i = 1;(i)<=(10);i = (i)+(1)){\n" +
-                "}\n" +
-                ";\n" +
-                "}\n");
-    }
-    @Test
-    public void SyntaxPrintTest(){
-        TestSyntaxCodeGen("public class test{" +
-                "public int Main(){" +
-                "println(\"Rose Windmill\");" +
-                "}" +
-                "}","#include <stdio.h>\n" +
-                "\n" +
-                "struct test{\n" +
-                "};\n" +
-                "int test_Main (struct test* this){\n" +
-                "    printf(\"%s\\n\", \"Rose Windmill\");\n" +
-                "}\n");
-    }
+    //removed syntax tests due to uselessness
 }
 
 

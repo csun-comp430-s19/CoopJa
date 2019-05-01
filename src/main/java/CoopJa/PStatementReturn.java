@@ -10,7 +10,7 @@ public class PStatementReturn implements PStatement{
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Return Statement");
         if (returnExpression != null){
             return "return " + returnExpression.generateString(globalClassName, globalMembers, localMembers);

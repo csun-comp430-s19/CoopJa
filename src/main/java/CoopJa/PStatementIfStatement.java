@@ -15,17 +15,22 @@ public class PStatementIfStatement implements PStatement {
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         StringBuilder ifStatmentString = new StringBuilder("if (");
-        ifStatmentString.append(expression.generateString(globalClassName, globalMembers, localMembers) + "){\n");
+        ifStatmentString.append(expression.generateString(globalClassName, globalMembers, localMembers) + ")");
         // Add in the list of statements
 
 
-        ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, localMembers, globalMembers)+ "}\n");
+        ifStatmentString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
         // Else statement exists? Then do that too
         if (elseStatementList != null){
-            ifStatmentString.append("else{\n");
-            ifStatmentString.append(PStatement.generateCodeStatementBlock(elseStatementList, globalClassName, localMembers, globalMembers)+ "}");
+            // Stupid formatting crap that I shouldn't have to do
+            for (int i = 0; i < blockLevel; i++){
+                ifStatmentString.append("    ");
+
+            }
+            ifStatmentString.append("else");
+            ifStatmentString.append(PStatement.generateCodeStatementBlock(elseStatementList, globalClassName, globalMembers, localMembers, blockLevel));
 
         }
         // Then return

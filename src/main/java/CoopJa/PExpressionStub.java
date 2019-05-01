@@ -9,7 +9,7 @@ public class PExpressionStub implements  PExpression { //unused, just temp stuff
     }
 
     @Override
-    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
         throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Stub (Delte this)");
     }
 }

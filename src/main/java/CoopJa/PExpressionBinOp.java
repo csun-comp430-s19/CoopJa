@@ -56,7 +56,7 @@ public class PExpressionBinOp implements PExpression, PExpressionAtom {
     }
 
     @Override
-    public String generateString(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
         return "(" + lhs.generateString(globalClassName, globalMembers, localMembers) + ")" + operatorToken.getTokenString() + "(" + rhs.generateString(globalClassName, globalMembers, localMembers) + ")";
     }
 }

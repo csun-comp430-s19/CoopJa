@@ -17,14 +17,14 @@ public class PStatementForStatement implements PStatement {
     }
 
     @Override
-    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, Object> globalMembers, LinkedHashMap<String, Object> localMembers) throws CodeGenException {
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "For Loop");
         StringBuilder forString = new StringBuilder();
-        forString.append("for(" + statement1.generateCodeStatement(globalClassName, globalMembers, localMembers) + ";"
-                + expression.generateString(globalClassName, globalMembers, localMembers) + ";" + statement2.generateCodeStatement(globalClassName, globalMembers, localMembers) +
-                "){\n");
-        forString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers));
-        forString.append("}\n");
+        forString.append("for(" + statement1.generateCodeStatement(globalClassName, globalMembers, localMembers, blockLevel) + ";"
+                + expression.generateString(globalClassName, globalMembers, localMembers) + ";" + statement2.generateCodeStatement(globalClassName, globalMembers, localMembers, blockLevel) +
+                ")");
+        forString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel));
+        forString.append("\n");
         return forString.toString();
     }
 }
