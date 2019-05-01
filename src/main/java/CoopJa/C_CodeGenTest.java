@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.lang.StringBuilder;
 
 
+//(i) Whenever there's a class variable declaration (not definition),
+//_ it will have to be initialized then, but not necessarily on the same line.
+//Left off at: building main function, generateCode(final PStatement ...), control statements.
 public class C_CodeGenTest 
 {
     /*(!) Can include stdio.h by default or
@@ -32,6 +35,8 @@ public class C_CodeGenTest
                     "}";
 
     private static StringBuilder finalOutputProgramStrBuilder;// = new StringBuilder(programHeader);
+    
+    private static PProgram inputProgram;
 
     public C_CodeGenTest() 
     {
@@ -45,17 +50,26 @@ public class C_CodeGenTest
         //This var will hold the string of the program content going inside main().
         programContentStrBuilder = new StringBuilder();
         finalOutputProgramStrBuilder = new StringBuilder();
+        //inputProgram = new PProgram();
     }
 
     public static void main(String[] args) throws IOException 
     {
-        String programString = "public class example {" +
-                "public String cool = \"Cool1\" + \"yeah\";" +
-                "public void method1(int one, int two)" +
-                "{" +
-                "int one = 1;" +
-                "}" +
-                "}";
+        String programString = "public class example" +
+                               "{"+
+                                  "public boolean cool = true;" + //\"Cool1\" + \"yeah\";" +
+                                  "public void method1(int one, int two)" +
+                                  "{" +
+                                      "String three = \"Three\";" +
+                                     //"println(\"Print From Function\")";
+                                  "}\n" +
+                                  "public int main()"+
+                                  "{"+
+                                      "int variable = 370;"+
+                                      "example exampleVar;"+
+                                      "exampleVar.method1(1, 2);"+
+                                  "}"+
+                                "}";
 
         //Get a println statement expression.
         String printLineString = "println(\"Print Me\")";
@@ -82,11 +96,12 @@ public class C_CodeGenTest
 
     }// main()
 
+/****************************** PPROGRAM ****************************/
     //(!) Will make accept a PProgram & will return String, for now just prints.
     public void generateCode(final PProgram pProgram) //throws IOException 
     {
         //Get reference to pProgram
-        PProgram inputProgram = pProgram;
+        inputProgram = pProgram;
         try 
         {
             //Go through the class declarations.
@@ -118,7 +133,9 @@ public class C_CodeGenTest
         {
             e.printStackTrace();
         }
-
+        //Add the last-msecond touches
+        programHeader.append("\n");
+        
         //Append the program headers
         finalOutputProgramStrBuilder.append(programHeader.toString());
         //Append structs to the program
@@ -148,7 +165,8 @@ public class C_CodeGenTest
         //writeCompleteFile(progLines, new File(""), outputFileName); //write output to a file
 
     }//end generateCode PProgram
-    
+
+/************* CLASS DEC ****************************/
     public static void generateCode(final PClassDeclaration classDeclaration, final int scopeLevel)
     {
         //scopeLevel is not used since classDeclaration should be in the 0th scope, but here for consistency.
@@ -174,99 +192,588 @@ public class C_CodeGenTest
                 //Constructor will be treated differently. It will just be an initial assignment in main().
             */
             if(pDeclaration instanceof PVariableDeclaration)
-            {                
-                generateCode((PVariableDeclaration)pDeclaration, scopeLevel+1, structStrBuilder);                
+            {   //arg true: //Indicate that it's declared in a struct so can't be assigned.
+                generateCode((PVariableDeclaration)pDeclaration, scopeLevel+1, structStrBuilder, true);
+
             }
             if(pDeclaration instanceof PStatementFunctionDeclaration)
-            {      
+            {    
+                //Should have v for consistency, yet functionDeclaration, is more complicated, so no.
+                //addTabs(scopeLevel+1);
                 generateCode((PStatementFunctionDeclaration)pDeclaration, scopeLevel+1, structStrBuilder);
             }
         }//end adding struct member declarations.
 
         //Add the name of the struct so we can declare like: MyClass classInstance;
-        structStrBuilder.append("} " + classDeclaration.identifier.getTokenString() + ";\n");
+        structStrBuilder.append("} " + classDeclaration.identifier.getTokenString() + "Struct;\n");
         //Add the entire struct to the struct section.
         structSectionStrBuilder.append(structStrBuilder.toString());
     }
     
+/***************** FUNCTION DEC *************************/
     //This method adds to the class' static members for function section &, but it adds t
     public static void generateCode(final PStatementFunctionDeclaration functionDeclaration, final int scopeLevel, StringBuilder structStrBuilder)
     {
       /* This method's job is to generate the code for the struct's methods*/
       //(!)(!) Check if it's a constructor, so we need the name of the class, else in previous callback
+      //(!)(!) Check if it's main(), in that case these things will get added to the main program content,
+      //      but not before aggregating it in functionInMainBuilder(?).
       //_ we can check before calling this function, and call another function instead.
       StringBuilder functionSectionBuilder = new StringBuilder();
       StringBuilder functionInMainBuilder = new StringBuilder();
       // StringBuilder functionPtrInStructBuilder = new StringBuilder();
       
-      
-      /*Begin add function to struct as function pointer*/
-      addTabs(structStrBuilder, scopeLevel);
-      //Make it a function pointer.
-      structStrBuilder.append(functionDeclaration.returnType.getTokenString() +
-                                " (*" + functionDeclaration.identifier.getTokenString() + ")");
-                                // "(");
-      //Add parameters list.
-      structStrBuilder.append("(");
-      //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
-      for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
+      // System.out.println("% Function name: "+functionDeclaration.identifier.getTokenString());
+      //Check if function is not main
+      if( ! functionDeclaration.identifier.getTokenString().equalsIgnoreCase("MAIN"))
       {
-          generateCodeParameter(structStrBuilder, functionDeclaration.variableDeclarations.get(i));
-          if(i+1 < functionDeclaration.variableDeclarations.size())
-              structStrBuilder.append(", ");
-      }
-      structStrBuilder.append(");\n");
-      /*End add function pointer to struct.*/
-      
-      /*Begin add function to function section*/
-      //(!)(!) Try keeping both the member & declared function w/ the same name, see if there's a conflict.
-      functionSectionBuilder.append(functionDeclaration.returnType.getTokenString() +
-                                    functionDeclaration.identifier.getTokenString());
-      //Add parameters list. 
-      functionSectionBuilder.append("(");
-      //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
-      for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
-      {
-          generateCodeParameter(functionSectionBuilder, functionDeclaration.variableDeclarations.get(i));
-          if(i+1 < functionDeclaration.variableDeclarations.size())
-              functionSectionBuilder.append(", ");
-      }
-      functionSectionBuilder.append(")\n");
-      //Build the body of the function.
-      functionSectionBuilder.append("{\n");
-      //Add the statements in the body.
+          /*Begin add function to struct as function pointer*/
+          addTabs(structStrBuilder, scopeLevel);
+          //Make it a function pointer.
+          structStrBuilder.append(functionDeclaration.returnType.getTokenString() +
+                                    " (*" + functionDeclaration.identifier.getTokenString() + ")");
+                                    // "(");
+          //Add parameters list.
+          structStrBuilder.append("(");
+          //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
+          for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
+          {
+              //generateCodeParameter(structStrBuilder, functionDeclaration.variableDeclarations.get(i));
+              generateCode(functionDeclaration.variableDeclarations.get(i), scopeLevel+1, structStrBuilder, true, false);
+              if(i+1 < functionDeclaration.variableDeclarations.size())
+                  structStrBuilder.append(", ");
+          }
+          structStrBuilder.append(");\n");
+          /*End add function pointer to struct.*/
 
-      
-      //Add the return if any.
-      //Close the body of the function.
-      functionSectionBuilder.append("}\n");
-      //Add it to the static function
-      functionSectionStrBuilder.append(functionSectionBuilder.toString());
-      /*End add function to function section*/
-
+          /*Begin add function to function section*/
+          //(!)(!) Try keeping both the member & declared function w/ the same name, see if there's a conflict.
+          functionSectionBuilder.append(functionDeclaration.returnType.getTokenString() + " " +
+                                        functionDeclaration.identifier.getTokenString());
+          //Add parameters list.
+          functionSectionBuilder.append("(");
+          //for(PVariableDeclaration parameterDeclaration : functionDeclaration.variableDeclarations)
+          for(int i = 0; i < functionDeclaration.variableDeclarations.size() ; i++)
+          {
+              //generateCodeParameter(functionSectionBuilder, functionDeclaration.variableDeclarations.get(i));
+              generateCode(functionDeclaration.variableDeclarations.get(i), scopeLevel+1, functionSectionBuilder, true, false); //forceDeclaration, don't add tabs.
+              if(i+1 < functionDeclaration.variableDeclarations.size())
+                  functionSectionBuilder.append(", ");
+          }
+          functionSectionBuilder.append(")\n");
+          //Build the body of the function.
+          functionSectionBuilder.append("{\n");
+          /** Mistook variableDeclarations to be variable decs in the function body, 
+            so below comments are deletable.
+          **/
+          //variableDeclarations, is actually parameterDeclarations. Common sense is not so common...
+          // // //Add the variable declarations in the body.
+          // // for(PVariableDeclaration variableDeclaration : functionDeclaration.variableDeclarations)
+          // // {
+              // // generateCode(variableDeclaration, scopeLevel+1, functionSectionBuilder);
+              // // functionSectionBuilder.append(";\n");
+          // // }
+          
+          //Add the statements in the body.
+          for(PStatement functionStatement : functionDeclaration.statementList)
+          {
+              //Since we are defining the function at a different level from the struct, we don't need to add to the scope level.
+              generateCode(functionStatement, scopeLevel, functionSectionBuilder);
+              //The return, if any, should be valid. Should have a correct return if the program made it this far in the compiler.
+          }
+          //Close the body of the function.
+          functionSectionBuilder.append("}\n");
+          //Add it to the static function
+          functionSectionStrBuilder.append(functionSectionBuilder.toString());
+          /*End add function to function section*/
+      }//end check if main.
+      else
+        generateCodeMainFunction(functionDeclaration, scopeLevel);
       /*Begin add function in main()*/
+          
       /*End add function in main()*/
       
     } // generateCode for functionDeclarations.
     
-    public static void generateCode(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder structStrBuilder)
+    private static void generateCodeMainFunction(final PStatementFunctionDeclaration functionDeclaration, final int scopeLevel) //, StringBuilder structStrBuilder)
     {
-      /* This method's job is to generate the code for the structs methods & variables. or branch*/
+      //Add the statements in the body.
+      for(PStatement functionStatement : functionDeclaration.statementList)
+      {//The scope level
+          generateCode(functionStatement, scopeLevel, programContentStrBuilder);
+          //The return, if any, should be valid. Should have a correct return if the program made it this far in the compiler.
+      }
+    }
+    
+/***************** VAR DEC *************************/
+
+    //Using function overloading to create a wrapper to have default parameter value type functionality.
+    //For variable definitions. 
+    public static void generateCode(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {   //don't force declaration, and add tabs.
+        generateCodeVarDeclaration(variableDeclaration, scopeLevel, enclosingBlockStrBuilder, false, true);
+        //(!) Could have also chained:
+        //generateCode(variableDeclaration, scopeLevel, enclosingBlockStrBuilder, false);
+        
+    }// generateCode for varDeclarations.
+    
+    //For declaration statements. Default is adding tabs.
+    public static void generateCode(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder enclosingBlockStrBuilder, final boolean forceDeclaration)
+    {
+        generateCodeVarDeclaration(variableDeclaration, scopeLevel, enclosingBlockStrBuilder, forceDeclaration, true);
     }// generateCode for varDeclarations.
 
+    //For parameters.
+    public static void generateCode(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder enclosingBlockStrBuilder, final boolean forceDeclaration, final boolean addTabs)
+    {
+        generateCodeVarDeclaration(variableDeclaration, scopeLevel, enclosingBlockStrBuilder, forceDeclaration, addTabs);
+    }// generateCode for varDeclarations.
+    
+    public static void generateCodeVarDeclaration(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder enclosingBlockStrBuilder, final boolean forceDeclaration, final boolean addTabs)
+    {
+        /* This method's job is to generate the code for the variables in enclosing blocks. or branch*/
+        //
+        //System.out.println("*From PVariableDeclaration:"+variableDeclaration.identifier.getTokenString()+". Received scope level:"+scopeLevel);
+        //(!)(i) Will be the responsibility of caller to add tabs, so that all var decs can use this function.
+        String typeStr = typeTranslatorRough(variableDeclaration); //okenString());
+        
+        if(addTabs)
+        {
+            addTabs(enclosingBlockStrBuilder, scopeLevel);
+        }
+        //type variableName
+        enclosingBlockStrBuilder.append(typeStr+ " " + variableDeclaration.identifier.getTokenString());
+        
+        if( ! forceDeclaration) //No assignments allowed in struct nor parameters.
+        {
+          if(variableDeclaration.assignment != null)
+          {
+              enclosingBlockStrBuilder.append(" = "); // + generateCode(variableDeclaration.assignment) vs. vv
+              generateCode(variableDeclaration.assignment, scopeLevel, enclosingBlockStrBuilder);
+          }
+          else if(variableDeclaration.variableType.getType() == Token.TokenType.IDENTIFIER) //if it's a class basically
+          { //(!) Conditional might cause problems, for example if we do: structA var = structB. will var's members be initializd?
+              enclosingBlockStrBuilder.append(" = ");
+              //Search for the type by going through the program, & initialize the members if necessary.
+              
+              generateCodeInitializeStructs(variableDeclaration, scopeLevel, enclosingBlockStrBuilder);
+          }
+        }
+
+        //If we don't add tabs & force declaration, then it's a parameter
+        if(addTabs)
+        {
+          enclosingBlockStrBuilder.append(";\n");
+        }
+    }// generateCode for varDeclarations.
+    
     public static void generateCodeParameter(StringBuilder structStrBuilder, final PVariableDeclaration parameterDeclaration)
     {
-        structStrBuilder.append(parameterDeclaration.variableType.getTokenString() + " " + parameterDeclaration.identifier.getTokenString());
+        String typeStr = typeTranslatorRough(parameterDeclaration); //.variableType.getType());//getTokenString());
+        structStrBuilder.append(typeStr + " " + parameterDeclaration.identifier.getTokenString());
     }//code generation parameters.
+    
+/***************** PSTATEMENTS ******************************/
+    //Called by: generateCode(PStatementFunctionDeclaration) in function builder section.
+    public static void generateCode(final PStatement statement, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+      //This function forwards the pstatement to the correct function.
+      //PExpressionIdentifierReference
+      //PIdentifierReference
+      //PStatementBreak
+      //PStatementForStatement
+      //PStatementFunctionCall
+      //PStatementFunctionDeclaration
+      //PStatementIfStatement
+      //PStatementPrintln
+      //PStatementReturn
+      //PStatementWhileStatement
+      //PVariableAssignment
+      //PVariableDeclaration
+      
+      //Let's handle the control statements first.
+      if(statement instanceof PStatementForStatement)
+      {
+          // generateCode(statement, scopeLevel, enclosingBlockStrBuilder);
+      }
+      if(statement instanceof PStatementWhileStatement)
+      {
+          // generateCode(statement, scopeLevel, enclosingBlockStrBuilder);
+      }
+      if(statement instanceof PStatementIfStatement)
+      {
+          // generateCode(statement, scopeLevel, enclosingBlockStrBuilder);
+      }
+      // (!)(?) PVariableAssignment not used?
+      if(statement instanceof PVariableAssignment)
+      {
+          // System.out.println("\t\t\tIs a variable Assignment.");
+          //generateCode((PVariableAssignment)statement, scopeLevel, enclosingBlockStrBuilder);
+      }
+      
+      if(statement instanceof PExpressionIdentifierReference)
+      {
+          //generateCode((PExpressionIdentifierReference)statement, scopeLevel, enclosingBlockStrBuilder);
+      }
+      if(statement instanceof PVariableDeclaration)
+      {
+          generateCode((PVariableDeclaration)statement, scopeLevel, enclosingBlockStrBuilder);
+      }
 
-    public static void addTabs(StringBuilder strB, final int scopeLevel)
+    }
+    /*****************  FOR STATEMENT ***************/
+    private static void generateCode(PStatementForStatement forExpression, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        
+    }
+    
+/****************************** PEXPRESSION ***********************************/
+    private static void generateCode(final PExpression expression, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        //interface:
+        //PExpressionAtom
+
+        //part of the above interface as well:
+        //PExpressionBinOp
+        //PExpressionIdentifierReference
+        //PExpressionVariable
+        //PStatementFunctionCall
+
+        //other:
+        //PExpressionStub
+        
+        if(expression instanceof PExpressionAtom)
+        {
+            generateCode((PExpressionAtom)expression, scopeLevel, enclosingBlockStrBuilder);
+        }
+        // if(expression instanceof PExpressionBinOp)
+        // {
+            // generateCode((PExpressionBinOp)expression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+        // if(expression instanceof PExpressionIdentifierReference)
+        // {
+            // generateCode((PExpressionIdentifierReference)expression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+        // if(expression instanceof PExpressionVariable)
+        // {
+            // generateCode((PExpressionVariable)expression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+        // if(expression instanceof PStatementFunctionCall)
+        // {
+            // generateCode((PStatementFunctionCall)expression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+        //else don't handle, including PExpressionStub
+      
+    }
+    /****** PExpressionAtom *****/
+    private static void generateCode(final PExpressionAtom atomicExpression, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        //Forward to appropriate Atomic Expression
+
+        //PExpressionAtomBooleanLiteral
+        //PExpressionAtomNullLiteral
+        
+        //PExpressionAtomNumberLiteral
+        //PExpressionAtomObjectConstruction
+        //PExpressionAtomStringLiteral
+        //PIdentifierReference
+    
+        /*(!) There is no need for so many expression types. 
+            Should have just had a class w/ Type member, and  a method to give you the literal as a string.
+            Then these little expressions just inherit from that, and they just use the values we want.
+        */
+        if(atomicExpression instanceof PExpressionAtomBooleanLiteral)
+        {
+            generateCode((PExpressionAtomBooleanLiteral)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        }
+        if(atomicExpression instanceof PExpressionAtomNullLiteral)
+        {
+            generateCode((PExpressionAtomNullLiteral)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        }
+        if(atomicExpression instanceof PExpressionAtomNumberLiteral)
+        {
+            generateCode((PExpressionAtomNumberLiteral)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        }
+        if(atomicExpression instanceof PExpressionAtomStringLiteral)
+        {
+            generateCode((PExpressionAtomStringLiteral)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        }
+        // if(atomicExpression instanceof PExpressionAtomObjectConstruction)
+        // {
+            // generateCode((PExpressionAtomObjectConstruction)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+        // if(atomicExpression instanceof PIdentifierReference)
+        // {
+            // generateCode((PIdentifierReference)atomicExpression, scopeLevel, enclosingBlockStrBuilder);
+        // }
+    } //end PAtomic Expression Forwarder
+    
+    private static void generateCode(final PExpressionAtomBooleanLiteral booleanLiteral, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        String booleanValue = (booleanLiteral.literalToken.getType() == Token.TokenType.KEYWORD_TRUE) ? "true" : "false";
+        enclosingBlockStrBuilder.append(booleanValue);
+    }
+    private static void generateCode(final PExpressionAtomNullLiteral nullLiteral, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        enclosingBlockStrBuilder.append("NULL");
+    }
+    private static void generateCode(final PExpressionAtomNumberLiteral numberLiteral, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        enclosingBlockStrBuilder.append(numberLiteral.literalToken.getTokenString());
+    }
+    
+    private static void generateCode(final PExpressionAtomStringLiteral stringLiteral, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+        enclosingBlockStrBuilder.append(stringLiteral.literalToken.getTokenString());//"\""+stringLiteral.literalToken.getTokenString()+"\"");
+    }
+/***************** Helper Functions ******************************/
+    private static String typeTranslatorRough(PVariableDeclaration variableDeclaration)//Token.TokenType typeEnum) //typeStringArg
+    {
+        Token.TokenType typeThisVar = variableDeclaration.variableType.getType();
+        
+        String typeStr = null;
+        /*Can't rely on a clear way of getting type directly from variableDeclaration:
+          variableDeclaration.variableType.getTokenString() or variableDeclaration.variableType.getType()????
+          No need to still be using tokens this far in the compiler...
+        */
+        // if(typeThisVar == "AUTO")
+        // {
+            // Type.TokenType typeTemp = TypeChecker.getType(variableDeclaration, scopeLevel);
+            // switch(typeTemp)
+            // {
+                // //del
+                // /*below cases in enum format. 
+                  // No one shouldn't have to look at where the typechecker gets the type of this
+                  // poorly structure PObject.
+                // */
+                // default:
+                  // break;
+            // }
+        // }
+        //Determine the type translation
+        if(typeThisVar == Token.TokenType.KEYWORD_STRING)
+        {
+            typeStr = "char *";
+        }
+        if(typeThisVar == Token.TokenType.KEYWORD_BOOLEAN)
+        {
+            //Check if bool already exists in the global space.
+            if(! (checkHeaderFiles("stdbool")))
+            {
+                //Add the header file.
+                //addHeaderFile("stdbool");
+                programHeader.append("#include <stdbool.h>\n");
+            }
+            typeStr = "bool";
+        }
+        if(typeThisVar == Token.TokenType.IDENTIFIER)
+        {
+            //Assume it's a reference type to a struct
+            typeStr = variableDeclaration.variableType.getTokenString()+"Struct";
+        }
+            
+        typeStr = (typeStr == null)? variableDeclaration.variableType.getTokenString() : typeStr;
+        
+        //End determining type of var (declaration).
+        
+        return typeStr;
+    }
+    //(!)Cannot handle identifier types
+    // private static String typeTranslatorRough(Token.TokenType typeEnum) //typeStringArg
+    // {
+        // Token.TokenType typeThisVar = typeEnum; //variableDeclaration.variableType.getType();
+        
+        // String typeStr = null;
+        // /*Can't rely on a clear way of getting type directly from variableDeclaration:
+          // variableDeclaration.variableType.getTokenString() or variableDeclaration.variableType.getType()????
+          // No need to still be using tokens this far in the compiler...
+        // */
+        // // if(typeThisVar == "AUTO")
+        // // {
+            // // Type.TokenType typeTemp = TypeChecker.getType(variableDeclaration, scopeLevel);
+            // // switch(typeTemp)
+            // // {
+                // // //del
+                // // /*below cases in enum format. 
+                  // // No one shouldn't have to look at where the typechecker gets the type of this
+                  // // poorly structure PObject.
+                // // */
+                // // default:
+                  // // break;
+            // // }
+        // // }
+        // //Determine the type translation
+        // if(typeThisVar == Token.TokenType.KEYWORD_STRING)
+        // {
+            // typeStr = "char *";
+        // }
+        // if(typeThisVar == Token.TokenType.KEYWORD_BOOLEAN)
+        // {
+            // //Check if bool already exists in the global space.
+            // if(! (checkHeaderFiles("stdbool")))
+            // {
+                // //Add the header file.
+                // //addHeaderFile("stdbool");
+                // programHeader.append("#include <stdbool.h>\n");
+            // }
+            // typeStr = "bool";
+        // }
+        // //(!)Cannot handle identifier types
+        // // if(typeThisVar == Token.TokenType.IDENTIFIER)
+        // // {
+            // // //Assume it's a reference type to a struct
+            // // typeStr = variableDeclaration.identifier.getTokenString()+"Struct";
+        // // }
+            
+        // typeStr = (typeStr == null)? "NO_TYPE" : typeStr;
+        
+        // //End determining type of var (declaration).
+        
+        // return typeStr;
+    // }//using TokenType.
+    
+    //(!)Cannot handle identifier types
+    // private static String typeTranslatorRough(String typeStringArg)
+    // {
+        // String typeThisVar = typeStringArg;
+        // typeThisVar = typeThisVar.trim().toUpperCase();
+        // String typeStr = null;
+        // /*Can't rely on a clear way of getting type directly from variableDeclaration:
+          // variableDeclaration.variableType.getTokenString() or variableDeclaration.variableType.getType()????
+          // No need to still be using tokens this far in the compiler...
+        // */
+        // // if(typeThisVar == "AUTO")
+        // // {
+            // // Type.TokenType typeTemp = TypeChecker.getType(variableDeclaration, scopeLevel);
+            // // switch(typeTemp)
+            // // {
+                // // //del
+                // // /*below cases in enum format. 
+                  // // No one shouldn't have to look at where the typechecker gets the type of this
+                  // // poorly structure PObject.
+                // // */
+                // // default:
+                  // // break;
+            // // }
+        // // }
+        // //Determine the type translation
+        // if(typeThisVar.contentEquals("STRING"))
+        // {
+            // typeStr = "char *";
+        // }
+        // if(typeThisVar.contentEquals("BOOLEAN"))
+        // {
+            // //Check if bool already exists in the global space.
+            // if(! (checkHeaderFiles("stdbool")))
+            // {
+                // //Add the header file.
+                // //addHeaderFile("stdbool");
+                // programHeader.append("#include <stdbool.h>\n");
+            // }
+            // typeStr = "bool";
+        // }
+        // typeStr = (typeStr == null)? typeStringArg : typeStr;
+        
+        // //End determining type of var (declaration).
+        
+        // return typeStr;
+    // }
+
+    private static void addTabs(StringBuilder strB, final int scopeLevel)
     {
         for(int i = 0; i < scopeLevel; i++)
         {
             strB.append("\t");
         }
     }//addTabs
-/********************************************************************************************/
+    private static boolean checkHeaderFiles(final CharSequence headerName)
+    {
+        return programHeader.toString().contains(headerName); 
+        //can also try programHeader.toString().matches(String regex);
+    }
+
+/************** INIT STRUCTS *************/    
+    //(!) This function should be placed and work w/ the assignment function. It only executes if the assignment is null.
+    private static void generateCodeInitializeStructs(final PVariableDeclaration variableDeclaration, final int scopeLevel, StringBuilder enclosingBlockStrBuilder)
+    {
+      
+        //What I'm aiming for: https://stackoverflow.com/questions/13706809/structs-in-c-with-initial-values
+        PClassDeclaration currentStruct = null;
+        
+        StringBuilder tempStructInitializerBuilder = new StringBuilder();
+        //Search for and retrieve the correct PClassDeclaration.
+              // // getStructDefinition(variableDeclaration.identifier.getTokenString());
+        String structName = variableDeclaration.variableType.getTokenString(); //typeTranslatorRough(variableDeclaration);//variableDeclaration.variableType.getTokenString()+"Struct";
+        // //Remove the "Struct" in name.
+        // structName.remove("Struct");
+            //Go through the class declarations.
+        for(PClassDeclaration classDeclaration : inputProgram.classDeclarationList)
+        {   
+            //if struct found, save it.
+            if(classDeclaration.identifier.getTokenString().equalsIgnoreCase(structName))
+            {
+                currentStruct = classDeclaration;
+            }
+        }
+        
+        //Make sure we found the struct we were looking for.
+        if(currentStruct != null)
+        {
+            //Go through the members & if they have an initialization, we add it.
+            for(PDeclaration pDeclaration : currentStruct.declarationList)
+            {   
+                if(pDeclaration instanceof PVariableDeclaration)
+                {   
+                      PVariableDeclaration temp = (PVariableDeclaration) pDeclaration;
+                      //Make sure it has an assignment before adding it.
+                      if(temp.assignment != null)
+                      {
+                          if(tempStructInitializerBuilder.length() == 0) //makes sure that we first add a "{"
+                          {
+                              tempStructInitializerBuilder.append("{ ");
+                          }
+                          else //this is not the first definition.
+                          {
+                              tempStructInitializerBuilder.append(", ");
+                          }
+                          tempStructInitializerBuilder.append("."+ temp.identifier.getTokenString());
+                          tempStructInitializerBuilder.append(" = ");
+                          generateCode(temp.assignment, scopeLevel+1, tempStructInitializerBuilder); //basically a parameter declaration.
+                        //generateCode((PVariableDeclaration)pDeclaration, scopeLevel+1, structStrBuilder, true);
+                      }
+                }
+                if(pDeclaration instanceof PStatementFunctionDeclaration)
+                {
+                      
+                      PStatementFunctionDeclaration temp = (PStatementFunctionDeclaration) pDeclaration;
+                      
+                      //Main should not be a member.
+                      if(! temp.identifier.getTokenString().equalsIgnoreCase("MAIN"))
+                      {
+                          if(tempStructInitializerBuilder.length() == 0) //makes sure that we first add a "{"
+                          {
+                              tempStructInitializerBuilder.append("{ ");
+                          }
+                          else //this is not the first member initialization.
+                          {
+                              tempStructInitializerBuilder.append(", ");
+                          }
+                          tempStructInitializerBuilder.append("."+temp.identifier.getTokenString());
+                          tempStructInitializerBuilder.append(" = "+temp.identifier.getTokenString());
+                      }
+                }//end check type of PDeclaration.
+            }//end adding struct member declarations.
+        }//check if member was found.
+        
+        if(tempStructInitializerBuilder.length() > 0) //makes sure that we first add a "{"
+        {
+            tempStructInitializerBuilder.append(" }");
+        }
+        
+        //tempStructInitializerBuilder.append(";\n");
+        enclosingBlockStrBuilder.append(tempStructInitializerBuilder.toString());
+    }
+/************************************COMPILER & PROGRAM EXECUTION SECTION ********************************************************/
     //(!) Will make accept a PProgram & will return String, for now just prints.
     public void generateCode(PStatementPrintln printLnExpression) throws IOException 
     {
@@ -441,5 +948,4 @@ public class C_CodeGenTest
             System.out.println(s);
         }
     }
-
 }

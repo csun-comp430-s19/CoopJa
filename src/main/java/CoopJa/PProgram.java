@@ -13,7 +13,7 @@ public class PProgram {
 
     public String generateProgramString() throws CodeGenException {
         StringBuilder programString = new StringBuilder();
-        programString.append("#include <stdio.h>\n\n");
+        programString.append("#include <stdio.h>\n#include <stdbool.h>\n\n");
         for (int i = 0; i < classDeclarationList.size(); i++){
             programString.append(classDeclarationList.get(i).generateClassString());
         }
