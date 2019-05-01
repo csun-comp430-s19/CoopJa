@@ -1,8 +1,7 @@
 package CoopJa;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 public class PExpressionBinOp implements PExpression, PExpressionAtom {
     // This describes a binary expression binary tree
@@ -57,7 +56,7 @@ public class PExpressionBinOp implements PExpression, PExpressionAtom {
     }
 
     @Override
-    public String generateString() throws CodeGenException {
-        return "(" + lhs.generateString() + ")" + operatorToken.getTokenString() + "(" + rhs.generateString() + ")";
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
+        return "(" + lhs.generateString(globalClassName, globalMembers, localMembers) + ")" + operatorToken.getTokenString() + "(" + rhs.generateString(globalClassName, globalMembers, localMembers) + ")";
     }
 }

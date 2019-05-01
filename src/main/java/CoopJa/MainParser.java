@@ -231,9 +231,16 @@ public class MainParser {
         returnStatementParser = Combinators.satisfy("Return token", typePredicate(Token.TokenType.KEYWORD_RETURN)).andR(expressionRef.or(pure(null))).map(a -> new PStatementReturn(a));
 
         // println parser
-        printlnParser = Combinators.satisfy("println token", typePredicate(Token.TokenType.KEYWORD_PRINTLN))
+        /*printlnParser = Combinators.satisfy("println token", typePredicate(Token.TokenType.KEYWORD_PRINTLN))
                 .andR(leftParenParser)
                 .andR(Combinators.satisfy("string", typePredicate(Token.TokenType.STRING)))
+                .andL(rightParenParser)
+                .map(a -> new PStatementPrintln(a));*/
+
+        printlnParser = Combinators.satisfy("println token", typePredicate(Token.TokenType.KEYWORD_PRINTLN))
+                .andR(leftParenParser)
+                //.andR(Combinators.satisfy("string", typePredicate(Token.TokenType.STRING)))
+                .andR(expressionRef)
                 .andL(rightParenParser)
                 .map(a -> new PStatementPrintln(a));
 
@@ -326,7 +333,7 @@ public class MainParser {
         // Parsing identifier expression atoms
         identifierExpressionParser.set(varObjTypeParser.and(Combinators.choice(
                 leftParenParser.andR(expressionRef.sepBy(commaParser)).andL(rightParenParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PStatementFunctionCall(x, IListtoArrayList(a))),  // Function call
-                periodParser.andR(identifierExpressionParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PIdentifierReference(x, (PStatement)a)),
+                periodParser.andR(identifierExpressionParser).map(a -> (Functions.F<Token, PExpressionAtom>)(x) -> new PIdentifierReference(x, a)),
                 pure((Functions.F<Token, PExpressionAtom>)(x) -> new PExpressionVariable(x))
         )).map(a -> b -> b.apply(a)));
 

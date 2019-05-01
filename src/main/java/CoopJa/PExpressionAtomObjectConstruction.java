@@ -1,5 +1,7 @@
 package CoopJa;
 
+import java.util.LinkedHashMap;
+
 public class PExpressionAtomObjectConstruction implements PExpressionAtom {
     public Token identifier;
     public PExpressionAtomObjectConstruction(Token identifier){
@@ -7,7 +9,9 @@ public class PExpressionAtomObjectConstruction implements PExpressionAtom {
     }
 
     @Override
-    public String generateString() throws CodeGenException {
-        throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Object Construction");
+    public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
+        //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Object Construction");
+        // TODO: THIS IS PRETTY HACKY (See variable declaration for actual constructor crap)
+        return "{}";
     }
 }

@@ -1,6 +1,8 @@
 package CoopJa;
 
 
+import java.util.LinkedHashMap;
+
 //(!)(!) Not tested. 4/8/19
 public class PVariableDeclaration implements PStatement, PDeclaration {
     // The following ways are how a Variable can be declared, and thus what info it may contain
@@ -70,5 +72,32 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
       
       return returnVarDecString.toString();
     }//end generateString()
-    
+
+    @Override
+    public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
+        //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_STATEMENT_TYPE + "Variable Declaration");
+        StringBuilder varDecString = new StringBuilder();
+        // TODO: MAKE OBJECT DELCRATIONS NOT SUCK
+        if (variableType.getType() == Token.TokenType.IDENTIFIER){
+            // This is weird
+            varDecString.append("struct " + variableType.getTokenString() + " *" + identifier.getTokenString() + ", " + identifier.getTokenString() + "Original; "
+                    + identifier.getTokenString() + " = &" + identifier.getTokenString() + "Original");
+        }
+        else {
+            varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());
+        }
+        if (assignment != null && variableType.getType() != Token.TokenType.IDENTIFIER){
+            varDecString.append(" = " + assignment.generateString(globalClassName, globalMembers, localMembers));
+        }
+        // TODO: This is some hack to tell if this is a global or local declaration.
+        if (localMembers != null) {
+            localMembers.put(identifier.getTokenString(), variableType.getTokenString());
+        }
+        return varDecString.toString();
+    }
+
+    @Override
+    public String getIdentiferString() {
+        return identifier.getTokenString();
+    }
 }//end class PVariableDeclaration
