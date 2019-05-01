@@ -99,8 +99,10 @@ public class CodeGen_UnitTests {
     public void CodeGenForTest() throws IOException{
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
+                "int j = 2;" +
                 "for(int i = 1; i <= 3 ; i = i + 1;){" +
                 "println(\"ow\");" +
+                "j = i;" +
                 "}" +
                 "}" +
                 "}", "owowow");
@@ -152,8 +154,10 @@ public class CodeGen_UnitTests {
                     "public int main(){" +
                         "ClassTest foo = new ClassTest;" +
                         "foo.setNiceInt(1);" +
+                        "int j = 2;" +
                         "if(foo.niceInt == 1){" +
                             "println(\"Success!\");" +
+                            "j = 4;" +
                         "}" +
                         "else{" +
                             "println(\"Failure!\");" +
@@ -249,6 +253,89 @@ public class CodeGen_UnitTests {
                     "}" +
                 "}", "Success!");
     }
+
+    @Test
+    public void CodeGenReturnBooleanResult() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public bool AreTheyTheSame(int x, int y){" +
+                        "return x == y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "if(foo.AreTheyTheSame(1,1)){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenFunctionCallChainedExpression() throws IOException{//interesting behaviour, worth reviewing
+        TestCodeGenOutput(
+        "public class ClassTest{" +
+                    "public int anInt;" +
+                    "public int anotherInt;" +
+                    "public int AddOp(int x, int y){" +
+                        "return x + y;" +
+                    "}" +
+                    "public int SubtractOp(int x, int y){" +
+                        "return x - y;" +
+                    "}" +
+                    "public int MultiplyOp(int x, int y){" +
+                        "return x * y;" +
+                    "}" +
+                    "public int DivideOp(int x, int y){" +
+                        "return x / y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "foo.anInt = 4;" +
+                        "foo.anotherInt = 2;" +
+                        "int i = foo.DivideOp(foo.anInt, foo.anotherInt);" + //...4/2=2
+                        "i = i + foo.MultiplyOp(5 - 1, 4);" + //2 + ((5-1) * 4) = 18
+                        "if(i == 18){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}","Success!");
+    }
+
+    @Test
+    public void CodeGenMultipleObjects() throws IOException{
+        TestCodeGenOutput("public class ClassTest{" +
+                    "public bool AreTheyTheSame(int x, int y){" +
+                        "return x == y;" +
+                    "}" +
+                "}" +
+                "public class OtherClass{" +
+                    "public bool AreTheyDifferent(int x, int y){" +
+                        "return x != y;" +
+                    "}" +
+                "}" +
+                "public class Test{" +
+                    "public int main(){" +
+                        "ClassTest foo = new ClassTest;" +
+                        "OtherClass bar = new OtherClass;" +
+                        "if(foo.AreTheyTheSame(1,1) && bar.AreTheyDifferent(1,2)){" +
+                            "println(\"Success!\");" +
+                        "}" +
+                        "else{" +
+                            "println(\"Failure!\");" +
+                        "}" +
+                    "}" +
+                "}", "Success!");
+    }
+
 
     //************************Test expressions*******************************
 
