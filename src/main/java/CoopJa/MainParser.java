@@ -409,7 +409,23 @@ public class MainParser {
         //(foo5 + 5) * foo4(1+2, foo6())
 
 
-        String foo = "public class one { int testing = 0; public void main() { int cool = 0; if (testvar == 1) { testvar = 2; } else { testvar = 3; } if (testvar == 1) { testvar = 2; } else { testvar = 3; } } }";
+        //String foo = "public class one { int testing = 0; public void main() { int cool = 0; if (testvar == 1) { testvar = 2; } else { testvar = 3; } if (testvar == 1) { testvar = 2; } else { testvar = 3; } } }";
+
+        String foo = "public class one { " +
+                "public void main(int t1, int t2) {" +
+                "int nice = 1;" +
+                "int temp = 25;" +
+                "int wow = 101;" +
+                "String pub1 = \"good string\";" +
+                "String pub2 = \"ok string\";" +
+                "}" +
+                "}" +
+                "public class two {" +
+                "public void main(int on22) {" +
+                "int ok = 0;" +
+                "String tiredofmakingupvars = \"temp\";" +
+                "}" +
+                "}";
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -441,7 +457,7 @@ public class MainParser {
                 for (int k = 0; k < fooTester.classDeclarationList.get(i).declarationList.size(); k++) {
                     if (fooTester.classDeclarationList.get(i).declarationList.get(k) instanceof PStatementFunctionDeclaration) {
                         System.out.println("PStatementFunctionDeclaration object detected -- Method Declared");
-                        System.out.println("Method Variables:"); //XXXXXX might always be empty
+                        System.out.println("Method Parameters:");
                         for (int o = 0; o < ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.size(); o++) {
                             System.out.println(((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.get(o).variableType.getTokenString() + " " + ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.get(o).identifier.getTokenString());
                         }
