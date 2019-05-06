@@ -409,23 +409,23 @@ public class MainParser {
         //(foo5 + 5) * foo4(1+2, foo6())
 
 
-        //String foo = "public class one { int testing = 0; public void main() { int cool = 0; if (testvar == 1) { testvar = 2; } else { testvar = 3; } if (testvar == 1) { testvar = 2; } else { testvar = 3; } } }";
+        String foo = "public class one { int testing = 0; public void main(int param1) { int cool = 0; if (testvar == 1) { testvar = 2; } else { testvar = 3; } } }";
 
-        String foo = "public class one { " +
-                "public void main(int t1, int t2) {" +
-                "int nice = 1;" +
-                "int temp = 25;" +
-                "int wow = 101;" +
-                "String pub1 = \"good string\";" +
-                "String pub2 = \"ok string\";" +
-                "}" +
-                "}" +
-                "public class two {" +
-                "public void main(int on22) {" +
-                "int ok = 0;" +
-                "String tiredofmakingupvars = \"temp\";" +
-                "}" +
-                "}";
+//        String foo = "public class one { " +
+//                "public void main(int t1, int t2) {" +
+//                "int nice = 1;" +
+//                "int temp = 25;" +
+//                "int wow = 101;" +
+//                "String pub1 = \"good string\";" +
+//                "String pub2 = \"ok string\";" +
+//                "}" +
+//                "}" +
+//                "public class two {" +
+//                "public void main(int on22) {" +
+//                "int ok = 0;" +
+//                "String tiredofmakingupvars = \"temp\";" +
+//                "}" +
+//                "}";
 
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
