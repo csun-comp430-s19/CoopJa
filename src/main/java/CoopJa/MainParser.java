@@ -196,7 +196,7 @@ public class MainParser {
                         .andL(rightParenParser).and(statementListParser)
                         .map(a -> b -> (Functions.F3<Token, Token, Token, PStatementFunctionDeclaration>)(x,y,z) -> new PStatementFunctionDeclaration(x, y, z, IListtoArrayList(a), b))  // Function declaration
                 //-> (Functions.F3<Token, Token, Token, PStatementFunctionDeclaration>)(x,y,z) -> new PStatementFunctionDeclaration(null, null, null, null, null)
-            )
+                )
         ).map(a -> b -> (Functions.F2<Token, Token, PStatement>)(x, y) -> b.apply(x,y,a));
 
         // TODO: Parses any "statement" beginning with an "access modifier", which is always a declaration
@@ -372,31 +372,31 @@ public class MainParser {
 
 
     // Not very good testing main class
-    public static void main(String[] args){
+    public static void main(String[] args) {
         //String foo = "for(i = 0; 1; i = 1;){public int foo = 5; int foo2 = 6; public int foo3; int foo4; foo4 = 5;}";
         //String foo = "public foo3 foo(int x, char y, foo z){int foo2 = 0;};";
 
-        String foo = "public class foo{public int foo4 = 0;}" +
-                "public class foo6 extends foo{public int foo4 = 1;}" +
-                "public class foo2{" +
-                "public int foo3 = 0;" +
-                "public int main(){" +
-                "foo1.foo2.foo(1);" +
-                "foo.foo4(); " +
-                "foo9 = (1 + 9)*5;" +
-                "for (int i = 0; i < 9; i = i+1;){" +
-                "foo = foo + 5;" +
-                "}" +
-                "if (1){" +
-                "int i = 0;" +
-                "}" +
-                "else{" +
-                "int i = 1;" +
-                "}" +
-                "int i = 2;" +
-                "return;" +
-                "}" +
-                "}";
+//        String foo = "public class foo{public int foo4 = 0;}" +
+//                "public class foo6 extends foo{public int foo4 = 1;}" +
+//                "public class foo2{" +
+//                "public int foo3 = 0;" +
+//                "public int main(){" +
+//                "foo1.foo2.foo(1);" +
+//                "foo.foo4(); " +
+//                "foo9 = (1 + 9)*5;" +
+//                "for (int i = 0; i < 9; i = i+1;){" +
+//                "foo = foo + 5;" +
+//                "}" +
+//                "if (1){" +
+//                "int i = 0;" +
+//                "}" +
+//                "else{" +
+//                "int i = 1;" +
+//                "}" +
+//                "int i = 2;" +
+//                "return;" +
+//                "}" +
+//                "}";
 
         /*String foo = "public class foo2{" +
                 "public int foo3 = 0;" +
@@ -407,6 +407,26 @@ public class MainParser {
 
         //String foo2 = "(5+5)*(foo6()*foo5 + \"Hello\")";
         //(foo5 + 5) * foo4(1+2, foo6())
+
+
+        String foo = "public class one { int testing = 0; public void main(int param1) { int cool = 0; if (testvar == 1) { testvar = 2; } else { testvar = 3; } } }";
+
+//        String foo = "public class one { " +
+//                "public void main(int t1, int t2) {" +
+//                "int nice = 1;" +
+//                "int temp = 25;" +
+//                "int wow = 101;" +
+//                "String pub1 = \"good string\";" +
+//                "String pub2 = \"ok string\";" +
+//                "}" +
+//                "}" +
+//                "public class two {" +
+//                "public void main(int on22) {" +
+//                "int ok = 0;" +
+//                "String tiredofmakingupvars = \"temp\";" +
+//                "}" +
+//                "}";
+
         ArrayList<Token> tokenList = Token.tokenize(foo);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
@@ -420,5 +440,43 @@ public class MainParser {
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
         //PStatementIfStatement fooTester = parsers.ifStatementParser.parse(tokenListInput).getOrThrow();
         //PExpression fooTester2 = parsers.expressionLargeParser.parse(tokenListInput).getOrThrow();
+
+        //the following is used to print a general idea of the parser object generated / token list
+
+        System.out.println("--- Token List ---");
+        for (int i = 0; i < tokenList.size(); i++) {
+            System.out.println(tokenList.get(i).getTokenString() + " " + tokenList.get(i).getType());
+        }
+
+        System.out.println("--- Parser Objects ---");
+        for (int i = 0; i < fooTester.classDeclarationList.size(); i++) {
+            //for all classes
+            if (fooTester.classDeclarationList.get(i) instanceof PClassDeclaration) {
+                System.out.println("PClassDeclaration object detected");
+                System.out.println("Inside class, List of Declarations:");
+                for (int k = 0; k < fooTester.classDeclarationList.get(i).declarationList.size(); k++) {
+                    if (fooTester.classDeclarationList.get(i).declarationList.get(k) instanceof PStatementFunctionDeclaration) {
+                        System.out.println("PStatementFunctionDeclaration object detected -- Method Declared");
+                        System.out.println("Method Parameters:");
+                        for (int o = 0; o < ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.size(); o++) {
+                            System.out.println(((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.get(o).variableType.getTokenString() + " " + ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableDeclarations.get(o).identifier.getTokenString());
+                        }
+                        System.out.println("Method Statements:");
+                        System.out.println("total statements: " + ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).statementList.size());
+                        for (int u = 0; u < ((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).statementList.size(); u++) {
+                            System.out.println(((PStatementFunctionDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).statementList.get(u).getClass());
+                        }
+                    } else if (fooTester.classDeclarationList.get(i).declarationList.get(k) instanceof PVariableDeclaration) {
+                        System.out.println("PVariableDeclaration object detected -- Variable Declared");
+                        System.out.println(((PVariableDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).variableType.getTokenString() + " " + ((PVariableDeclaration) fooTester.classDeclarationList.get(i).declarationList.get(k)).identifier.getTokenString());
+                    } else {
+                        System.out.println("no");
+                    }
+                    System.out.println("END___" + fooTester.classDeclarationList.get(i).declarationList.get(k).getClass() + " Class type");
+                }
+            } else {
+                System.out.println("no");
+            }
+        }
     }
 }
