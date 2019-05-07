@@ -16,8 +16,10 @@ public class MainParser {
 
     public static <T> ArrayList<T> IListtoArrayList(IList<T> list){
         ArrayList<T> returnList = new ArrayList<>();
-        for (; !list.isEmpty(); list = list.tail()) {
-            returnList.add(list.head());
+        if (list != null) {
+            for (; !list.isEmpty(); list = list.tail()) {
+                returnList.add(list.head());
+            }
         }
         return returnList;
     }
@@ -90,6 +92,7 @@ public class MainParser {
 
     // println() statement
     public Parser<Token, PStatementPrintln> printlnParser;
+    public Parser<Token, PStatementPrintf> printfParser;
 
     // if statement parser
     public Ref<Token, PStatementIfStatement> ifStatementParser = Parser.ref();
@@ -244,6 +247,16 @@ public class MainParser {
                 .andL(rightParenParser)
                 .map(a -> new PStatementPrintln(a));
 
+        // Printf
+        printfParser = Combinators.satisfy("printf token", typePredicate(Token.TokenType.KEYWORD_PRINTF))
+                .andR(leftParenParser)
+                //.andR(Combinators.satisfy("string", typePredicate(Token.TokenType.STRING)))
+                //.andR(expressionRef)
+                .andR(Combinators.satisfy("String Literal", typePredicate(Token.TokenType.STRING)).map(PExpressionAtomStringLiteral::new))
+                .and(commaParser.andR(expressionRef.sepBy(commaParser)).or(pure(null)))
+                .andL(rightParenParser)
+                .map(a -> x -> new PStatementPrintf(a, IListtoArrayList(x)));
+
         // Hopefully this stuff is less difficult
         // General Statements
         // Will essentially find the first token in a statement and work from there
@@ -260,7 +273,8 @@ public class MainParser {
         ).or(Combinators.choice(
                 breakStatementParser.andL(semicolonParser),
                 returnStatementParser.andL(semicolonParser),
-                printlnParser.andL(semicolonParser)
+                printlnParser.andL(semicolonParser),
+                printfParser.andL(semicolonParser)
         ));
 
 

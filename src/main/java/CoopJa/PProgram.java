@@ -103,7 +103,7 @@ public class PProgram {
                 "\n" +
                 "public class Test{\n" +
                 "    public int main(){\n" +
-                "        println(\"Hello World!\");\n" +
+                "        printf(\"Hello World!\\nToday's number are %d %d %d\\n\", 7, 9, 15);\n" +
                 "        ClassTest foo = new ClassTest;\n" +
                 "        foo.setFavNumber(7);\n" +
                 "        foo.guessFavNumber(7);\n" +
