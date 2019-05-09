@@ -27,7 +27,6 @@ public class Parsernew_UnitTests {
         }
     }
 
-
     @Test
     public void test1() {
         String program = "public class one {" +
@@ -58,6 +57,161 @@ public class Parsernew_UnitTests {
 
         //class2
         //...
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testBasicClass() {
+        String program = "public class one {" +
+                "int foo = 0;" +
+                "public void main() {" +
+                "int mainint1 = 0;" +
+                "} }";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration");
+        //variables for class1
+        ExpectedObjects.add("PVariableDeclaration");
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration");
+        //statements inside funct1
+        ExpectedObjects.add("PVariableDeclaration");
+        //at the end of class1
+        ExpectedObjects.add("-");
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testReturn() {
+        String program = "public class one {" +
+                "public int main() {" +
+                "int yyy = 0;" +
+                "return yyy;" +
+                "}" +
+                "}";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration"); //required for class
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration"); //required for any method dec
+        //statements inside funct1
+        ExpectedObjects.add("PVariableDeclaration");
+        ExpectedObjects.add("PStatementReturn");
+        //at the end of class1
+        ExpectedObjects.add("-"); //required at end of class
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testPrintStmt() {
+        String program = "public class one {" +
+                "public void main() {" +
+                "println(\"Hello World\");" +
+                "} }";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration");
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration");
+        //statements inside funct1
+        ExpectedObjects.add("PStatementPrintln");
+        //at the end of class1
+        ExpectedObjects.add("-");
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testVarAss() {
+        String program = "public class one {" +
+                "public void main() {" +
+                "var1 = 1;" +
+                "var2 = 2;" +
+                "var3 = 3;" +
+                "}" +
+                "}";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration");
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration");
+        //statements inside funct1
+        ExpectedObjects.add("PVariableAssignment");
+        ExpectedObjects.add("PVariableAssignment");
+        ExpectedObjects.add("PVariableAssignment");
+        //at the end of class1
+        ExpectedObjects.add("-"); //required at end of class
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testVarious1() {
+        String program = "public class one {" +
+                "public void main() {" +
+                "break;" +
+                "run();" +
+                "temp.run();" +
+                "}" +
+                "}";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration");
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration");
+        //statements inside funct1
+        ExpectedObjects.add("PStatementBreak");
+        ExpectedObjects.add("PStatementFunctionCall");
+        ExpectedObjects.add("PIdentifierReference");
+        //at the end of class1
+        ExpectedObjects.add("-"); //required at end of class
+
+        testParser(program, ExpectedObjects);
+    }
+
+    @Test
+    public void testCodeControl() {
+        String program = "public class one {" +
+                "public void main() {" +
+                "if (1 == 1) {" +
+                "break;" +
+                "} else {" +
+                "break;" +
+                "}" +
+                "for (int i = 0; i < 5; i = i+1;) {" +
+                "printf(\"%d \", i);" +
+                "}" +
+                "while(1 == 1) {" +
+                "break;" +
+                "}" +
+                "}" +
+                "}";
+
+        ArrayList<String> ExpectedObjects = new ArrayList<String>();
+
+        //class1
+        ExpectedObjects.add("PClassDeclaration");
+        //funct1 for class1
+        ExpectedObjects.add("PStatementFunctionDeclaration");
+        //statements inside funct1
+        ExpectedObjects.add("PStatementIfStatement");
+        ExpectedObjects.add("PStatementForStatement");
+        ExpectedObjects.add("PStatementWhileStatement");
+        //at the end of class1
+        ExpectedObjects.add("-"); //required at end of class
 
         testParser(program, ExpectedObjects);
     }

@@ -44,10 +44,12 @@ public class Typechecker {
 
         String foo = "public class one {" +
                 "int test = 0;" +
+                "public void main() {" +
+                "}" +
                 "}" +
                 "public class two extends one {" +
-                "public void main(int test) {" +
-                //"int test = 0;" +
+                "public void main(int test1) {" +
+                //"int test = 0;" + //not detecting inside stuff
                 "}" +
                 "}";
 
