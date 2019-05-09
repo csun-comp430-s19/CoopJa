@@ -4,6 +4,7 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class Typechecker {
 
@@ -34,10 +35,19 @@ public class Typechecker {
 //                "}" +
 //                "}";
 
-        String foo = "public class example {" +
-                "public string cool = \"Cool1\";" +
-                "public void method1(int one, int two) {" +
-                "int three = 1;" +
+//        String foo = "public class example {" +
+//                "public string cool = \"Cool1\";" +
+//                "public void method1(int one, int two) {" +
+//                "int three = 1;" +
+//                "}" +
+//                "}";
+
+        String foo = "public class one {" +
+                "int test = 0;" +
+                "}" +
+                "public class two extends one {" +
+                "public void main(int test) {" +
+                //"int test = 0;" +
                 "}" +
                 "}";
 
@@ -59,16 +69,18 @@ public class Typechecker {
             //Map classes to their storage.
             classlist.add(i, fooTester.classDeclarationList.get(i));
             ClassListAll.put(fooTester.classDeclarationList.get(i).identifier.getTokenString(), new Storage());
-        }
-
-        System.out.println("Class list loaded");
-
-        for (int i = 0; i < classlist.size(); i++) { //for each class
             PClassDeclaration tempClass = classlist.get(i); //assign first class to a temp var
             int x = i + 1; //used for printing
             System.out.println("Current Class: #" + x);
 
-            ClassTypecheck(tempClass); //typecheck the current class declaration
+            String extendscheck = ClassTypecheck(tempClass); //typecheck the current class declaration
+
+            if (extendscheck != null) { //class extends another that exists, grab info
+                Storage extendsObj = ClassListAll.get(extendscheck); //could do it better, add to Storage object an extends Storage obj to hold this XXXXXXXXXXXXXXXXX but would need to merge each method / var dec call
+                Storage t_S = ClassListAll.get(ClassString); //current class
+                t_S.extendsClass = extendsObj; //store parent in child
+                ClassListAll.put(ClassString, t_S); //store back new info
+            }
 
             ArrayList<PDeclaration> tempDeclar = tempClass.declarationList; //pull out the declarations for this current class
             System.out.println("Class #" + x + " Declarations Amount: " + tempDeclar.size()); //how many declaration stmts are there?
@@ -88,7 +100,7 @@ public class Typechecker {
                     HashMap<String, VarStor> t_NEWVars; //holds new info after VDT call
                     //returns a map entry for this variable if it passes the typecheck.
                     //class storage is passed since we need to have the scope to check expressions. Might as well not pass t_VS.
-                    t_NEWVars = VariableDeclarationTypecheck(t_VS, tempVar, t_S); //call VDT with this list of vars (Scope) and get new info
+                    t_NEWVars = VariableDeclarationTypecheck(t_S, tempVar); //call VDT with this list of vars (Scope) and get new info
                     t_VS.putAll(t_NEWVars); //add new info to old map
                     t_S.VariableNames = t_VS; //replace Storage object var list with updated copy
                     ClassListAll.put(ClassString, t_S); //replace the old Storage obj by adding it back to class hashmap with class string
@@ -111,10 +123,12 @@ public class Typechecker {
             System.out.println();
         }
 
+        System.out.println("one typecheck done");
+
         //extra call to Expression and Statement Typechecker
         //this can be thought of as a SECOND typechecker that covers Expressions and statements
-        ExpressionTypeChecker cTypeChkr = new ExpressionTypeChecker(fooTester);
-        cTypeChkr.typeCheck();
+        //--ExpressionTypeChecker cTypeChkr = new ExpressionTypeChecker(fooTester);
+        //--cTypeChkr.typeCheck();
     }
 
     //idea, recursive methodology
@@ -221,7 +235,7 @@ public class Typechecker {
         System.out.println("Variable Declaration is Valid");
     }
 
-    public static HashMap<String, VarStor> VariableDeclarationTypecheck(HashMap<String, VarStor> map, PVariableDeclaration input, Storage containingClassMembers) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
+    public static HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
         HashMap<String, VarStor> mapNEW = new HashMap<>(); //used to hold new vars
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
@@ -251,14 +265,34 @@ public class Typechecker {
             throw new Exception("Variable Declaration Error: Variable Type unrecognized");
         }
 
-        if (map.containsKey(input.identifier.getTokenString())) { //check if var already exists in scope (given map obj)
-            //Works bc scope passed is of the containing class.
-            throw new Exception("Variable Declaration Error: Variable with same name already defined in scope");
-        } else { //if not, add it as a new var
-            VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
-            mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
-            System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+        if (map.extendsClass != null) { //yes extends
+            System.out.println("extends 269");
+            if (map.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside class as a Variable");
+            } else if (map.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside class as a Method");
+            } else if (map.extendsClass.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside Parent class as a Variable");
+            } else if (map.extendsClass.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside Parent class as a Method");
+            } else { //variable is okay
+                VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
+                mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
+                System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+            }
+        } else { //no extends
+            System.out.println("no extends 284");
+            if (map.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside class as a Variable");
+            } else if (map.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Variable Declaration Error: Variable with same name already defined in scope: \n Inside class as a Method");
+            } else { //variable is okay
+                VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
+                mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
+                System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+            }
         }
+
 
         //passing in old map bc int new_var = new_var should throw new_var not declared.
         /////TEMP_unused_code_for_Expressions__VARDEC(input, containingClassMembers); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
@@ -302,16 +336,40 @@ public class Typechecker {
 
         FunctStor tempFS = new FunctStor(); //store all function stuff
         //check if method name already exists in scope (given map obj), check both var names and method names
-        if (map.VariableNames.containsKey(input.identifier.getTokenString()) || map.MethodNames.containsKey(input.identifier.getTokenString())) {
-            throw new Exception("Method Declaration Error: Variable or Method with same name already defined in scope");
-        } else { //if not, add it as a new var
-            System.out.println("Method Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
-            tempFS.AccessModifier = input.accessModifier;
-            tempFS.ReturnType = input.returnType;
-            tempFS.Classname = ClassString;
-            //two more things to add: params & stmts, to FunctStor at this point
-            map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+        if (map.extendsClass != null) { //yes extends
+            System.out.println("extends");
+            if (map.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside class as a Variable");
+            } else if (map.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside class as a Method");
+            } else if (map.extendsClass.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside Parent class as a Variable");
+            } else if (map.extendsClass.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside Parent class as a Method");
+            } else { //if not, add it as a new var
+                System.out.println("Method Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+                tempFS.AccessModifier = input.accessModifier;
+                tempFS.ReturnType = input.returnType;
+                tempFS.Classname = ClassString;
+                //two more things to add: params & stmts, to FunctStor at this point
+                map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+            }
+        } else { //no extends
+            System.out.println("no extends");
+            if (map.VariableNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside class as a Variable");
+            } else if (map.MethodNames.containsKey(input.identifier.getTokenString())) {
+                throw new Exception("Method Declaration Error: Var with same name already defined in scope: \n Inside class as a Method");
+            } else { //if not, add it as a new var
+                System.out.println("Method Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
+                tempFS.AccessModifier = input.accessModifier;
+                tempFS.ReturnType = input.returnType;
+                tempFS.Classname = ClassString;
+                //two more things to add: params & stmts, to FunctStor at this point
+                map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+            }
         }
+
 
         //deal with params
         HashMap<String, VarStor> tempFunctionVars = new HashMap<String, VarStor>();
@@ -327,9 +385,24 @@ public class Typechecker {
                 //no need to merge, but need to initialize
                 tempFunctionVars = new HashMap<String, VarStor>();
             }
+//            if (map.extendsClass != null) { //if extends, add stuff
+//                System.out.println("extends");
+//                if (map.extendsClass.VariableNames != null || map.extendsClass.VariableNames.size() > 0) { //if extends class has stuff
+//                    combinedVars.putAll(map.extendsClass.VariableNames);
+//                }
+//                if (map.extendsClass.MethodNames != null || map.extendsClass.MethodNames.size() > 0) { //if extends class has stuff
+//                    Set<String> keys = map.extendsClass.MethodNames.keySet(); //pull out all keys of hashmap, since they dont match since vars use VarStor and methods use FunctStor
+//                    for (String key : keys) { //add each key to combined list and use blank VarStor because we just care about name conflicts
+//                        combinedVars.put(key, new VarStor());
+//                    }
+//                }
+//            } else {
+//                System.out.println("no extends");
+//            } //commented out block note: i think VDT already handles this, but i wrote it, so it's staying here just in case
+            Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String, VarStor> output; //declare var for return of VDT()
-                output = VariableDeclarationTypecheck(combinedVars, input.variableDeclarations.get(i), map);
+                output = VariableDeclarationTypecheck(tempBuiltStor, input.variableDeclarations.get(i));
                 combinedVars.putAll(output); //add new vars to combined vars list
                 VarStor tempStor = output.get(input.identifier.getTokenString()); //just used to show how to get the VarStor obj
                 tempFS.Parameters.add(i, tempStor); //add param to FunctStor object, ordered
@@ -381,8 +454,9 @@ public class Typechecker {
 
     }
 
-    public static void ClassTypecheck(PClassDeclaration input) throws Exception { //typecheck the class declaration
+    public static String ClassTypecheck(PClassDeclaration input) throws Exception { //typecheck the class declaration
 
+        String extendsHandler = null; //no
         AccessModifierTypecheck(input.accessModifier, true); //make sure the access modifier is valid
         System.out.println("Class Access Modifier Type: " + input.accessModifier.getType() + " " + input.accessModifier.getTokenString());
 
@@ -392,18 +466,19 @@ public class Typechecker {
         System.out.print("Class Extends a Class?: "); //find out if this current class extends another class (based on its declaration)
         if (input.extendsIdentifier != null) { //the class does extend another
             //Check if the class extends itself.
-            if(input.extendsIdentifier.getTokenString().equals(ClassString))
-            {
+            if (input.extendsIdentifier.getTokenString().equals(ClassString)) {
                 throw new Exception("Class Error: Class cannot extend itself.");
             }
             if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) { //check if this class (that the working class is supposed to extend) is known yet/exists
                 System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString()); //it does exist
+                extendsHandler = input.extendsIdentifier.getTokenString(); //yes, give name of class
             } else { //class extends class that does not exist (yet)
                 throw new Exception("Class Error: Class Extends Class that does not exist");
             }
         } else { //the class does not extend another
             System.out.println("no");
         }
+        return extendsHandler;
 
     }
 
@@ -594,15 +669,18 @@ class Storage {
 
     HashMap<String, VarStor> VariableNames; //name, object
     HashMap<String, FunctStor> MethodNames;
+    Storage extendsClass;
 
-    public Storage(HashMap<String, VarStor> vars, HashMap<String, FunctStor> funct) {
+    public Storage(HashMap<String, VarStor> vars, HashMap<String, FunctStor> funct, Storage exClass) {
         VariableNames = vars;
         MethodNames = funct;
+        extendsClass = exClass;
     }
 
     public Storage() {
         VariableNames = new HashMap();
         MethodNames = new HashMap();
+        extendsClass = null;
     }
 }
 
@@ -614,6 +692,11 @@ class VarStor { //stores var info
     public VarStor(Token type_in, Token accessmodifier_in) {
         Type = type_in;
         AccessModifier = accessmodifier_in;
+    }
+
+    public VarStor() {
+        Type = null;
+        AccessModifier = null;
     }
 }
 
@@ -642,18 +725,18 @@ class FunctStor { //store method stuff
 class ExpressionTypeChecker {
     public Scope classStorage = new Scope();
     private PProgram input;
-    public ExpressionTypeChecker(PProgram input){
+
+    public ExpressionTypeChecker(PProgram input) {
         this.input = input;
     }
 
-    public void typeCheck() throws TypeCheckerException{
+    public void typeCheck() throws TypeCheckerException {
         for (PClassDeclaration classDeclaration : input.classDeclarationList) {
-            for (Object declaration: classDeclaration.declarationList){
-                if (declaration instanceof PVariableDeclaration){
-                    typeCheckVariableDec((PVariableDeclaration)declaration, classStorage);
-                }
-                else if (declaration instanceof PStatementFunctionDeclaration){
-                    typeCheckFunction((PStatementFunctionDeclaration)declaration, classStorage);
+            for (Object declaration : classDeclaration.declarationList) {
+                if (declaration instanceof PVariableDeclaration) {
+                    typeCheckVariableDec((PVariableDeclaration) declaration, classStorage);
+                } else if (declaration instanceof PStatementFunctionDeclaration) {
+                    typeCheckFunction((PStatementFunctionDeclaration) declaration, classStorage);
                 }
             }
         }
@@ -661,18 +744,17 @@ class ExpressionTypeChecker {
 
     }
 
-    private void typeCheckVariableDec(PVariableDeclaration varDec, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckVariableDec(PVariableDeclaration varDec, Scope currentScope) throws TypeCheckerException {
         //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
         currentScope.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
-        if (varDec.assignment != null){ //assuming there is an expression to be checked
+        if (varDec.assignment != null) { //assuming there is an expression to be checked
             Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
-            if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+            if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
                 if (!(varDec.variableType.getTokenString().equals("String") || varDec.variableType.getTokenString().equals("string")))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                             varDec.variableType.getType() + " got " + assignment);
 
-            }
-            else if (assignment != varDec.variableType.getType()) {//compare types with assignment
+            } else if (assignment != varDec.variableType.getType()) {//compare types with assignment
                 throw new TypeCheckerException("TypeCheck Error: Expected " +
                         varDec.variableType.getType() + " got " + assignment);
             }
@@ -680,7 +762,7 @@ class ExpressionTypeChecker {
     }
 
     //hehe varAss...
-    private void typeCheckVariableAssignment(PVariableAssignment varAss, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckVariableAssignment(PVariableAssignment varAss, Scope currentScope) throws TypeCheckerException {
         //similar to typecheck VariableDec, however we have to look in the hashtable for the assignee
         //since we don't declare it here
         Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
@@ -688,35 +770,34 @@ class ExpressionTypeChecker {
         if (assigneeToken == null)
             throw new TypeCheckerException(varAss.identifier.getTokenString() + " not declared");
         Token.TokenType assignee = assigneeToken.getType();
-        if (assignment == Token.TokenType.KEYWORD_STRING){//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+        if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
             if (!assignee.equals("string"))
                 throw new TypeCheckerException("TypeCheck Error: Expected " +
                         assignee + " got " + assignment);
 
-        }
-        else if (assignment != assignee){
+        } else if (assignment != assignee) {
             throw new TypeCheckerException("TypeCheck Error: Expected " +
                     assignee + " got " + assignment);
         }
     }
 
-    private void typeCheckIfStatement (PStatementIfStatement ifStatement, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckIfStatement(PStatementIfStatement ifStatement, Scope currentScope) throws TypeCheckerException {
         Scope ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
         Scope elseScope = currentScope.Copy();
         //check if expression is boolean
         if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("Expression in IF statement not a Boolean");
         //typecheck elements in if statement
-        for (PStatement statement: ifStatement.statementList){
+        for (PStatement statement : ifStatement.statementList) {
             typeCheckStatement(statement, ifScope);
         }
         //typecheck elements in else statement
-        for (PStatement statement: ifStatement.elseStatementList){
+        for (PStatement statement : ifStatement.elseStatementList) {
             typeCheckStatement(statement, elseScope);
         }
     }
 
-    private void typeCheckForStatement (PStatementForStatement forStatement, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckForStatement(PStatementForStatement forStatement, Scope currentScope) throws TypeCheckerException {
         Scope forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
         if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
             throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
@@ -724,63 +805,63 @@ class ExpressionTypeChecker {
         if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
             throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
         //we're going to ignore the third part of the for loop for now.....
-        for (PStatement statement: forStatement.statementList){
+        for (PStatement statement : forStatement.statementList) {
             typeCheckStatement(statement, forScope);
         }
     }
 
-    private void typeCheckWhileStatement (PStatementWhileStatement whileStatement, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Scope currentScope) throws TypeCheckerException {
         Scope whileScope = currentScope.Copy();
         if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("While Loop Expression must be of type BOOLEAN");
-        for (PStatement statement: whileStatement.statementList){
+        for (PStatement statement : whileStatement.statementList) {
             typeCheckStatement(statement, whileScope);
         }
     }
 
-    private void typeCheckFunction(PStatementFunctionDeclaration funcDec, Scope currentScope) throws TypeCheckerException{
+    private void typeCheckFunction(PStatementFunctionDeclaration funcDec, Scope currentScope) throws TypeCheckerException {
         //add method names with their return types to the scope
         currentScope.MethodNames.put(funcDec.identifier.getTokenString(), funcDec.returnType);
         Scope functionStorage = currentScope.Copy();//data within this scope should not affect data outside its scope
-        for (PStatement statement : funcDec.statementList){
+        for (PStatement statement : funcDec.statementList) {
             typeCheckStatement(statement, currentScope);
         }
     }
 
-    private void typeCheckStatement(PStatement statement, Scope currentScope) throws TypeCheckerException{
-        if (statement instanceof  PVariableDeclaration){
+    private void typeCheckStatement(PStatement statement, Scope currentScope) throws TypeCheckerException {
+        if (statement instanceof PVariableDeclaration) {
             typeCheckVariableDec((PVariableDeclaration) statement, currentScope);
         }
-        if (statement instanceof PVariableAssignment){
+        if (statement instanceof PVariableAssignment) {
             typeCheckVariableAssignment((PVariableAssignment) statement, currentScope);
         }
-        if (statement instanceof  PStatementIfStatement){
+        if (statement instanceof PStatementIfStatement) {
             typeCheckIfStatement((PStatementIfStatement) statement, currentScope);
         }
-        if (statement instanceof PStatementForStatement){
+        if (statement instanceof PStatementForStatement) {
             typeCheckForStatement((PStatementForStatement) statement, currentScope);
         }
-        if (statement instanceof PStatementWhileStatement){
+        if (statement instanceof PStatementWhileStatement) {
             typeCheckWhileStatement((PStatementWhileStatement) statement, currentScope);
         }
     }
 
     //idea, recursive methodology
-    public Token.TokenType getExpressionType(PExpression exp, Scope currentScope) throws TypeCheckerException{
+    public Token.TokenType getExpressionType(PExpression exp, Scope currentScope) throws TypeCheckerException {
         if (exp instanceof PExpressionAtomNumberLiteral)
             return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
         if (exp instanceof PExpressionAtomStringLiteral)
             return Token.TokenType.KEYWORD_STRING;
         if (exp instanceof PExpressionAtomBooleanLiteral)
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
-        if (exp instanceof PExpressionVariable){ //if variable was declared before refer to the hashmap
+        if (exp instanceof PExpressionVariable) { //if variable was declared before refer to the hashmap
             return currentScope.VariableNames.get(((PExpressionVariable) exp).variable.getTokenString()).getType();
         }
-        if (exp instanceof PExpressionBinOp){
+        if (exp instanceof PExpressionBinOp) {
             //recursivly do both hands of the expressions
             Token.TokenType lhs = getExpressionType(((PExpressionBinOp) exp).lhs, currentScope);
             Token.TokenType rhs = getExpressionType(((PExpressionBinOp) exp).rhs, currentScope);
-            if (lhs != rhs){
+            if (lhs != rhs) {
                 if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
                         (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
                     return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
@@ -794,24 +875,22 @@ class ExpressionTypeChecker {
             if (operator == Token.TokenType.SYMBOL_PLUS ||
                     operator == Token.TokenType.SYMBOL_MINUS ||
                     operator == Token.TokenType.SYMBOL_ASTERISK ||
-                    operator == Token.TokenType.SYMBOL_SLASH){ //number operations
-                if(output == Token.TokenType.KEYWORD_STRING)
+                    operator == Token.TokenType.SYMBOL_SLASH) { //number operations
+                if (output == Token.TokenType.KEYWORD_STRING)
                     return Token.TokenType.KEYWORD_STRING;
-                if(output != Token.TokenType.KEYWORD_INT)
+                if (output != Token.TokenType.KEYWORD_INT)
                     throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            }
-            else if (operator == Token.TokenType.SYMBOL_AMPERSAND||
-                    operator == Token.TokenType.SYMBOL_BAR){
-                if(output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
+            } else if (operator == Token.TokenType.SYMBOL_AMPERSAND ||
+                    operator == Token.TokenType.SYMBOL_BAR) {
+                if (output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
                     throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            }
-            else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
+            } else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
                     operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
                     operator == Token.TokenType.SYMBOL_LESSTHAN ||
                     operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
                     operator == Token.TokenType.SYMBOL_DOUBLEEQUALS ||
-                    operator == Token.TokenType.SYMBOL_NOTEQUAL){
-                if(output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
+                    operator == Token.TokenType.SYMBOL_NOTEQUAL) {
+                if (output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
                     throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
                 output = Token.TokenType.KEYWORD_BOOLEAN;
             }
@@ -822,24 +901,24 @@ class ExpressionTypeChecker {
     }
 }
 
-class Scope{
-    HashMap<String,Token> VariableNames; //name, object
-    HashMap<String,Token> MethodNames;
+class Scope {
+    HashMap<String, Token> VariableNames; //name, object
+    HashMap<String, Token> MethodNames;
 
-    public Scope(HashMap<String,Token> vars, HashMap<String,Token> funct) {
+    public Scope(HashMap<String, Token> vars, HashMap<String, Token> funct) {
         VariableNames = vars;
         MethodNames = funct;
     }
 
     public Scope() {
-        VariableNames = new HashMap<String,Token>();
-        MethodNames = new HashMap<String,Token>();
+        VariableNames = new HashMap<String, Token>();
+        MethodNames = new HashMap<String, Token>();
     }
 
-    public Scope Copy(){
-        HashMap<String,Token> copyVariableNames = new HashMap<String, Token>(VariableNames);
-        HashMap<String,Token> copyMethodNames = new HashMap<String, Token>(MethodNames);
+    public Scope Copy() {
+        HashMap<String, Token> copyVariableNames = new HashMap<String, Token>(VariableNames);
+        HashMap<String, Token> copyMethodNames = new HashMap<String, Token>(MethodNames);
         Scope scopeCopy = new Scope(copyVariableNames, copyMethodNames);
-        return  scopeCopy;
+        return scopeCopy;
     }
 }
