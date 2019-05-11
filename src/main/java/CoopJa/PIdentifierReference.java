@@ -29,10 +29,10 @@ public class PIdentifierReference implements PStatement, PExpressionAtom{
         //throw new CodeGenException(CodeGenException.UNIMPLEMENTED_EXPRESSION_TYPE + "Identifier Reference");
         // Need to know what type this identifier belongs to first
         if (nextStatement != null) {
-            String functionType = globalMembers.get(identifier.getTokenString());
+            /*String functionType = globalMembers.get(identifier.getTokenString());
             if (functionType == null) {
                 functionType = localMembers.get(identifier.getTokenString());
-            }
+            }*/
             if (nextStatement instanceof PStatementFunctionCall) {
                 // old?
                 //return functionType + "_" + ((PStatementFunctionCall) nextStatement).generateString(null, null, null, identifier.getTokenString());

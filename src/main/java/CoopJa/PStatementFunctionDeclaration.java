@@ -35,9 +35,9 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         }
         int localOriginalTail = localMembers.size();
         // Parameters are trivial, the rest will have to be done as we go along
-        /*for (int i = 0; i < variableDeclarations.size(); i++){
-            localMembers.put(variableDeclarations.get(i).identifier.getTokenString(), null);
-        }*/
+        for (int i = 0; i < variableDeclarations.size(); i++){
+            localMembers.put(variableDeclarations.get(i).identifier.getTokenString(), variableDeclarations.get(i).variableType.getTokenString());
+        }
         // Set up the main part of the code
         StringBuilder funcDecString = new StringBuilder();
         funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (void* this_ptr");
