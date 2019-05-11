@@ -40,19 +40,19 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         }*/
         // Set up the main part of the code
         StringBuilder funcDecString = new StringBuilder();
-        funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (" + globalClassName + "* this");
-        if (variableDeclarations.size() > 0){
-            funcDecString.append(",");
-        }
+        funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (void* this_ptr");
         for (int i = 0; i < variableDeclarations.size(); i++){
-            funcDecString.append(variableDeclarations.get(i).variableType.getTokenString() + " " + variableDeclarations.get(i).identifier.getTokenString());
-            if (i < variableDeclarations.size()-1){
-                funcDecString.append(",");
+            funcDecString.append(",");
+            if (variableDeclarations.get(i).variableType.getType().equals(Token.TokenType.IDENTIFIER)){
+                funcDecString.append("void* " + variableDeclarations.get(i).identifier.getTokenString() + "_ptr");
+            }
+            else {
+                funcDecString.append(variableDeclarations.get(i).variableType.getTokenString() + " " + variableDeclarations.get(i).identifier.getTokenString());
             }
         }
         funcDecString.append(")");
 
-        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel)+ "\n");
+        funcDecString.append(PStatement.generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel, variableDeclarations)+ "\n");
 
         // Clear out any newly added members to the list now
         // This is almost certainly sub-optimal, but it's direct and I need to not pull my hair out

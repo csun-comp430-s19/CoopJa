@@ -25,7 +25,7 @@ public interface PStatement {
 
     // Static helper function for parsing a list of statements within a statement block.
     // For example, everything within an if-statement, a function declaration, and such
-    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
+    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel, ArrayList<PVariableDeclaration> declarations) throws CodeGenException {
         // New level
         blockLevel++;
         // Need a stringbuilder for this
@@ -38,6 +38,22 @@ public interface PStatement {
         int localMembersTail = localMembers.size();
         // Head Brace
         blockString.append("{\n");
+        // When generating block statement for a function declarations, class references have to be casted
+        if (declarations != null){
+            for (int j = 0; j < blockLevel; j++){
+                blockString.append("    ");
+            }
+            blockString.append(globalClassName + "* this = this_ptr;\n");
+            for (int i = 0; i < declarations.size(); i++){
+                if (declarations.get(i).variableType.getType().equals(Token.TokenType.IDENTIFIER)) {
+                    for (int j = 0; j < blockLevel; j++) {
+                        blockString.append("    ");
+                    }
+                    blockString.append(declarations.get(i).variableType.getTokenString() + "* " + declarations.get(i).identifier.getTokenString() + " = " + declarations.get(i).identifier.getTokenString() + "_ptr;\n");
+                }
+            }
+        }
+        // Statements
         for (int i = 0; i < statementList.size(); i++){
             PStatement currentStatement = statementList.get(i);
             // Check if it's a declaration
@@ -79,4 +95,7 @@ public interface PStatement {
         return blockString.toString();
     }
 
+    static String generateCodeStatementBlock(ArrayList<PStatement> statementList, String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
+        return generateCodeStatementBlock(statementList, globalClassName, globalMembers, localMembers, blockLevel, null);
+    }
 }
