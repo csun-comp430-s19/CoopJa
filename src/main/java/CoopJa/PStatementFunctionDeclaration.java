@@ -40,7 +40,7 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
         }*/
         // Set up the main part of the code
         StringBuilder funcDecString = new StringBuilder();
-        funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (struct " + globalClassName + "* this");
+        funcDecString.append(returnType.getTokenString() + " " + globalClassName + "_" + identifier.getTokenString() + " (" + globalClassName + "* this");
         if (variableDeclarations.size() > 0){
             funcDecString.append(",");
         }

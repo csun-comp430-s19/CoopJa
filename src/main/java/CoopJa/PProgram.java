@@ -3,6 +3,7 @@ package CoopJa;
 import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class PProgram {
     public ArrayList<PClassDeclaration> classDeclarationList;
@@ -14,8 +15,12 @@ public class PProgram {
     public String generateProgramString() throws CodeGenException {
         StringBuilder programString = new StringBuilder();
         programString.append("#include <stdio.h>\n#include <stdbool.h>\n\n");
+        // Linked hasmap for helping with inheritance
+        LinkedHashMap<String, PClassDeclaration> classMap = new LinkedHashMap<>();
         for (int i = 0; i < classDeclarationList.size(); i++){
-            programString.append(classDeclarationList.get(i).generateClassString());
+            PClassDeclaration currentDeclrataion = classDeclarationList.get(i);
+            classMap.put(currentDeclrataion.identifier.getTokenString(), currentDeclrataion);
+            programString.append(currentDeclrataion.generateClassString(classMap));
         }
         return programString.toString();
     }
