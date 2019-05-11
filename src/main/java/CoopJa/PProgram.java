@@ -102,6 +102,9 @@ public class PProgram {
                 "}\n" +
                 "\n" +
                 "public class Test{\n" +
+                "    public void printHelloAgain(){" +
+                "        printf(\"Hello World 2!\\n\");" +
+                "    }" +
                 "    public int main(){\n" +
                 "        printf(\"Hello World!\\nToday's number are %d %d %d\\n\", 7, 9, 15);\n" +
                 "        ClassTest foo = new ClassTest;\n" +
@@ -112,6 +115,7 @@ public class PProgram {
                 "        foo.someOtherNumber = 5;\n" +
                 "        foo.favoriteNumber = foo.someOtherNumber;\n" +
                 "        foo.guessFavNumber(5);\n" +
+                "        printHelloAgain();" +
                 "    }\n" +
                 "}\n";
 

@@ -65,12 +65,13 @@ public class PStatementFunctionDeclaration implements PStatement, PDeclaration {
 
         // Main Function handler
         // TODO: This is a huge kludge to define an execution vector, it doesn't properly account for multiple main declarations or anything like that
-        if (identifier.getTokenString().equals("main")) {
+        /*if (identifier.getTokenString().equals("main")) {
             funcDecString.append("int main(int argc, char** argv){\n" +
                     "    struct " + globalClassName + " mainClass = {};\n" +
+                    //"    init_" + globalClassName +
                     "    return " + globalClassName + "_main(&mainClass);\n" +
-                    "}");
-        }
+                    "}\n");
+        }*/
 
         return funcDecString.toString();
     }

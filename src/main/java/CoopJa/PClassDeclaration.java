@@ -45,18 +45,59 @@ public class PClassDeclaration {
         StringBuilder classString = new StringBuilder();
 
 
+
         // First we need to create a struct that contains a list of the variable declarations
         classString.append("struct " + identifier.getTokenString() + "{\n");
         for (int i = 0; i < variableDeclarations.size(); i++){
             classString.append("    " + variableDeclarations.get(i).generateCodeStatement(null, null, null, 0) + ";\n");
             globalMemberList.put(variableDeclarations.get(i).identifier.getTokenString(), variableDeclarations.get(i).variableType.getTokenString());
         }
+        // Add function pointers
+        for (int i = 0; i < functionDeclarations.size(); i++){
+            PStatementFunctionDeclaration currentDeclaration = functionDeclarations.get(i);
+            //classString.append("    " + currentDeclaration.returnType.getTokenString() + "(*" + currentDeclaration.identifier.getTokenString() + "_ptr)(");
+            classString.append("    " + currentDeclaration.returnType.getTokenString() + "(*" + currentDeclaration.identifier.getTokenString() + ")(");
+
+            // Add the paremeter data types
+            // Start with the pointer to "this"
+            classString.append("struct " + identifier.getTokenString() +  "*");
+            for (int j = 0; j < currentDeclaration.variableDeclarations.size(); j++){
+                classString.append(",");
+                classString.append(currentDeclaration.variableDeclarations.get(j).variableType.getTokenString());
+            }
+
+            classString.append(")" + ";\n");
+        }
         classString.append("};\n");
 
+        // Track if one of the function declarations is main
+        boolean hasMain = false;
         // Now we need to create the functions, formatted with the class identifier, underscore, then the function name
         for (int i = 0 ; i < functionDeclarations.size(); i++){
             PStatementFunctionDeclaration currentDeclaration = functionDeclarations.get(i);
             classString.append(currentDeclaration.generateCodeStatement(identifier.getTokenString(), globalMemberList, localMemberList, 0));
+            if (currentDeclaration.identifier.getTokenString().equals("main")){
+                hasMain = true;
+            }
+        }
+
+        // Need to create an an initializer to init the function pointers
+        classString.append("void init_" + identifier.getTokenString() + "(struct " + identifier.getTokenString() + "* input){\n");
+        for (int i = 0 ; i < functionDeclarations.size(); i++){
+            //classString.append("    " + "input->" + functionDeclarations.get(i).getIdentiferString() + "_ptr = &"
+            classString.append("    " + "input->" + functionDeclarations.get(i).getIdentiferString() + " = &"
+                    + identifier.getTokenString() + "_" + functionDeclarations.get(i).getIdentiferString() + ";\n");
+        }
+        classString.append("}\n");
+
+        // If main was inside this class, create the main function
+        // TODO: This is still a hack
+        if (hasMain) {
+            classString.append("int main(int argc, char** argv){\n" +
+                    "    struct " + identifier.getTokenString() + " mainClass = {};\n" +
+                    "    init_" + identifier.getTokenString() + "(&mainClass);\n" +
+                    "    return " + identifier.getTokenString() + "_main(&mainClass);\n" +
+                    "}\n");
         }
 
         return classString.toString();

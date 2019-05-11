@@ -28,27 +28,27 @@ public class PStatementFunctionCall implements PStatement, PExpression, PExpress
         }
         // Rest
         for (int i = 0; i < expressionsInput.size(); i++){
+            expressionListString.append(", ");
             expressionListString.append(expressionsInput.get(i).generateString(globalClassName, globalMembers, localMembers));
-            if (i < expressionsInput.size()-1){
-                expressionListString.append(",");
-            }
         }
         // Now we can make the string
         // TODO: The first parameter shouldn't always be "this", it's dependent on the parent function. In particular,  the identifier reference here matters, work needs to be done on this, but classes currently aren't fully working
         // TODO: suck less
         if (globalClassName != null) {
-            return globalClassName + "_" + identifier.getTokenString() + "(" + callingVar + ", " + expressionListString.toString() + ")";
+            //return globalClassName + "_" + identifier.getTokenString() + "(" + callingVar + ", " + expressionListString.toString() + ")";
+            return "this->" + identifier.getTokenString() + "(" + callingVar + expressionListString.toString() + ")";
         }
         else{
-            return identifier.getTokenString() + "(" + callingVar + ", " + expressionListString.toString() + ")";
+            return identifier.getTokenString() + "(" + callingVar + expressionListString.toString() + ")";
         }
     }
-    // TODO: Generate function declarations AND calls
+    // Expression Code Create
     @Override
     public String generateString(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers) throws CodeGenException {
         return generateString(globalClassName, globalMembers, localMembers, "this");
     }
 
+    // Statement Code Create
     @Override
     public String generateCodeStatement(String globalClassName, LinkedHashMap<String, String> globalMembers, LinkedHashMap<String, String> localMembers, int blockLevel) throws CodeGenException {
         return generateString(globalClassName, globalMembers, localMembers);

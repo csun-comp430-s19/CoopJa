@@ -34,10 +34,14 @@ public class PIdentifierReference implements PStatement, PExpressionAtom{
                 functionType = localMembers.get(identifier.getTokenString());
             }
             if (nextStatement instanceof PStatementFunctionCall) {
-                return functionType + "_" + ((PStatementFunctionCall) nextStatement).generateString(null, null, null, identifier.getTokenString());
+                // old?
+                //return functionType + "_" + ((PStatementFunctionCall) nextStatement).generateString(null, null, null, identifier.getTokenString());
+                // new?
+                return identifier.getTokenString() + "->" + ((PStatementFunctionCall) nextStatement).generateString(null, null, null, identifier.getTokenString());
             } else {
                 return identifier.getTokenString() + "->" + nextStatement.generateCodeStatement(null, null, null, 0);
             }
+
         }
         else{
             return identifier.getTokenString() + "->" + nextExpression.generateString(null, null, null);
