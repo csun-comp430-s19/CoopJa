@@ -80,12 +80,10 @@ public class PClassDeclaration {
 
             // Add the paremeter data types
             // Start with the pointer to "this"
-            classString.append("void*");
+            classString.append("struct " + identifier.getTokenString() +  "*");
             for (int j = 0; j < currentDeclaration.variableDeclarations.size(); j++){
                 classString.append(",");
-                //classString.append(currentDeclaration.variableDeclarations.get(j).variableType.getTokenString());
-                // Check this
-                classString.append(currentDeclaration.variableDeclarations.get(j).variableType.getType().equals(Token.TokenType.IDENTIFIER) ? "void*":currentDeclaration.variableDeclarations.get(j).variableType.getTokenString());
+                classString.append(currentDeclaration.variableDeclarations.get(j).variableType.getTokenString());
             }
 
             classString.append(")" + ";\n");
