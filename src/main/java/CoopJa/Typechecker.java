@@ -78,7 +78,7 @@ public class Typechecker {
             String extendscheck = ClassTypecheck(tempClass); //typecheck the current class declaration
 
             if (extendscheck != null) { //class extends another that exists, grab info
-                Storage extendsObj = ClassListAll.get(extendscheck); //could do it better, add to Storage object an extends Storage obj to hold this XXXXXXXXXXXXXXXXX but would need to merge each method / var dec call
+                Storage extendsObj = ClassListAll.get(extendscheck); //get parent obj
                 Storage t_S = ClassListAll.get(ClassString); //current class
                 t_S.extendsClass = extendsObj; //store parent in child
                 ClassListAll.put(ClassString, t_S); //store back new info
@@ -415,7 +415,7 @@ public class Typechecker {
             System.out.println("Method has no Parameters");
         }
 
-        ////XXXXXXXXXXXXXXXXXXXX need to add parameters to method var list
+        ////XXXXXXXXXXXXXXXXXXXX need to add parameters to method var list --- probably already done, just double check
 
         HashMap<String, VarStor> methodBodyVars = new HashMap<String, VarStor>(); //store all method vars here
         if (tempFunctionVars != null) { //add params to method vars
@@ -989,7 +989,7 @@ class ExpressionTypeChecker {
 
     private void typeCheckIfStatement(PStatementIfStatement ifStatement, Scope currentScope) throws TypeCheckerException {
         Scope ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
-        Scope elseScope = currentScope.Copy();
+        Scope elseScope = currentScope.Copy(); //exclusive scope for the else block that wont interfere with anything outside XXXXXXXXXX
         //check if expression is boolean
         if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("Expression in IF statement not a Boolean");
