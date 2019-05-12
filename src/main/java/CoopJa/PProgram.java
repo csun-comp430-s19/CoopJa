@@ -105,6 +105,7 @@ public class PProgram {
                 "            println(\"Incorrect\");\n" +
                 "        }\n" +
                 "    }\n" +
+                "    int foofoo;" +
                 "}\n" +
                 "\n" +
                 "public class Test{\n" +

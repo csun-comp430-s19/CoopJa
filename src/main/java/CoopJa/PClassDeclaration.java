@@ -33,30 +33,9 @@ public class PClassDeclaration {
         LinkedHashMap globalMemberList = new LinkedHashMap();
         LinkedHashMap localMemberList = new LinkedHashMap();
 
-        // Create the other two array lists
+        // Create A function arraylist needed later
         ArrayList<PStatementFunctionDeclaration> functionDeclarationList = new ArrayList<>();
-        ArrayList<PVariableDeclaration> variableDeclarationList = new ArrayList<>();
 
-        // This splitting of the declarations should've been done by the parser, but it's a bit late for that now
-        for (int i = 0 ; i < declarationList.size(); i++){
-            PDeclaration currentDeclaration = declarationList.get(i);
-            if (currentDeclaration instanceof PStatementFunctionDeclaration){
-                functionDeclarationList.add((PStatementFunctionDeclaration) currentDeclaration);
-            }
-            else if (currentDeclaration instanceof PVariableDeclaration){
-                variableDeclarationList.add((PVariableDeclaration) currentDeclaration);
-            }
-            else{
-                // TODO: Use the correct exception type
-                try {
-                    throw new CodeGenException(CodeGenException.UNKNOWN_DECLARATION);
-                } catch (CodeGenException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        
         // Create the string builder
         StringBuilder classString = new StringBuilder();
 
@@ -66,30 +45,37 @@ public class PClassDeclaration {
         // First we need to create a struct that contains a list of the declarations
         classString.append("typedef struct " + identifier.getTokenString() + "{\n");
 
-        // How to process parent members???????
 
-
-        // Now onto the elements unique to our class
-        for (int i = 0; i < variableDeclarationList.size(); i++){
-            classString.append("    " + variableDeclarationList.get(i).generateCodeStatement(null, null, null, 0) + ";\n");
-            globalMemberList.put(variableDeclarationList.get(i).identifier.getTokenString(), variableDeclarationList.get(i).variableType.getTokenString());
-        }
-        // Add function pointers
-        for (int i = 0; i < functionDeclarationList.size(); i++){
-            PStatementFunctionDeclaration currentDeclaration = functionDeclarationList.get(i);
-            //classString.append("    " + currentDeclaration.returnType.getTokenString() + "(*" + currentDeclaration.identifier.getTokenString() + "_ptr)(");
-            classString.append("    " + currentDeclaration.returnType.getTokenString() + "(*" + currentDeclaration.identifier.getTokenString() + ")(");
-
-            // Add the paremeter data types
-            // Start with the pointer to "this"
-            classString.append("struct " + identifier.getTokenString() +  "*");
-            for (int j = 0; j < currentDeclaration.variableDeclarations.size(); j++){
-                classString.append(",");
-                classString.append(currentDeclaration.variableDeclarations.get(j).variableType.getTokenString());
+        // Add all the declarations to the struct (and add functions to an appropriate arraylist!)
+        for (int i = 0; i < declarationList.size(); i++){
+            PDeclaration currentDeclaration = declarationList.get(i);
+            if (currentDeclaration instanceof PVariableDeclaration){
+                classString.append("    " + ((PVariableDeclaration)currentDeclaration).generateCodeStatement(null, null, null, 0) + ";\n");
+                globalMemberList.put(((PVariableDeclaration)currentDeclaration).identifier.getTokenString(), ((PVariableDeclaration)currentDeclaration).variableType.getTokenString());
             }
+            else if (currentDeclaration instanceof PStatementFunctionDeclaration){
+                PStatementFunctionDeclaration currentFunctionDeclaration = (PStatementFunctionDeclaration) currentDeclaration;
+                classString.append("    " + currentFunctionDeclaration.returnType.getTokenString() + "(*" + currentFunctionDeclaration.identifier.getTokenString() + ")(");
 
-            classString.append(")" + ";\n");
+                // Add the paremeter data types
+                // Start with the pointer to "this"
+                classString.append("struct " + identifier.getTokenString() +  "*");
+                for (int j = 0; j < currentFunctionDeclaration.variableDeclarations.size(); j++){
+                    classString.append(",");
+                    classString.append(currentFunctionDeclaration.variableDeclarations.get(j).variableType.getTokenString());
+                }
+
+                classString.append(")" + ";\n");
+
+                // Add this function to the function list
+                functionDeclarationList.add(currentFunctionDeclaration);
+
+            }
+            else{
+                throw new CodeGenException(CodeGenException.UNKNOWN_DECLARATION);
+            }
         }
+
         classString.append("}" + identifier.getTokenString() + ";\n");
 
         // Track if one of the function declarations is main
