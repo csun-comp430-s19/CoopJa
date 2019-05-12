@@ -16,11 +16,12 @@ public class PProgram {
         StringBuilder programString = new StringBuilder();
         programString.append("#include <stdio.h>\n#include <stdbool.h>\n\n");
         // Linked hasmap for helping with inheritance
-        LinkedHashMap<String, PClassDeclaration> classMap = new LinkedHashMap<>();
+        //LinkedHashMap<String, PClassDeclaration> classMap = new LinkedHashMap<>();
         for (int i = 0; i < classDeclarationList.size(); i++){
             PClassDeclaration currentDeclrataion = classDeclarationList.get(i);
-            classMap.put(currentDeclrataion.identifier.getTokenString(), currentDeclrataion);
-            programString.append(currentDeclrataion.generateClassString(classMap));
+            //classMap.put(currentDeclrataion.identifier.getTokenString(), currentDeclrataion);
+            //programString.append(currentDeclrataion.generateClassString(classMap));
+            programString.append(currentDeclrataion.generateClassString());
         }
         return programString.toString();
     }

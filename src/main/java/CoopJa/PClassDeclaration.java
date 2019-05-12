@@ -43,14 +43,14 @@ public class PClassDeclaration {
         }
     }
 
-    public String generateClassString(LinkedHashMap<String, PClassDeclaration> classMap) throws CodeGenException{
+    public String generateClassString(/*LinkedHashMap<String, PClassDeclaration> classMap*/) throws CodeGenException{
         // Start handling class extensions
         // If this class is extending, we'll need to obtain it
-        PClassDeclaration parentClass = null;
+        /*PClassDeclaration parentClass = null;
         if (extendsIdentifier != null){
             parentClass = classMap.get(extendsIdentifier.getTokenString());
 
-        }
+        }*/
 
         // Create the linked maps
         LinkedHashMap globalMemberList = new LinkedHashMap();
