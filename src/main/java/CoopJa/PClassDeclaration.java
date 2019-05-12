@@ -9,8 +9,8 @@ public class PClassDeclaration {
     public Token identifier;       // REQUIRED
     public Token extendsIdentifier; // If null, no extends
     public ArrayList<PDeclaration> declarationList;
-    public ArrayList<PStatementFunctionDeclaration> functionDeclarationList;
-    public ArrayList<PVariableDeclaration> variableDeclarationList;
+    //public ArrayList<PStatementFunctionDeclaration> functionDeclarationList;
+    //public ArrayList<PVariableDeclaration> variableDeclarationList;
 
 
     public PClassDeclaration(Token accessModifier, Token identifier, Token extendsIdentifier, ArrayList<PDeclaration> declarationList) {
@@ -18,10 +18,24 @@ public class PClassDeclaration {
         this.identifier = identifier;
         this.declarationList = declarationList;
         this.extendsIdentifier = extendsIdentifier;
+    }
+
+    public String generateClassString(/*LinkedHashMap<String, PClassDeclaration> classMap*/) throws CodeGenException{
+        // Start handling class extensions
+        // If this class is extending, we'll need to obtain it
+        /*PClassDeclaration parentClass = null;
+        if (extendsIdentifier != null){
+            parentClass = classMap.get(extendsIdentifier.getTokenString());
+
+        }*/
+
+        // Create the linked maps
+        LinkedHashMap globalMemberList = new LinkedHashMap();
+        LinkedHashMap localMemberList = new LinkedHashMap();
 
         // Create the other two array lists
-        functionDeclarationList = new ArrayList<>();
-        variableDeclarationList = new ArrayList<>();
+        ArrayList<PStatementFunctionDeclaration> functionDeclarationList = new ArrayList<>();
+        ArrayList<PVariableDeclaration> variableDeclarationList = new ArrayList<>();
 
         // This splitting of the declarations should've been done by the parser, but it's a bit late for that now
         for (int i = 0 ; i < declarationList.size(); i++){
@@ -41,23 +55,11 @@ public class PClassDeclaration {
                 }
             }
         }
-    }
 
-    public String generateClassString(/*LinkedHashMap<String, PClassDeclaration> classMap*/) throws CodeGenException{
-        // Start handling class extensions
-        // If this class is extending, we'll need to obtain it
-        /*PClassDeclaration parentClass = null;
-        if (extendsIdentifier != null){
-            parentClass = classMap.get(extendsIdentifier.getTokenString());
-
-        }*/
-
-        // Create the linked maps
-        LinkedHashMap globalMemberList = new LinkedHashMap();
-        LinkedHashMap localMemberList = new LinkedHashMap();
-
+        
         // Create the string builder
         StringBuilder classString = new StringBuilder();
+
 
 
 
