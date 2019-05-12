@@ -719,7 +719,11 @@ public class Typechecker {
         Storage forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
         if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
             throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
-        TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration
+        //remember to add the incrementor declaration to the scope of the for loop
+        PVariableDeclaration varDec = (PVariableDeclaration) forStatement.statement1;
+        VarStor newVariableStore = new VarStor(varDec.variableType, varDec.accessModifier);
+        forScope.VariableNames.put(varDec.identifier.getTokenString(), newVariableStore);
+        TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration,....might not be implemented in this function
         if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
             throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
         //we're going to ignore the third part of the for loop for now.....
@@ -926,7 +930,7 @@ class FunctStor { //store method stuff
     }
 }
 
-//****************  EXPRESSION AND STATEMENT TYPECHECKER****************//
+//**************** OLD EXPRESSION AND STATEMENT TYPECHECKER****************//
 /*
 class ExpressionTypeChecker {
     public Scope classStorage = new Scope();
