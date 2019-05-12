@@ -81,7 +81,8 @@ public class PVariableDeclaration implements PStatement, PDeclaration {
         if (variableType.getType() == Token.TokenType.IDENTIFIER){
             // This is weird
             varDecString.append("struct " + variableType.getTokenString() + " *" + identifier.getTokenString() + ", " + identifier.getTokenString() + "Original; "
-                    + identifier.getTokenString() + " = &" + identifier.getTokenString() + "Original");
+                    + identifier.getTokenString() + " = &" + identifier.getTokenString() + "Original;" +
+                    " init_" + variableType.getTokenString() + "(" + identifier.getTokenString() + ")");
         }
         else {
             varDecString.append(variableType.getTokenString() + " " + identifier.getTokenString());

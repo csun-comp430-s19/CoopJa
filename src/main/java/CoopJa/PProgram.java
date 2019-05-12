@@ -3,6 +3,7 @@ package CoopJa;
 import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 public class PProgram {
     public ArrayList<PClassDeclaration> classDeclarationList;
@@ -14,8 +15,13 @@ public class PProgram {
     public String generateProgramString() throws CodeGenException {
         StringBuilder programString = new StringBuilder();
         programString.append("#include <stdio.h>\n#include <stdbool.h>\n\n");
+        // Linked hasmap for helping with inheritance
+        //LinkedHashMap<String, PClassDeclaration> classMap = new LinkedHashMap<>();
         for (int i = 0; i < classDeclarationList.size(); i++){
-            programString.append(classDeclarationList.get(i).generateClassString());
+            PClassDeclaration currentDeclrataion = classDeclarationList.get(i);
+            //classMap.put(currentDeclrataion.identifier.getTokenString(), currentDeclrataion);
+            //programString.append(currentDeclrataion.generateClassString(classMap));
+            programString.append(currentDeclrataion.generateClassString());
         }
         return programString.toString();
     }
@@ -99,11 +105,15 @@ public class PProgram {
                 "            println(\"Incorrect\");\n" +
                 "        }\n" +
                 "    }\n" +
+                "    int foofoo;" +
                 "}\n" +
                 "\n" +
                 "public class Test{\n" +
+                "    public void printHelloAgain(){" +
+                "        printf(\"Hello World 2!\\n\");" +
+                "    }" +
                 "    public int main(){\n" +
-                "        println(\"Hello World!\");\n" +
+                "        printf(\"Hello World!\\nToday's number are %d %d %d\\n\", 7, 9, 15);\n" +
                 "        ClassTest foo = new ClassTest;\n" +
                 "        foo.setFavNumber(7);\n" +
                 "        foo.guessFavNumber(7);\n" +
@@ -112,6 +122,7 @@ public class PProgram {
                 "        foo.someOtherNumber = 5;\n" +
                 "        foo.favoriteNumber = foo.someOtherNumber;\n" +
                 "        foo.guessFavNumber(5);\n" +
+                "        printHelloAgain();" +
                 "    }\n" +
                 "}\n";
 
