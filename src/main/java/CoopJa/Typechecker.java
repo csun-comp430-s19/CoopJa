@@ -427,10 +427,11 @@ public class Typechecker {
 
         if (input.statementList != null) {
             System.out.println("Method Declaration Body: Statement List");
+            Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
                 PStatement tempStmtExp = input.statementList.get(k);
 
-                TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp);
+                TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, statementStorage);
                 ///NOTE: if there is a variable declaration, it needs to be added to a list after
                 ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars"
 
@@ -572,7 +573,7 @@ public class Typechecker {
         }
     }
 
-    public static void TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp) {
+    public static void TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp, Storage currentScope) throws TypeCheckerException {
         if (tempStmtExp instanceof PExpressionIdentifierReference) {
             System.out.println("Instance of PExpressionIdentifierReference");
             PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference) tempStmtExp;
@@ -592,6 +593,7 @@ public class Typechecker {
             System.out.println("Instance of PStatementForStatement");
             PStatementForStatement tempExp = (PStatementForStatement) tempStmtExp;
             //1 PStatement ,  1 PExpression,  1 PStatement , 1 ArrayList<PStatement>
+            typeCheckForStatement(tempExp, currentScope);
         }
         if (tempStmtExp instanceof PStatementFunctionCall) {
             System.out.println("Instance of PStatementFunctionCall");
@@ -607,6 +609,8 @@ public class Typechecker {
             System.out.println("Instance of PStatementIfStatement");
             PStatementIfStatement tempExp = (PStatementIfStatement) tempStmtExp;
             //1 PExpression , 1 ArrayList<PStatement> , 1 ArrayList<PStatement>
+
+            typeCheckIfStatement(tempExp, currentScope);
         }
         if (tempStmtExp instanceof PStatementPrintln) {
             System.out.println("Instance of PStatementPrintln");
@@ -622,11 +626,14 @@ public class Typechecker {
             System.out.println("Instance of PStatementWhileStatement");
             PStatementWhileStatement tempExp = (PStatementWhileStatement) tempStmtExp;
             //1 PExpression , 1 ArrayList<PStatement>
+            typeCheckWhileStatement(tempExp, currentScope);
         }
         if (tempStmtExp instanceof PVariableAssignment) {
             System.out.println("Instance of PVariableAssignment");
             PVariableAssignment tempExp = (PVariableAssignment) tempStmtExp;
             //1 token, 1 pexpr
+
+            typeCheckVariableAssignment(tempExp, currentScope);
         }
         if (tempStmtExp instanceof PVariableDeclaration) {
             System.out.println("Instance of PVariableDeclaration");
@@ -665,6 +672,188 @@ public class Typechecker {
         }//End check signature matcch.
     }//End checkFunctionCallExists( ).
 
+    //***************************************EXPRESSION TYPECHECKING********************************
+
+    private static void typeCheckVariableAssignment(PVariableAssignment varAss, Storage currentScope) throws TypeCheckerException {
+        //typecheck assignement
+        Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
+        //check if assignee is within the scope
+        Token.TokenType assignee = AssignableVariableInScope(varAss, currentScope);
+        if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+            if (!assignee.equals("string"))
+                throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        assignee + " got " + assignment);
+
+        } else if (assignment != assignee) {
+            throw new TypeCheckerException("TypeCheck Error: Expected " +
+                    assignee + " got " + assignment);
+        }
+    }
+
+    private static void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Storage currentScope) throws TypeCheckerException {
+        Storage whileScope = currentScope.Copy();
+        if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
+            throw new TypeCheckerException("While Loop Expression must be of type BOOLEAN");
+        for (PStatement statement : whileStatement.statementList) {
+            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, whileScope);
+        }
+    }
+
+    private static void typeCheckIfStatement(PStatementIfStatement ifStatement, Storage currentScope) throws TypeCheckerException {
+        Storage ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
+        Storage elseScope = currentScope.Copy();
+        //check if expression is boolean
+        if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
+            throw new TypeCheckerException("Expression in IF statement not a Boolean");
+        //typecheck elements in if statement
+        for (PStatement statement : ifStatement.statementList) {
+            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, ifScope);
+        }
+        //typecheck elements in else statement
+        for (PStatement statement : ifStatement.elseStatementList) {
+            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, elseScope);
+        }
+    }
+
+    private static void typeCheckForStatement(PStatementForStatement forStatement, Storage currentScope) throws TypeCheckerException {
+        Storage forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
+        if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
+            throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
+        TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration
+        if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
+            throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
+        //we're going to ignore the third part of the for loop for now.....
+        for (PStatement statement : forStatement.statementList) {
+            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, forScope);
+        }
+    }
+
+    //this part is likely unnessesary as VDT can handles this part
+    /*
+    private static void typeCheckStatementVariableDec(PVariableDeclaration varDec, Storage currentScope) throws TypeCheckerException {
+        //not sure if already initialized variables are typechecked yet
+        //add here if they arent
+        VarStor newVariableStore = new VarStor(varDec.accessModifier, varDec.variableType);
+        currentScope.VariableNames.put(varDec.identifier.getTokenString(), newVariableStore);
+        if (varDec.assignment != null) { //assuming there is an expression to be checked
+            Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
+            if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
+                if (!(varDec.variableType.getTokenString().equals("String") || varDec.variableType.getTokenString().equals("string")))
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                            varDec.variableType.getType() + " got " + assignment);
+
+            } else if (assignment != varDec.variableType.getType()) {//compare types with assignment
+                throw new TypeCheckerException("TypeCheck Error: Expected " +
+                        varDec.variableType.getType() + " got " + assignment);
+            }
+        }
+    }
+    */
+
+    //idea, recursive methodology also make sure that currentScope is a copy.
+    public static Token.TokenType getExpressionType(PExpression exp, Storage currentScope) throws TypeCheckerException {
+        if (exp instanceof PExpressionAtomNumberLiteral)
+            return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
+        if (exp instanceof PExpressionAtomStringLiteral)
+            return Token.TokenType.KEYWORD_STRING;
+        if (exp instanceof PExpressionAtomBooleanLiteral)
+            return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
+        if (exp instanceof PExpressionVariable) {
+            //oh no, this is getting its own method
+            return VariableInScope((PExpressionVariable) exp, currentScope);
+        }
+        if (exp instanceof PExpressionBinOp) {
+            //recursivly do both hands of the expressions
+            Token.TokenType lhs = getExpressionType(((PExpressionBinOp) exp).lhs, currentScope);
+
+            Token.TokenType rhs = getExpressionType(((PExpressionBinOp) exp).rhs, currentScope);
+
+            if (lhs != rhs) //The operand types do not match.
+            {
+                //Allows string & integer concatenation
+                if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
+                        (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
+                    return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
+                else //anything else must fail
+                    throw new TypeCheckerException("TypeCheck Error: Expected " +
+                            lhs.name() + " got " + rhs.name());
+            }
+
+            Token.TokenType output = lhs;//at this point we already determined lhs and rhs are the same type
+            //check if the operator is the right type for the expression
+            Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
+            //System.out.println("\t"+rhs.name()+"_"+operator.name()+"_"+lhs.name());
+            /********** + *************/
+            if (operator == Token.TokenType.SYMBOL_PLUS) //plus operator works w/ ints and strings.
+            {
+
+                if ((output != Token.TokenType.KEYWORD_STRING) && (output != Token.TokenType.KEYWORD_INT)) {
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+                }
+            }/********** numeric ops *************/
+            else if (operator == Token.TokenType.SYMBOL_MINUS || //number operations
+                    operator == Token.TokenType.SYMBOL_ASTERISK ||
+                    operator == Token.TokenType.SYMBOL_SLASH ||
+                    /****** BITWISE OPS ******/
+                    operator == Token.TokenType.SYMBOL_SHIFTRIGHT ||
+                    operator == Token.TokenType.SYMBOL_SHIFTLEFT ||
+                    operator == Token.TokenType.SYMBOL_AMPERSAND ||
+                    operator == Token.TokenType.SYMBOL_BAR ||
+                    operator == Token.TokenType.SYMBOL_CARET ||
+                    operator == Token.TokenType.SYMBOL_TILDE) {
+                if (output != Token.TokenType.KEYWORD_INT) /////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+            }/********* DOUBLE EQUALS *******/
+            else if ((operator == Token.TokenType.SYMBOL_DOUBLEEQUALS) || //plus operator works w/ ints and strings.
+                    (operator == Token.TokenType.SYMBOL_NOTEQUAL)) {   /*Add more valid operand types for double equals if necessary.*/
+                if ((output != Token.TokenType.KEYWORD_INT) &&
+                        (output != Token.TokenType.KEYWORD_BOOLEAN)) {
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type: Expected type" +
+                            /*Token.TokenType.KEYWORD_INT.name().split("_")[0] + */
+                            output.name());
+                }
+                output = Token.TokenType.KEYWORD_BOOLEAN;
+            }/********** Boolean ops ***********/
+            else if (operator == Token.TokenType.SYMBOL_DOUBLEAMPERSAND ||
+                    operator == Token.TokenType.SYMBOL_DOUBLEBAR) {
+                if (output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already determined lhs and rhs are the same type
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+            }/************ numeric equality ops ***********/
+            else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
+                    operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
+                    operator == Token.TokenType.SYMBOL_LESSTHAN ||
+                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL) {
+                if (output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
+                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
+                output = Token.TokenType.KEYWORD_BOOLEAN;
+            }/*****     *****/
+            //else if( operator ==
+            //if the two sides match just return the type of one of the sides
+            return output;
+        }
+        return null;
+    }
+
+    //cleanly check for variable in scope
+    //if it does not exist throw an exception
+    public static Token.TokenType VariableInScope (PExpressionVariable varToCheck, Storage currentScope) throws TypeCheckerException{
+        //get the variable from storage
+        VarStor variableStore = currentScope.VariableNames.get(((PExpressionVariable) varToCheck).variable.getTokenString());
+        if (variableStore != null){
+            return variableStore.Type.getType();
+        }
+        else
+            throw new TypeCheckerException("Error: Variable not in scope");
+    }
+    //similar to VariableInScope however for the lhs of a variable assignement
+    public static Token.TokenType AssignableVariableInScope(PVariableAssignment varToCheck, Storage currentScope) throws  TypeCheckerException{
+        VarStor variableStore = currentScope.VariableNames.get(varToCheck.identifier.getTokenString());
+        if (variableStore != null){
+            return variableStore.Type.getType();
+        }
+        else
+            throw new TypeCheckerException("Error: Variable not in scope");
+    }
 }//End TypChecker class
 
 class Storage {
@@ -683,6 +872,20 @@ class Storage {
         VariableNames = new HashMap();
         MethodNames = new HashMap();
         extendsClass = null;
+    }
+
+    public Storage Copy() {
+        HashMap<String, VarStor> copyVariableNames = new HashMap<>(VariableNames);
+        HashMap<String, FunctStor> coptMethodNames = new HashMap<>(MethodNames);
+        Storage copyStorage;
+        //merge extends class with current storage for copy
+        if (extendsClass != null){
+            copyVariableNames.putAll(extendsClass.VariableNames);
+            coptMethodNames.putAll(extendsClass.MethodNames);
+        }
+        //no extends class for any copy, it will always be nullified and merged to current hashtables
+        copyStorage = new Storage(copyVariableNames , coptMethodNames, null);
+        return copyStorage;
     }
 }
 
@@ -724,6 +927,7 @@ class FunctStor { //store method stuff
 }
 
 //****************  EXPRESSION AND STATEMENT TYPECHECKER****************//
+/*
 class ExpressionTypeChecker {
     public Scope classStorage = new Scope();
     private PProgram input;
@@ -924,3 +1128,4 @@ class Scope {
         return scopeCopy;
     }
 }
+*/
