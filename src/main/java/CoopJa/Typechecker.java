@@ -248,10 +248,38 @@ public class Typechecker {
         return null;
     }
 
-    public static Token.TokenType PExpressionChecker(PExpression input) throws TypeCheckerException {
+    public static Token.TokenType PExpressionChecker(PExpression input, Storage varMap) throws TypeCheckerException {
         if (input instanceof PExpressionBinOp) {
             System.out.println("PExpressionBinOp");
             return getType(input);
+        } else if (input instanceof PExpressionIdentifierReference) {
+            System.out.println("!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\nPExpressionIdentifierReference");
+            //unused
+            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
+        } else if (input instanceof PExpressionVariable) {
+            System.out.println("PExpressionVariable");
+            String varName = ((PExpressionVariable) input).variable.getTokenString(); //PExpressionVariable name
+            if (varMap.VariableNames.containsKey(varName)) { //if var is in class
+                VarStor tempVarCheck = varMap.VariableNames.get(varName);
+                return tempVarCheck.Type.getType();
+            } else { //check parent if any
+                if (varMap.extendsClass != null) { //if there is a parent class
+                    if (varMap.extendsClass.VariableNames.containsKey(varName)) { //yes in parent
+                        VarStor tempVarCheck = varMap.extendsClass.VariableNames.get(varName);
+                        if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) { //if parent is private
+                            throw new TypeCheckerException("TypeCheck Error: Parent var has PRIVATE access");
+                        } else {
+                            return tempVarCheck.Type.getType();
+                        }
+                    } else { //not in parent
+                        throw new TypeCheckerException("TypeCheck Error: No var exists in Parent or Child");
+                    }
+                } else { //no parent class
+                    throw new TypeCheckerException("TypeCheck Error: No var exists");
+                }
+            }
+        } else if () {
+
         }
     }
 
@@ -263,11 +291,10 @@ public class Typechecker {
 
         //boolean autoPossible = false; //true if right side could be auto
 
-        PExpressionChecker(varDec.assignment);
+        assType = PExpressionChecker(varDec.assignment, varMap);
 
         if (varDec.assignment instanceof PExpressionBinOp) {
             System.out.println("PExpressionBinOp");
-            assType = getType(varDec.assignment);
             if (varType == assType) {
                 System.out.println("Variable Declaration Succeeded");
             } else {
@@ -287,62 +314,40 @@ public class Typechecker {
         } else if (varDec.assignment instanceof PExpressionVariable) {
             System.out.println("PExpressionVariable");
             String varName = ((PExpressionVariable) varDec.assignment).variable.getTokenString(); //PExpressionVariable name
+            //we only know the return type of PExpressionChecker(), not where the var was found (parent or child), so if PExpressionChecker() didnt fail, the var must be in one of them
             if (varMap.VariableNames.containsKey(varName)) { //if var is in current class vars
-                VarStor tempVarCheck = varMap.VariableNames.get(varName);
-                assType = tempVarCheck.Type.getType();
-                //autoPossible = true; //mostly for reference
-                if (varType == assType) {
-                    System.out.println("Variable Declaration Succeeded");
+                if (varType == Token.TokenType.KEYWORD_AUTO && assType != Token.TokenType.KEYWORD_AUTO) { //if left is auto
+                    System.out.println("AUTO var type detected!");
+                    //change auto type
+                    String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
+                    AutoHandler.add(auto);
+                } else if (assType == Token.TokenType.KEYWORD_AUTO && varType != Token.TokenType.KEYWORD_AUTO) { //right side is auto
+                    System.out.println("Assignment Var has AUTO type!");
+                    //change auto type of assignment var
+                    String[] auto = {ClassString, "Variable", MethodString, varName, varType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
+                    AutoHandler.add(auto);
+                } else if (assType == varType && assType == Token.TokenType.KEYWORD_AUTO) { //both auto
+                    throw new TypeCheckerException("TypeCheck Error: AUTO Var cannot be assigned to another AUTO Var");
                 } else {
-                    if (varType == Token.TokenType.KEYWORD_AUTO) { //if left is auto
-                        System.out.println("AUTO var type detected!");
-                        //change auto type
-                        String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                        AutoHandler.add(auto);
-                    } else if (assType == Token.TokenType.KEYWORD_AUTO) { //right side is auto
-                        System.out.println("Assignment Var has AUTO type!");
-                        //change auto type of assignment var
-                        String[] auto = {ClassString, "Variable", MethodString, varName, varType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                        AutoHandler.add(auto);
-                    } else { //type mismatch
-                        throw new TypeCheckerException("TypeCheck Error: Type mismatch");
-                    }
+                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
                 }
-            } else { //check parent, if any
-                Storage tempClassStor = ClassListAll.get(ClassString);
-                if (tempClassStor.extendsClass != null) {
-                    if (tempClassStor.extendsClass.VariableNames.containsKey(varName)) {
-                        VarStor tempVarCheck = tempClassStor.extendsClass.VariableNames.get(varName);
-                        if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) { //var is private in parent?
-                            throw new TypeCheckerException("TypeCheck Error: Parent Var has Private access");
-                        } else { //its fine
-                            assType = tempVarCheck.Type.getType();
-                            //autoPossible = true;
-                            if (varType == assType) {
-                                System.out.println("Variable Declaration Succeeded");
-                            } else {
-                                if (varType == Token.TokenType.KEYWORD_AUTO) { //if left is auto
-                                    System.out.println("AUTO var type detected!");
-                                    //change auto type
-                                    String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                    AutoHandler.add(auto);
-                                } else if (assType == Token.TokenType.KEYWORD_AUTO) { //right side is auto
-                                    System.out.println("Assignment Var has AUTO type in Parent!");
-                                    //change auto type of assignment var
-                                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varName, varType.toString()}; //in class name, in parent, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                    AutoHandler.add(auto);
-                                } else { //type mismatch
-                                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
-                                }
-                            }
-                        }
-                    } else {
-                        throw new TypeCheckerException("TypeCheck Error: Variable does not exist in Parent or Child");
-                    }
+            } else { //else it was in the parent
+                if (varType == Token.TokenType.KEYWORD_AUTO && assType != Token.TokenType.KEYWORD_AUTO) { //if left is auto
+                    System.out.println("AUTO var type detected!");
+                    //change auto type
+                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
+                    AutoHandler.add(auto);
+                } else if (assType == Token.TokenType.KEYWORD_AUTO && varType != Token.TokenType.KEYWORD_AUTO) { //right side is auto
+                    System.out.println("Assignment Var has AUTO type!");
+                    //change auto type of assignment var
+                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varName, varType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
+                    AutoHandler.add(auto);
+                } else if (assType == varType && assType == Token.TokenType.KEYWORD_AUTO) { //both auto
+                    throw new TypeCheckerException("TypeCheck Error: AUTO Var cannot be assigned to another AUTO Var");
                 } else {
-                    throw new TypeCheckerException("TypeCheck Error: Variable does not exist");
+                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
                 }
-            }
+            } ///FIXED TO THIS POINT
         } else if (varDec.assignment instanceof PStatementFunctionCall) {
             System.out.println("PStatementFunctionCall");
             PStatementFunctionCall STMT = (PStatementFunctionCall) varDec.assignment;
