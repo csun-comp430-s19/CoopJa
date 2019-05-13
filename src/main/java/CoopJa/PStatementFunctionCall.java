@@ -3,14 +3,15 @@ package CoopJa;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-public class PStatementFunctionCall implements PStatement, PExpression, PExpressionAtom{
+public class PStatementFunctionCall implements PStatement, PExpression, PExpressionAtom {
     // Statements are in the form
-    // foo.fooCall(expressions, moreExpressions)
-    // Identifier, identifier2, then a list of expressions
+    // fooCall(expressions, moreExpressions)
+    // this is a function call
+    // Identifier, then a list of expressions (params)
     public Token identifier;
     public ArrayList<PExpression> expressionsInput;
 
-    public PStatementFunctionCall(Token identifier, ArrayList<PExpression> expressionsInput){
+    public PStatementFunctionCall(Token identifier, ArrayList<PExpression> expressionsInput) {
         this.identifier = identifier;
         this.expressionsInput = expressionsInput;
 

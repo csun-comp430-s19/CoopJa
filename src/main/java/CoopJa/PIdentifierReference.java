@@ -4,7 +4,10 @@ package CoopJa;
 
 import java.util.LinkedHashMap;
 
-public class PIdentifierReference implements PStatement, PExpressionAtom{
+public class PIdentifierReference implements PStatement, PExpressionAtom {
+    //PIR is in the form
+    //foo.main(); or foo.var1;
+    //where foo is the Token identifier, and main() will be a PStatementFunctionCall, and var1 will be a PExpressionVariable
     public Token identifier;
     public PStatement nextStatement;
     public PExpression nextExpression;
