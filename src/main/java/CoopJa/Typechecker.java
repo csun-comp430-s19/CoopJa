@@ -42,15 +42,26 @@ public class Typechecker {
 //                "}" +
 //                "}";
 
+//        String foo = "public class one {" +
+//                "int test = 0;" +
+//                "public void main() {" +
+//                "}" +
+//                "}" +
+//                "public class two extends one {" +
+//                "public void main(int test1) {" +
+//                //"int test = 0;" + //not detecting inside stuff
+//                "}" +
+//                "}";
+
+//        String foo = "public class one {" +
+//                "public void main(int one, int one) {" + //handled
+//                "" +
+//                "}";
+
         String foo = "public class one {" +
-                "int test = 0;" +
-                "public void main() {" +
-                "}" +
-                "}" +
-                "public class two extends one {" +
-                "public void main(int test1) {" +
-                //"int test = 0;" + //not detecting inside stuff
-                "}" +
+                "int test = main();" + //no allowed assignment
+                "public void main(int one) {" +
+                "" +
                 "}";
 
 
@@ -102,7 +113,7 @@ public class Typechecker {
                     HashMap<String, VarStor> t_NEWVars; //holds new info after VDT call
                     //returns a map entry for this variable if it passes the typecheck.
                     //class storage is passed since we need to have the scope to check expressions. Might as well not pass t_VS.
-                    t_NEWVars = VariableDeclarationTypecheck(t_S, tempVar); //call VDT with this list of vars (Scope) and get new info
+                    t_NEWVars = VariableDeclarationTypecheck(t_S, tempVar, true); //call VDT with this list of vars (Scope) and get new info
                     t_VS.putAll(t_NEWVars); //add new info to old map
                     t_S.VariableNames = t_VS; //replace Storage object var list with updated copy
                     ClassListAll.put(ClassString, t_S); //replace the old Storage obj by adding it back to class hashmap with class string
@@ -216,9 +227,9 @@ public class Typechecker {
         return null;
     }
 
-    public static void typeCheckVariableDec(PVariableDeclaration varDec) throws TypeCheckerException {
+    public static void typeCheckVariableDec(PVariableDeclaration varDec, Storage varMap) throws TypeCheckerException {
         System.out.println("Checking Variable Declaration Body");
-        if (varDec.assignment != null) { //assuming there is an expression to be checked
+        if (varDec.assignment != null) { //assuming there is an expression to be checked //now useless
             Token.TokenType assignment = getType(varDec.assignment); //BODY
             System.out.println("Variable Declared as Type: " + varDec.variableType.getType());
             System.out.println("VarDec Assignment Type is: " + assignment);
@@ -229,7 +240,7 @@ public class Typechecker {
             }
             if (assignment == Token.TokenType.IDENTIFIER) {
                 System.out.println("IDENTIFIER Dectected");
-                //TBD DO IDENTIFIER STUFF XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                System.out.println(varDec.assignment.getClass() + " -------class");
             }
         } else {
             System.out.println("Empty VarDec Body");
@@ -237,7 +248,7 @@ public class Typechecker {
         System.out.println("Variable Declaration is Valid");
     }
 
-    public static HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
+    public static HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input, boolean assignmentAllowed) throws Exception { //take in map of all vars declared in scope, and the declaration stmt
 
         HashMap<String, VarStor> mapNEW = new HashMap<>(); //used to hold new vars
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
@@ -295,11 +306,24 @@ public class Typechecker {
             }
         }
 
+        if (input.assignment != null) { //if there is an assignment
+            System.out.println("Assignment is present for Var");
+            if (assignmentAllowed) {
+                System.out.println("Assignment is allowed to be here");
+                typeCheckVariableDec(input, map); //check variable declaration, is it valid?
+            } else {
+                System.err.println("No Assignment is allowed here!");
+                throw new Exception("Variable Declaration Error: Variable given an assignment where it is not allowed");
+            }
+        } else {
+            System.out.println("No Assignment is present for Var");
+        }
+
 
         //passing in old map bc int new_var = new_var should throw new_var not declared.
         /////TEMP_unused_code_for_Expressions__VARDEC(input, containingClassMembers); ////XXXXXXXXXXXXXXXXXXXXXXXX fix, would resolve the body of the variable declaration (PExpression object)
 
-        typeCheckVariableDec(input); //check variable declaration, is it valid?
+
 
         return mapNEW; //return the updated map of all defined variables in current scope
     }
@@ -404,11 +428,11 @@ public class Typechecker {
             Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String, VarStor> output; //declare var for return of VDT()
-                output = VariableDeclarationTypecheck(tempBuiltStor, input.variableDeclarations.get(i));
+                output = VariableDeclarationTypecheck(tempBuiltStor, input.variableDeclarations.get(i), false);
                 combinedVars.putAll(output); //add new vars to combined vars list
                 VarStor tempStor = output.get(input.identifier.getTokenString()); //just used to show how to get the VarStor obj
                 tempFS.Parameters.add(i, tempStor); //add param to FunctStor object, ordered
-                tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage ///DOES THIS HANDLE < main(int one, int one){} > ??XXXXXXXXXXXX
+                tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
             }
 
         } else { //no method params
@@ -700,8 +724,8 @@ public class Typechecker {
     }
 
     private static void typeCheckIfStatement(PStatementIfStatement ifStatement, Storage currentScope) throws TypeCheckerException {
-        Storage ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
-        Storage elseScope = currentScope.Copy();
+        Storage ifScope = currentScope.Copy(); //if statement needs its own scope, anything declared inside stays inside
+        Storage elseScope = currentScope.Copy(); //exclusive scope for the else block that wont interfere with anything outside
         //check if expression is boolean
         if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("Expression in IF statement not a Boolean");
@@ -881,14 +905,14 @@ class Storage {
     public Storage Copy() {
         HashMap<String, VarStor> copyVariableNames = new HashMap<>(VariableNames);
         HashMap<String, FunctStor> coptMethodNames = new HashMap<>(MethodNames);
-        Storage copyStorage;
-        //merge extends class with current storage for copy
-        if (extendsClass != null){
-            copyVariableNames.putAll(extendsClass.VariableNames);
-            coptMethodNames.putAll(extendsClass.MethodNames);
-        }
-        //no extends class for any copy, it will always be nullified and merged to current hashtables
-        copyStorage = new Storage(copyVariableNames , coptMethodNames, null);
+        Storage copyStorage = extendsClass;
+//        //merge extends class with current storage for copy
+//        if (extendsClass != null){
+//            copyVariableNames.putAll(extendsClass.VariableNames);
+//            coptMethodNames.putAll(extendsClass.MethodNames);
+//        }
+//        //no extends class for any copy, it will always be nullified and merged to current hashtables
+        copyStorage = new Storage(copyVariableNames , coptMethodNames, copyStorage); //need to keep extends i think
         return copyStorage;
     }
 }
