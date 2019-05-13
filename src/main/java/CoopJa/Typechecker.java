@@ -1073,15 +1073,20 @@ public class Typechecker {
     public static Token.TokenType getExpressionType(PExpression exp, Storage currentScope) throws TypeCheckerException {
         if (exp instanceof PExpressionAtomNumberLiteral)
             return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
-        if (exp instanceof PExpressionAtomStringLiteral)
+        else if (exp instanceof PExpressionAtomStringLiteral)
             return Token.TokenType.KEYWORD_STRING;
-        if (exp instanceof PExpressionAtomBooleanLiteral)
+        else if (exp instanceof PExpressionAtomBooleanLiteral)
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
-        if (exp instanceof PExpressionVariable) {
+        else if (exp instanceof PExpressionVariable) {
             //oh no, this is getting its own method
             return VariableInScope((PExpressionVariable) exp, currentScope);
         }
-        if (exp instanceof PExpressionBinOp) {
+        else if (exp instanceof PExpressionIdentifierReference) {
+            System.out.println("!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\nPExpressionIdentifierReference");
+            //unused
+            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
+        }
+        else if (exp instanceof PExpressionBinOp) {
             //recursivly do both hands of the expressions
             Token.TokenType lhs = getExpressionType(((PExpressionBinOp) exp).lhs, currentScope);
 
@@ -1155,14 +1160,41 @@ public class Typechecker {
 
     //cleanly check for variable in scope
     //if it does not exist throw an exception
+    //due to changes in Store.Copy() might want to upgrade these two helper methods to check extended classes, forget about a merge.
     public static Token.TokenType VariableInScope (PExpressionVariable varToCheck, Storage currentScope) throws TypeCheckerException{
-        //get the variable from storage
+
+
+        System.out.println("PExpressionVariable");
+        String varName = varToCheck.variable.getTokenString(); //PExpressionVariable name
+        if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
+            VarStor tempVarCheck = currentScope.VariableNames.get(varName);
+            return tempVarCheck.Type.getType();
+        } else { //check parent if any
+            if (currentScope.extendsClass != null) { //if there is a parent class
+                if (currentScope.extendsClass.VariableNames.containsKey(varName)) { //yes in parent
+                    VarStor tempVarCheck = currentScope.extendsClass.VariableNames.get(varName);
+                    if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) { //if parent is private
+                        throw new TypeCheckerException("TypeCheck Error: Parent var has PRIVATE access");
+                    } else {
+                        return tempVarCheck.Type.getType();
+                    }
+                } else { //not in parent
+                    throw new TypeCheckerException("TypeCheck Error: No var exists in Parent or Child");
+                }
+            } else { //no parent class
+                throw new TypeCheckerException("TypeCheck Error: No var exists");
+            }
+        }
+
+        //get the variable from storage oldmethod commented out
+        /*
         VarStor variableStore = currentScope.VariableNames.get(((PExpressionVariable) varToCheck).variable.getTokenString());
         if (variableStore != null){
             return variableStore.Type.getType();
         }
         else
             throw new TypeCheckerException("Error: Variable not in scope");
+        */
     }
     //similar to VariableInScope however for the lhs of a variable assignement
     public static Token.TokenType AssignableVariableInScope(PVariableAssignment varToCheck, Storage currentScope) throws  TypeCheckerException{
