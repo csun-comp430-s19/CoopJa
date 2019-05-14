@@ -12,6 +12,8 @@ public class Typechecker {
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
     public static String MethodString = "";
     public static ArrayList<AutoTicket> AutoHandler = new ArrayList<>();
+    public static int ClassNumber; //holds array val of which class we are working on
+    public static int ClassDeclarationNumber; //holds the array val for which stmt inside the class we are on (auto related)
     public static int MethodDeclarationNumber; //if method has a body, used to store the dec number (in array format, starting with 0) for later reference
     public static Storage FunctionCallParameterScope; //global for the special case where a recursive function call needs to refer to parameters from its original scope
 
@@ -109,6 +111,7 @@ public class Typechecker {
             int x = i + 1; //used for printing
             System.out.println("Current Class: #" + x);
 
+            ClassNumber = i; //x is just i + 1
             String extendscheck = ClassTypecheck(tempClass); //typecheck the current class declaration
 
             if (extendscheck != null) { //class extends another that exists, grab info
@@ -125,6 +128,7 @@ public class Typechecker {
 
             for (int j = 0; j < tempDeclar.size(); j++) { //for each declaration, either it is a PVariableDeclaration or a PStatementFunctionDeclaration
 
+                ClassDeclarationNumber = j; //y is just j + 1
                 int y = j + 1; //used for printing
 
                 if (tempDeclar.get(j) instanceof PVariableDeclaration) { //handle class variable declarations
@@ -154,6 +158,9 @@ public class Typechecker {
                 System.out.println("End Declaration #" + y);
                 System.out.println();
             }
+
+            ClassNumber = -1;
+            ClassDeclarationNumber = -1;
 
             System.out.println("End of Class #" + x);
             System.out.println();
@@ -1076,11 +1083,36 @@ public class Typechecker {
 
     //***************************************EXPRESSION TYPECHECKING********************************
 
+    public static void VD_VA_Bouncer() {
+
+        if () {
+
+        } else if () {
+
+        } else {
+            //no way
+        }
+        //VD info:
+
+
+        //VA info:
+        //typeCheckVariableAssignment()
+        //gets sent PVA and Storage
+        //checks the assignment type (right side)
+        //sends the name of var to VarInScope (name, storage) --> N/A for VD bc would not be in scope yet bc of declaring
+        //checks types
+
+
+
+    }
+
     private static void typeCheckVariableAssignment(PVariableAssignment varAss, Storage currentScope) throws TypeCheckerException {
         //typecheck assignement
         Token.TokenType assignment = getExpressionType(varAss.value, currentScope); //XXXXXXXXX--might need to send to CheckVarDec() or something similar...
         //check if assignee is within the scope
         Token.TokenType assignee = VariableInScope(varAss.identifier.getTokenString(), currentScope);
+        //weirdness going on for string stuff, was used to fix a bug long ago, but now it looks bizarre
+        //possilble failure point for string typechecking
         if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
             if (!assignee.equals("string"))
                 throw new TypeCheckerException("TypeCheck Error: Expected " +
@@ -1382,6 +1414,8 @@ public class Typechecker {
             } else if (expectedType == Token.TokenType.KEYWORD_AUTO) { //if param was declared as auto
                 AutoTicket auto = new AutoTicket(); //creating an auto ticket to handle later
                 auto.ClassName = ClassString; //class name currently dealing with
+                auto.ClassNumb = ClassNumber; //where in the class array are we
+                auto.ClassDecNumb = ClassDeclarationNumber; //where in the declaration list array are we for the above class
                 auto.inParentClass = true; //NOT SURE, not even sure if this is necessary, since we can just check it anyway
                 auto.inMethod = true; //in this case, since we are dealing with funct params, true
                 auto.MethodName = identifierName; //i added this var as a param to this method, but it might not be necessary because of the MethodString, then again it might not cover a case of super nested function, where this would be better i think
@@ -1395,6 +1429,8 @@ public class Typechecker {
             } else if (givenType == Token.TokenType.KEYWORD_AUTO) { //if given var was declared auto
                 AutoTicket auto = new AutoTicket(); //creating an auto ticket to handle later
                 auto.ClassName = ClassString; //class name currently dealing with
+                auto.ClassNumb = ClassNumber; //where in the class array are we
+                auto.ClassDecNumb = ClassDeclarationNumber; //where in the declaration list array are we for the above class
                 auto.inParentClass = true; //NOT SURE, not even sure if this is necessary, since we can just check it anyway
                 auto.inMethod = true; //in this case, since we are dealing with funct params, true
                 auto.MethodName = MethodString; //now that i do this again, i think this makes sense, above we use the (potentially) nested function as the name, here we use the outer function being declared (likely where the vars will be) as method name
@@ -1523,6 +1559,8 @@ class FunctStor { //store method stuff
 class AutoTicket { //store where AUTO type can be found, and under what conditions
 
     String ClassName; //name of the class found in
+    int ClassNumb; //array val of which class we are in
+    int ClassDecNumb; //array val of which class declaration we are in
     boolean inParentClass; //true if auto type was found in parent
     boolean inMethod; //true if inside a method (found during declaration of, use name since this is the best way)
     String MethodName; //name of funct that was being declared at time ouf encounter
@@ -1533,8 +1571,10 @@ class AutoTicket { //store where AUTO type can be found, and under what conditio
     String TargetVarName; //***IMPORTANT***: name of the variable/method that has Auto type
     Token.TokenType NewType; //***IMPORTANT***: the new type to replace Auto with
 
-    public AutoTicket(String temp_Class, boolean temp_inPar, boolean temp_inM, String temp_Mname, int temp_mNumb, boolean temp_isP, int temp_Pnum, boolean temp_isFR, String temp_Varname, Token.TokenType temp_newType) {
+    public AutoTicket(String temp_Class, int temp_cN, int temp_cDN, boolean temp_inPar, boolean temp_inM, String temp_Mname, int temp_mNumb, boolean temp_isP, int temp_Pnum, boolean temp_isFR, String temp_Varname, Token.TokenType temp_newType) {
         ClassName = temp_Class;
+        ClassNumb = temp_cN;
+        ClassDecNumb = temp_cDN;
         inParentClass = temp_inPar;
         inMethod = temp_inM;
         MethodName = temp_Mname;
