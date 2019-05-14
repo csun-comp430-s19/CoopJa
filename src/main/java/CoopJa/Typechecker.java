@@ -994,7 +994,7 @@ public class Typechecker {
         //typecheck assignement
         Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
         //check if assignee is within the scope
-        Token.TokenType assignee = AssignableVariableInScope(varAss, currentScope);
+        Token.TokenType assignee = VariableInScope(varAss.identifier.getTokenString(), currentScope);
         if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
             if (!assignee.equals("string"))
                 throw new TypeCheckerException("TypeCheck Error: Expected " +
@@ -1080,7 +1080,7 @@ public class Typechecker {
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
         else if (exp instanceof PExpressionVariable) {
             //oh no, this is getting its own method
-            return VariableInScope((PExpressionVariable) exp, currentScope);
+            return VariableInScope(((PExpressionVariable) exp).variable.getTokenString(), currentScope);
         }
         else if (exp instanceof PIdentifierReference) {
             PIdentifierReference PIR = (PIdentifierReference) exp;
@@ -1175,7 +1175,26 @@ public class Typechecker {
         }
         else { //otherwise check if its within its parents scope
             if (currentScope.extendsClass != null) {
-                return FunctionCallTypeCheck(functionCall, currentScope.extendsClass);
+                return ExtendedFunctionCallTypeCheck(functionCall, currentScope.extendsClass);
+            } else
+                throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+        }
+    }
+
+    //to handle private instances in extended classes
+    public static Token.TokenType ExtendedFunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+        String identifierName = functionCall.identifier.getTokenString();
+        if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
+            FunctStor method = currentScope.MethodNames.get(identifierName);
+            if (method.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+                throw new TypeCheckerException("Method access violation");
+            ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
+            TypeCheckFunctionCallParameters(parameters, functionCall, currentScope);
+            return method.ReturnType.getType();
+        }
+        else { //otherwise check if its within its parents scope
+            if (currentScope.extendsClass != null) {
+                return ExtendedFunctionCallTypeCheck(functionCall, currentScope.extendsClass);
             } else
                 throw new TypeCheckerException("Method " + identifierName + " not in scope;");
         }
@@ -1232,16 +1251,28 @@ public class Typechecker {
             //foo.bar(x,y) x and y are declared in the surface scope
             TypeCheckFunctionCallParameters(parameters, functionCall, FunctionCallParameterScope);
             //moved for loop to method to Typecheckfunctioncallparameters
-            /*
-            for (int i=0; i < parameters.size(); i++){//TypeCheck all of the parameters
-                Token.TokenType expectedType = parameters.get(i).Type.getType();//retrive expected Type of parameter
-                PExpression givenVariable = functionCall.expressionsInput.get(i);//retrieve given type of parameter
-                Token.TokenType givenType = getExpressionType(givenVariable, FunctionCallParameterScope);
-                if (expectedType != givenType){
-                    throw new TypeCheckerException("expected type " + expectedType + " got " + givenType);
-                }
-            }
-            */
+            return method.ReturnType.getType();
+        }
+        else { //otherwise check if its within its parents scope
+            if (currentScope.extendsClass != null) {
+                //another recursive call to check
+                return ExtendedFunctionCallTypeCheckFromIRef(functionCall, currentScope.extendsClass);
+            } else
+                throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+        }
+    }
+
+    //for extended class function calls
+    public static Token.TokenType ExtendedFunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+        System.out.println("PStatementFunctionCall");
+        String identifierName = functionCall.identifier.getTokenString();
+        if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
+            FunctStor method = currentScope.MethodNames.get(identifierName); // retrieve method
+            if (method.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+                throw new TypeCheckerException("Method access violation");
+            ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
+            //USE FunctionCallParameterScope to make sure we are not using a nested scope to check for the given variables
+            TypeCheckFunctionCallParameters(parameters, functionCall, FunctionCallParameterScope);
             return method.ReturnType.getType();
         }
         else { //otherwise check if its within its parents scope
@@ -1266,45 +1297,40 @@ public class Typechecker {
 
     //cleanly check for variable in scope
     //if it does not exist throw an exception
-    //due to changes in Store.Copy() might want to upgrade these two helper methods to check extended classes, forget about a merge.
-    public static Token.TokenType VariableInScope (PExpressionVariable varToCheck, Storage currentScope) throws TypeCheckerException{
+    public static Token.TokenType VariableInScope (String varName, Storage currentScope) throws TypeCheckerException{
 
 
         System.out.println("PExpressionVariable");
-        String varName = varToCheck.variable.getTokenString(); //PExpressionVariable name
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
             return tempVarCheck.Type.getType();
         }
         else { //check parent if any
             if (currentScope.extendsClass != null) { //if there is a parent class
-                return VariableInScope(varToCheck, currentScope.extendsClass);
+                return VariableInExtendedScope(varName, currentScope.extendsClass);
             }
             else { //no parent class
                 throw new TypeCheckerException("TypeCheck Error: No var exists");
             }
         }
-
-        //get the variable from storage............ oldmethod commented out
-        /*
-        VarStor variableStore = currentScope.VariableNames.get(((PExpressionVariable) varToCheck).variable.getTokenString());
-        if (variableStore != null){
-            return variableStore.Type.getType();
-        }
-        else
-            throw new TypeCheckerException("Error: Variable not in scope");
-        */
     }
 
-
-    //similar to VariableInScope however for the lhs of a variable assignement
-    public static Token.TokenType AssignableVariableInScope(PVariableAssignment varToCheck, Storage currentScope) throws  TypeCheckerException{
-        VarStor variableStore = currentScope.VariableNames.get(varToCheck.identifier.getTokenString());
-        if (variableStore != null){
-            return variableStore.Type.getType();
+    //similar to VariableInScope, however will throw exception if Variable has private access type
+    public static Token.TokenType VariableInExtendedScope (String varName, Storage currentScope) throws TypeCheckerException{
+        if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
+            VarStor tempVarCheck = currentScope.VariableNames.get(varName);
+            if (tempVarCheck.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+                throw new TypeCheckerException("Private Access Violation");
+            return tempVarCheck.Type.getType();
         }
-        else
-            throw new TypeCheckerException("Error: Variable not in scope");
+        else { //check parent if any
+            if (currentScope.extendsClass != null) { //if there is a parent class
+                return VariableInExtendedScope(varName, currentScope.extendsClass);
+            }
+            else { //no parent class
+                throw new TypeCheckerException("TypeCheck Error: No var exists");
+            }
+        }
     }
 }//End TypChecker class
 
