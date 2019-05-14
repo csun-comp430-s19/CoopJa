@@ -1081,10 +1081,13 @@ public class Typechecker {
             //oh no, this is getting its own method
             return VariableInScope((PExpressionVariable) exp, currentScope);
         }
-        else if (exp instanceof PExpressionIdentifierReference) {
-            System.out.println("!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\nPExpressionIdentifierReference");
-            //unused
-            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
+        else if (exp instanceof PIdentifierReference) {
+            PIdentifierReference PIR = (PIdentifierReference) exp;
+            return IdentifierReferenceTypeCheck(PIR, currentScope);//moved to own method
+        }
+        else if (exp instanceof PStatementFunctionCall){
+            PStatementFunctionCall functionCall = (PStatementFunctionCall) exp;
+            return FunctionCallTypeCheck(functionCall, currentScope);
         }
         else if (exp instanceof PExpressionBinOp) {
             //recursivly do both hands of the expressions
@@ -1158,6 +1161,34 @@ public class Typechecker {
         return null;
     }
 
+    public static Token.TokenType FunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+        System.out.println("PStatementFunctionCall");
+        String identifierName = functionCall.identifier.getTokenString();
+        if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
+            FunctStor method = currentScope.MethodNames.get(identifierName);
+            return method.ReturnType.getType();
+        }
+        else
+            throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+    }
+
+    public static Token.TokenType IdentifierReferenceTypeCheck (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
+        System.out.println("PIdentifierReference");
+        String identifierName = PIR.identifier.getTokenString();
+        if (ClassListAll.containsKey(identifierName)) {//make sure the class being called is in the list
+            Storage classSpecificStorage = ClassListAll.get(identifierName);//get scope of class being called
+            if(PIR.nextStatement == null){//if this of type foo.variable
+                return getExpressionType(PIR.nextExpression, classSpecificStorage);//return what type of variable it is
+            }
+            else {//PIR.nextExpression == null in other words if this is of type foo.method()
+                return getExpressionType((PStatementFunctionCall) PIR.nextStatement, classSpecificStorage);
+            }
+        }
+        else
+            throw new TypeCheckerException("Unrecognized class: " + identifierName);
+    }
+
+
     //cleanly check for variable in scope
     //if it does not exist throw an exception
     //due to changes in Store.Copy() might want to upgrade these two helper methods to check extended classes, forget about a merge.
@@ -1196,6 +1227,8 @@ public class Typechecker {
             throw new TypeCheckerException("Error: Variable not in scope");
         */
     }
+
+
     //similar to VariableInScope however for the lhs of a variable assignement
     public static Token.TokenType AssignableVariableInScope(PVariableAssignment varToCheck, Storage currentScope) throws  TypeCheckerException{
         VarStor variableStore = currentScope.VariableNames.get(varToCheck.identifier.getTokenString());
