@@ -12,6 +12,7 @@ public class Typechecker {
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
     public static String MethodString = "";
     public static ArrayList<String[]> AutoHandler = new ArrayList<>();
+    public static Storage FunctionCallParameterScope; //global for the special case where a recursive function call needs to refer to parameters from its original scope
 
     public static void main(String[] args) throws Exception {
 
@@ -278,9 +279,8 @@ public class Typechecker {
                     throw new TypeCheckerException("TypeCheck Error: No var exists");
                 }
             }
-        } else if () {
-
         }
+        return null;
     }
 
     public static void typeCheckVariableDec(PVariableDeclaration varDec, Storage varMap) throws TypeCheckerException {
@@ -488,7 +488,7 @@ public class Typechecker {
                 if (varMap.extendsClass != null) { //yes extends
                     if (varMap.extendsClass.MethodNames.containsKey(functName)) { //if function is in list in parent
                         //COPY ABOVE
-                        * varMap.extendsClass.MethodNames.get(functName);
+                        // varMap.extendsClass.MethodNames.get(functName);
                     }
                 } else { //no function exists with this name
                     throw new TypeCheckerException("TypeCheck Error: Function does not exist");
@@ -898,6 +898,7 @@ public class Typechecker {
             System.out.println("Instance of PIdentifierReference");
             PIdentifierReference tempExp = (PIdentifierReference) tempStmtExp;
             //1 token 1 pstmt
+            getExpressionType((PIdentifierReference)tempStmtExp, currentScope);//technically can also be expression so it can be handled as an expression
         }
         if (tempStmtExp instanceof PStatementBreak) {
             System.out.println("Instance of PStatementBreak");
@@ -1083,7 +1084,7 @@ public class Typechecker {
         }
         else if (exp instanceof PIdentifierReference) {
             PIdentifierReference PIR = (PIdentifierReference) exp;
-            return IdentifierReferenceTypeCheck(PIR, currentScope);//moved to own method
+            return IdentifierReferenceTypeCheckDriver(PIR, currentScope);//moved to own method
         }
         else if (exp instanceof PStatementFunctionCall){
             PStatementFunctionCall functionCall = (PStatementFunctionCall) exp;
@@ -1161,33 +1162,107 @@ public class Typechecker {
         return null;
     }
 
+    //for both FunctionCallTypeCheck and IdentifierReferenceTypeCheck, we need to make sure the parameters are typechecked properly as well
+    //probably check to make sure we dont use the wrong storage for the internal parameters
     public static Token.TokenType FunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
         System.out.println("PStatementFunctionCall");
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
             FunctStor method = currentScope.MethodNames.get(identifierName);
+            ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
+            TypeCheckFunctionCallParameters(parameters, functionCall, currentScope);
             return method.ReturnType.getType();
         }
-        else
-            throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+        else { //otherwise check if its within its parents scope
+            if (currentScope.extendsClass != null) {
+                return FunctionCallTypeCheck(functionCall, currentScope.extendsClass);
+            } else
+                throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+        }
     }
 
+    //this will work as a recursive method within the recursive method getExpressionType
+    //this will run through its own recursive routine to handle
+    //foo.foo1.foo2(x, y) is valid foo.foo1().foo2 is not
+    public static Token.TokenType IdentifierReferenceTypeCheckDriver (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
+        Token.TokenType resultingType;
+        //set global to keep track of surface storage
+        FunctionCallParameterScope = currentScope;
+        resultingType = IdentifierReferenceTypeCheck(PIR, currentScope);//call recursive function
+        FunctionCallParameterScope = null; //set global scope to null..........just in case
+        return resultingType;
+    }
+
+    //as this method runs through its recursive calls the FunctionCallParameterScope will remain the scope on its surface
     public static Token.TokenType IdentifierReferenceTypeCheck (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
         System.out.println("PIdentifierReference");
         String identifierName = PIR.identifier.getTokenString();
         if (ClassListAll.containsKey(identifierName)) {//make sure the class being called is in the list
             Storage classSpecificStorage = ClassListAll.get(identifierName);//get scope of class being called
-            if(PIR.nextStatement == null){//if this of type foo.variable
-                return getExpressionType(PIR.nextExpression, classSpecificStorage);//return what type of variable it is
+            if(PIR.nextStatement == null){//if this of type foo.variable or foo.identifier.identifier2...... and so on
+                if (PIR.nextExpression instanceof PExpressionVariable){//variable called from within another method foo.var
+                    //use storage from within variables class to determine its validity
+                    return  getExpressionType(PIR.nextExpression, classSpecificStorage);
+                }
+                else if (PIR.nextExpression instanceof PIdentifierReference){//if it is a daisy chained call foo.identifier.identifier2......
+                    return IdentifierReferenceTypeCheck((PIdentifierReference)PIR.nextExpression, classSpecificStorage);//
+                }
+                else {
+                    throw new TypeCheckerException("Unexpected result in IdentifierReferenceTypeCheck: " + PIR.nextExpression.getClass());
+                }
             }
-            else {//PIR.nextExpression == null in other words if this is of type foo.method()
-                return getExpressionType((PStatementFunctionCall) PIR.nextStatement, classSpecificStorage);
+            else {//PIR.nextExpression == null....... in other words if this is of type foo.method()
+                return FunctionCallTypeCheckFromIRef((PStatementFunctionCall) PIR.nextStatement, classSpecificStorage);
             }
         }
         else
             throw new TypeCheckerException("Unrecognized class: " + identifierName);
     }
 
+    //same as FunctionCallTypeCheck but using FunctionCallParameterScope ClassSpecificStorage is still used to determine the method validity
+    //for use in IdentifierReferenceTypeCheck
+    public static Token.TokenType FunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+        System.out.println("PStatementFunctionCall");
+        String identifierName = functionCall.identifier.getTokenString();
+        if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
+            FunctStor method = currentScope.MethodNames.get(identifierName); // retrieve method
+            ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
+            //USE FunctionCallParameterScope to make sure we are not using a nested scope to check for the given variables
+            //remember these variables are expected to be declared on the method that is calling this IRef
+            //foo.bar(x,y) x and y are declared in the surface scope
+            TypeCheckFunctionCallParameters(parameters, functionCall, FunctionCallParameterScope);
+            //moved for loop to method to Typecheckfunctioncallparameters
+            /*
+            for (int i=0; i < parameters.size(); i++){//TypeCheck all of the parameters
+                Token.TokenType expectedType = parameters.get(i).Type.getType();//retrive expected Type of parameter
+                PExpression givenVariable = functionCall.expressionsInput.get(i);//retrieve given type of parameter
+                Token.TokenType givenType = getExpressionType(givenVariable, FunctionCallParameterScope);
+                if (expectedType != givenType){
+                    throw new TypeCheckerException("expected type " + expectedType + " got " + givenType);
+                }
+            }
+            */
+            return method.ReturnType.getType();
+        }
+        else { //otherwise check if its within its parents scope
+            if (currentScope.extendsClass != null) {
+                //another recursive call to check
+                return FunctionCallTypeCheckFromIRef(functionCall, currentScope.extendsClass);
+            } else
+                throw new TypeCheckerException("Method " + identifierName + " not in scope;");
+        }
+    }
+
+    public static void TypeCheckFunctionCallParameters(ArrayList<VarStor> parameters, PStatementFunctionCall functionCall, Storage currentScope) throws TypeCheckerException{
+        for (int i=0; i < parameters.size(); i++){//TypeCheck all of the parameters
+            Token.TokenType expectedType = parameters.get(i).Type.getType();//retrive expected Type of parameter
+            PExpression givenVariable = functionCall.expressionsInput.get(i);//retrieve given type of parameter
+            Token.TokenType givenType = getExpressionType(givenVariable, currentScope);
+            if (expectedType != givenType){
+                throw new TypeCheckerException("expected type " + expectedType + " got " + givenType);
+            }
+        }
+    }
 
     //cleanly check for variable in scope
     //if it does not exist throw an exception
@@ -1200,24 +1275,17 @@ public class Typechecker {
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
             return tempVarCheck.Type.getType();
-        } else { //check parent if any
+        }
+        else { //check parent if any
             if (currentScope.extendsClass != null) { //if there is a parent class
-                if (currentScope.extendsClass.VariableNames.containsKey(varName)) { //yes in parent
-                    VarStor tempVarCheck = currentScope.extendsClass.VariableNames.get(varName);
-                    if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) { //if parent is private
-                        throw new TypeCheckerException("TypeCheck Error: Parent var has PRIVATE access");
-                    } else {
-                        return tempVarCheck.Type.getType();
-                    }
-                } else { //not in parent
-                    throw new TypeCheckerException("TypeCheck Error: No var exists in Parent or Child");
-                }
-            } else { //no parent class
+                return VariableInScope(varToCheck, currentScope.extendsClass);
+            }
+            else { //no parent class
                 throw new TypeCheckerException("TypeCheck Error: No var exists");
             }
         }
 
-        //get the variable from storage oldmethod commented out
+        //get the variable from storage............ oldmethod commented out
         /*
         VarStor variableStore = currentScope.VariableNames.get(((PExpressionVariable) varToCheck).variable.getTokenString());
         if (variableStore != null){
@@ -1309,207 +1377,3 @@ class FunctStor { //store method stuff
 
     }
 }
-
-//**************** OLD EXPRESSION AND STATEMENT TYPECHECKER****************//
-/*
-class ExpressionTypeChecker {
-    public Scope classStorage = new Scope();
-    private PProgram input;
-
-    public ExpressionTypeChecker(PProgram input) {
-        this.input = input;
-    }
-
-    public void typeCheck() throws TypeCheckerException {
-        for (PClassDeclaration classDeclaration : input.classDeclarationList) {
-            for (Object declaration : classDeclaration.declarationList) {
-                if (declaration instanceof PVariableDeclaration) {
-                    typeCheckVariableDec((PVariableDeclaration) declaration, classStorage);
-                } else if (declaration instanceof PStatementFunctionDeclaration) {
-                    typeCheckFunction((PStatementFunctionDeclaration) declaration, classStorage);
-                }
-            }
-        }
-
-
-    }
-
-    private void typeCheckVariableDec(PVariableDeclaration varDec, Scope currentScope) throws TypeCheckerException {
-        //add variables to hashmap, dont care if they are repeated that part is handled elsewhere
-        currentScope.VariableNames.put(varDec.identifier.getTokenString(), varDec.variableType);
-        if (varDec.assignment != null) { //assuming there is an expression to be checked
-            Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
-            if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-                if (!(varDec.variableType.getTokenString().equals("String") || varDec.variableType.getTokenString().equals("string")))
-                    throw new TypeCheckerException("TypeCheck Error: Expected " +
-                            varDec.variableType.getType() + " got " + assignment);
-
-            } else if (assignment != varDec.variableType.getType()) {//compare types with assignment
-                throw new TypeCheckerException("TypeCheck Error: Expected " +
-                        varDec.variableType.getType() + " got " + assignment);
-            }
-        }
-    }
-
-    //hehe varAss...
-    private void typeCheckVariableAssignment(PVariableAssignment varAss, Scope currentScope) throws TypeCheckerException {
-        //similar to typecheck VariableDec, however we have to look in the hashtable for the assignee
-        //since we don't declare it here
-        Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
-        Token assigneeToken = currentScope.VariableNames.get(varAss.identifier.getTokenString());
-        if (assigneeToken == null)
-            throw new TypeCheckerException(varAss.identifier.getTokenString() + " not declared");
-        Token.TokenType assignee = assigneeToken.getType();
-        if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-            if (!assignee.equals("string"))
-                throw new TypeCheckerException("TypeCheck Error: Expected " +
-                        assignee + " got " + assignment);
-
-        } else if (assignment != assignee) {
-            throw new TypeCheckerException("TypeCheck Error: Expected " +
-                    assignee + " got " + assignment);
-        }
-    }
-
-    private void typeCheckIfStatement(PStatementIfStatement ifStatement, Scope currentScope) throws TypeCheckerException {
-        Scope ifScope = currentScope.Copy();//if statement needs its own scope, anything declared inside stays inside
-        Scope elseScope = currentScope.Copy(); //exclusive scope for the else block that wont interfere with anything outside XXXXXXXXXX
-        //check if expression is boolean
-        if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
-            throw new TypeCheckerException("Expression in IF statement not a Boolean");
-        //typecheck elements in if statement
-        for (PStatement statement : ifStatement.statementList) {
-            typeCheckStatement(statement, ifScope);
-        }
-        //typecheck elements in else statement
-        for (PStatement statement : ifStatement.elseStatementList) {
-            typeCheckStatement(statement, elseScope);
-        }
-    }
-
-    private void typeCheckForStatement(PStatementForStatement forStatement, Scope currentScope) throws TypeCheckerException {
-        Scope forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
-        if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
-            throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
-        typeCheckStatement(forStatement.statement1, forScope); //typecheck variable decleration
-        if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
-            throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
-        //we're going to ignore the third part of the for loop for now.....
-        for (PStatement statement : forStatement.statementList) {
-            typeCheckStatement(statement, forScope);
-        }
-    }
-
-    private void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Scope currentScope) throws TypeCheckerException {
-        Scope whileScope = currentScope.Copy();
-        if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
-            throw new TypeCheckerException("While Loop Expression must be of type BOOLEAN");
-        for (PStatement statement : whileStatement.statementList) {
-            typeCheckStatement(statement, whileScope);
-        }
-    }
-
-    private void typeCheckFunction(PStatementFunctionDeclaration funcDec, Scope currentScope) throws TypeCheckerException {
-        //add method names with their return types to the scope
-        currentScope.MethodNames.put(funcDec.identifier.getTokenString(), funcDec.returnType);
-        Scope functionStorage = currentScope.Copy();//data within this scope should not affect data outside its scope
-        for (PStatement statement : funcDec.statementList) {
-            typeCheckStatement(statement, currentScope);
-        }
-    }
-
-    private void typeCheckStatement(PStatement statement, Scope currentScope) throws TypeCheckerException {
-        if (statement instanceof PVariableDeclaration) {
-            typeCheckVariableDec((PVariableDeclaration) statement, currentScope);
-        }
-        if (statement instanceof PVariableAssignment) {
-            typeCheckVariableAssignment((PVariableAssignment) statement, currentScope);
-        }
-        if (statement instanceof PStatementIfStatement) {
-            typeCheckIfStatement((PStatementIfStatement) statement, currentScope);
-        }
-        if (statement instanceof PStatementForStatement) {
-            typeCheckForStatement((PStatementForStatement) statement, currentScope);
-        }
-        if (statement instanceof PStatementWhileStatement) {
-            typeCheckWhileStatement((PStatementWhileStatement) statement, currentScope);
-        }
-    }
-
-    //idea, recursive methodology
-    public Token.TokenType getExpressionType(PExpression exp, Scope currentScope) throws TypeCheckerException {
-        if (exp instanceof PExpressionAtomNumberLiteral)
-            return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
-        if (exp instanceof PExpressionAtomStringLiteral)
-            return Token.TokenType.KEYWORD_STRING;
-        if (exp instanceof PExpressionAtomBooleanLiteral)
-            return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
-        if (exp instanceof PExpressionVariable) { //if variable was declared before refer to the hashmap
-            return currentScope.VariableNames.get(((PExpressionVariable) exp).variable.getTokenString()).getType();
-        }
-        if (exp instanceof PExpressionBinOp) {
-            //recursivly do both hands of the expressions
-            Token.TokenType lhs = getExpressionType(((PExpressionBinOp) exp).lhs, currentScope);
-            Token.TokenType rhs = getExpressionType(((PExpressionBinOp) exp).rhs, currentScope);
-            if (lhs != rhs) {
-                if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
-                        (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
-                    return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
-                else //anything else must fail
-                    throw new TypeCheckerException("TypeCheck Error: Expected " +
-                            lhs + " got " + rhs);
-            }
-            Token.TokenType output = lhs;//at this point we already detirmined lhs and rhs are the same type
-            //check if the operator is the right type for the expression
-            Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
-            if (operator == Token.TokenType.SYMBOL_PLUS ||
-                    operator == Token.TokenType.SYMBOL_MINUS ||
-                    operator == Token.TokenType.SYMBOL_ASTERISK ||
-                    operator == Token.TokenType.SYMBOL_SLASH) { //number operations
-                if (output == Token.TokenType.KEYWORD_STRING)
-                    return Token.TokenType.KEYWORD_STRING;
-                if (output != Token.TokenType.KEYWORD_INT)
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            } else if (operator == Token.TokenType.SYMBOL_AMPERSAND ||
-                    operator == Token.TokenType.SYMBOL_BAR) {
-                if (output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already detirmined lhs and rhs are the same type
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-            } else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
-                    operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
-                    operator == Token.TokenType.SYMBOL_LESSTHAN ||
-                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL ||
-                    operator == Token.TokenType.SYMBOL_DOUBLEEQUALS ||
-                    operator == Token.TokenType.SYMBOL_NOTEQUAL) {
-                if (output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
-                    throw new TypeCheckerException("TypCheck Error: Wrong Operator Type");
-                output = Token.TokenType.KEYWORD_BOOLEAN;
-            }
-            //if the two sides match just return the type of one of the sides
-            return output;
-        }
-        return null;
-    }
-}
-
-class Scope {
-    HashMap<String, Token> VariableNames; //name, object
-    HashMap<String, Token> MethodNames;
-
-    public Scope(HashMap<String, Token> vars, HashMap<String, Token> funct) {
-        VariableNames = vars;
-        MethodNames = funct;
-    }
-
-    public Scope() {
-        VariableNames = new HashMap<String, Token>();
-        MethodNames = new HashMap<String, Token>();
-    }
-
-    public Scope Copy() {
-        HashMap<String, Token> copyVariableNames = new HashMap<String, Token>(VariableNames);
-        HashMap<String, Token> copyMethodNames = new HashMap<String, Token>(MethodNames);
-        Scope scopeCopy = new Scope(copyVariableNames, copyMethodNames);
-        return scopeCopy;
-    }
-}
-*/
