@@ -90,10 +90,12 @@ public class Typechecker {
                 "foo1 = 1;" +
                 "one = 1;" +
                 "int foo2 = 0;" +
+                //"int foo2 = 9;" +
                 "foo2 = 9;" +
                 "}" +
-                "public void main2(int one){" +
-                "int foo3;" +
+                "" +
+                "public void main2(int two){" +
+                "one = 1;" + //params still global -- declared as main() param, but doesnt fail here
                 "}" +
                 "}";
 
@@ -905,11 +907,6 @@ public class Typechecker {
                 }
 
                 tempFS.VariableNames.put(tempVarName, tempWW);
-
-                GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
-                GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
-                GOODMETHOD.VariableNames.putAll(tempFS.VariableNames); //i love you miguel
-                ClassListAll.put(ClassString, GOODMETHOD); //replace class
 //
 //                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
 //                Storage localtempClasstemp = classTemp.Copy();
@@ -958,6 +955,7 @@ public class Typechecker {
             //Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
             //Storage newStorageFunct = classTemp.Copy();
             Storage statementBlockStorage = GOODMETHOD.Copy();
+            statementBlockStorage.VariableNames.putAll(tempFS.VariableNames);//place parameter variables into method scope
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
