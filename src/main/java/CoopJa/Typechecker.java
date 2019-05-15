@@ -89,6 +89,7 @@ public class Typechecker {
                 "public void main(int one) {" +
                 "foo1 = 1;" +
                 "one = 1;" +
+                "}" +
                 "}";
 
 
@@ -827,21 +828,22 @@ public class Typechecker {
         }
 
         MethodString = input.identifier.getTokenString(); //used for auto
+        Storage classTemp = new Storage();
 
         //deal with params
-        HashMap<String, VarStor> tempFunctionVars = new HashMap<String, VarStor>();
+        //HashMap<String, VarStor> tempFunctionVars = new HashMap<String, VarStor>();
         if (input.variableDeclarations != null) { //if method has params
             System.out.println("Method Parameters:");
-            HashMap<String, VarStor> tempClassVars = map.VariableNames; //grab list of all class vars
-            tempFunctionVars = map.MethodNames.get(input.identifier.getTokenString()).VariableNames; //grab all method vars
-            HashMap<String, VarStor> combinedVars = new HashMap<>(); //define hashmap to store all vars the method needs to know about
-            combinedVars.putAll(tempClassVars); //add class vars to combined vars list
-            if (tempFunctionVars != null) { //if stuff is in list ///PUTALL ISSUE: here it will fail if you put "...size() != 0" but down it will fail if you put "... != null"
-                combinedVars.putAll(tempFunctionVars); //add method vars to combined vars list, ie merge them
-            } else { //if the list is empty, it will fail to putall
+            //HashMap<String, VarStor> tempClassVars = map.VariableNames; //grab list of all class vars
+            //tempFunctionVars = map.MethodNames.get(input.identifier.getTokenString()).VariableNames; //grab all method vars
+            //HashMap<String, VarStor> combinedVars = new HashMap<>(); //define hashmap to store all vars the method needs to know about
+            //combinedVars.putAll(tempClassVars); //add class vars to combined vars list
+            //if (tempFunctionVars != null) { //if stuff is in list ///PUTALL ISSUE: here it will fail if you put "...size() != 0" but down it will fail if you put "... != null"
+                //combinedVars.putAll(tempFunctionVars); //add method vars to combined vars list, ie merge them
+            //} else { //if the list is empty, it will fail to putall
                 //no need to merge, but need to initialize
-                tempFunctionVars = new HashMap<String, VarStor>();
-            }
+                //tempFunctionVars = new HashMap<String, VarStor>();
+            //}
 //            if (map.extendsClass != null) { //if extends, add stuff
 //                System.out.println("extends");
 //                if (map.extendsClass.VariableNames != null || map.extendsClass.VariableNames.size() > 0) { //if extends class has stuff
@@ -856,35 +858,66 @@ public class Typechecker {
 //            } else {
 //                System.out.println("no extends");
 //            } //commented out block note: i think VDT already handles this, but i wrote it, so it's staying here just in case
-            Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
+
+            //create local copy of ClassListAll
+            HashMap<String, Storage> localCLA = ClassListAll;
+            classTemp = localCLA.get(ClassString); //pull class stor
+            FunctStor funcTemp = classTemp.MethodNames.get(MethodString); //get this function list
+            classTemp.MethodNames.put(MethodString, tempFS); //place updated temporary copy of this funct
+            //classTemp is now a good local copy..?
+
+            //Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String, VarStor> output; //declare var for return of VDT()
-                output = VariableDeclarationTypecheck(tempBuiltStor, input.variableDeclarations.get(i), false, false);
-                combinedVars.putAll(output); //add new vars to combined vars list
-                VarStor tempStor = output.get(input.identifier.getTokenString()); //just used to show how to get the VarStor obj
-                tempFS.Parameters.add(i, tempStor); //add param to FunctStor object, ordered
-                tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
+                output = VariableDeclarationTypecheck(classTemp, input.variableDeclarations.get(i), false, false);
+                //combinedVars.putAll(output); //add new vars to combined vars list
+
+                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
+                Storage localtempClasstemp = classTemp.Copy();
+                FunctStor tempFSOMG;
+                //null---
+                if (localtempClasstemp.MethodNames.get(MethodString) == null) { //trying to fix null pointer
+                    tempFSOMG = new FunctStor();
+                } else {
+                    tempFSOMG = localtempClasstemp.MethodNames.get(MethodString);
+                }
+                VarStor tempParamVar = output.get(tempVarName);
+                if (tempFSOMG.VariableNames != null) {
+                    tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
+                } else {
+                    VarStor newTTT = new VarStor();
+                    newTTT.AccessModifier = tempParamVar.AccessModifier;
+                    newTTT.Type = tempParamVar.Type;
+                    tempFSOMG.VariableNames = new HashMap<>();
+                    tempFSOMG.VariableNames.put(tempVarName, newTTT);
+                }
+                //null--uncomment below and comment out this above
+                //tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
+                classTemp.MethodNames.put(MethodString, tempFSOMG); //replace the funct obj
+                tempFS.Parameters.add(i, tempParamVar); //add param to FunctStor object, ordered
+                //tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
             }
 
         } else { //no method params
             System.out.println("Method has no Parameters");
         }
 
-        Storage tempMethodStorageWithUpdate = new Storage();
+        ///Storage tempMethodStorageWithUpdate = new Storage();
         //tempFunctionVars
-        tempFS.VariableNames.putAll(tempFunctionVars); //empty wtf null exception
+        tempFS.VariableNames.putAll(classTemp.MethodNames.get(MethodString).VariableNames); //add params to list..?????
 
-        HashMap<String, VarStor> methodBodyVars = new HashMap<String, VarStor>(); //store all method vars here
-        if (tempFunctionVars != null) { //add params to method vars
-            System.out.println("Method Params added to Variable List");
-            methodBodyVars.putAll(tempFunctionVars);
-        } else {
-            System.out.println("Method had no variables, so none added to pre-check variable list");
-        }
+//        HashMap<String, VarStor> methodBodyVars = new HashMap<String, VarStor>(); //store all method vars here
+//        if (tempFunctionVars != null) { //add params to method vars
+//            System.out.println("Method Params added to Variable List");
+//            methodBodyVars.putAll(tempFunctionVars);
+//        } else {
+//            System.out.println("Method had no variables, so none added to pre-check variable list");
+//        }
 
         if (input.statementList != null) {
             System.out.println("Method Declaration Body: Statement List");
-            Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
+            //Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
+            Storage newStorageFunct = classTemp.Copy();
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
@@ -895,11 +928,11 @@ public class Typechecker {
                     varName = ((PVariableDeclaration) tempStmtExp).identifier.getTokenString();
                 }
 
-                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, statementStorage); //return vdt output, in the case of Variable Declarations
+                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, newStorageFunct); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
-                    methodBodyVars.put(varName, returnedVDT.get(varName));
+                    tempFS.VariableNames.put(varName, returnedVDT.get(varName));
                 }
-                ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars"
+                ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars" --old comment
 
                 globalAutoOff = false; //turn off after
                 ///CHECK AUTO STUFF HERE!!!!!!!!!XXXXXXXXXXXXXXXxxxxxxxxxxXXXXXXXXXXXXXXXXXXXXx
@@ -912,12 +945,12 @@ public class Typechecker {
             tempFS.VariableNames = new HashMap<>();
         }
 
-        if (methodBodyVars.size() != 0) { //yes method body vars ///PUTALL ISSUE: here, it will not work correctly if you say "... != null", but above it will fail if you put "...size() != 0"
-            tempFS.VariableNames.putAll(methodBodyVars); //XXXXXXXXXX Fix, right now it is EMPTY, used to give all var names for method
-            //all 5 parts of tempFS (FunctStor) obj added, need to replace this FunctStor object for this method in map
-        } else { //no method body vars, empty
-            //do nothing since empty
-        }
+//        if (methodBodyVars.size() != 0) { //yes method body vars ///PUTALL ISSUE: here, it will not work correctly if you say "... != null", but above it will fail if you put "...size() != 0"
+//            tempFS.VariableNames.putAll(methodBodyVars); //XXXXXXXXXX Fix, right now it is EMPTY, used to give all var names for method
+//            //all 5 parts of tempFS (FunctStor) obj added, need to replace this FunctStor object for this method in map
+//        } else { //no method body vars, empty
+//            //do nothing since empty
+//        }
 
         map.MethodNames.put(input.identifier.getTokenString(), tempFS); //update FunctStor (before was blank), replace previous entry
 
