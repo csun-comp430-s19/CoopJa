@@ -61,7 +61,7 @@ public class Typechecker_UnitTests {
                 "int i = 1;" +
                 "}" +
                 "int i = 2;" +
-                "return;" +
+                "return i;" +
                 "}" +
                 "}";
         ///x////testTypecheck(foo);
@@ -165,10 +165,10 @@ public class Typechecker_UnitTests {
                 "public int bar;" +//
                 "public int main(){" +
                 "foo3 = 1 + \"string thingy\";" +
-                "foofi = true | 1 < 2;" +
+                "foofi = true || 1 < 2;" +
                 "foo8 = 1;" +
                 "bar = foo8;" +
-                "foo.foo4(); " +
+                "int screaming = foo.foo4; " +
                 "int foo67; " +
                 "String foo9 = foo3;" +
                 "foo67 = (1 + 9)*5;" +
@@ -185,7 +185,7 @@ public class Typechecker_UnitTests {
                 "int i = 1;" +
                 "}" +
                 "int i = 2;" +
-                "return;" +
+                "return i;" +
                 "}" +
                 "}";
         goodTest(foo);
