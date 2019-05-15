@@ -900,6 +900,11 @@ public class Typechecker {
                     tempFS.Parameters = new ArrayList<VarStor>();
                 }
 
+                //***IMPORTANT***: this was the fix to the problem of params not being detected when colliding with themselves, besides that, they are being handled perfectly, this fixes that bug
+                if (tempFS.VariableNames.containsKey(tempVarName)) { //if already declared
+                    throw new TypeCheckerException("Duplicate Parameter name in Function " + MethodString + " in class " + ClassString);
+                }
+
                 tempFS.Parameters.add(i, tempWW); //add param to FunctStor object, ordered
 
                 if (tempFS.VariableNames == null) {
@@ -908,8 +913,10 @@ public class Typechecker {
 
                 tempFS.VariableNames.put(tempVarName, tempWW);
 
-                ///NEW FIX
-                
+                ///NEW FIX --- THIS SEEMS TO DO NOTHING AT ALL
+                GOODMETHOD.MethodNames.put(MethodString, tempFS);
+                //System.out.println(tempFS.);
+                ClassListAll.put(ClassString, GOODMETHOD);
                 //END NEW FIX
 //
 //                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();

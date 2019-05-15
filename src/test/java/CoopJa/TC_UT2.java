@@ -6,6 +6,11 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 
+//INFO: this is another class where Typechecker Unit Tests can be created
+//      all unit tests that were here have been moved to the PROPER unit test class "Typechecker_UnitTests.java"
+//Why have duplicate classes? -- It was used when multiple people at once were bug checking the Typechecker
+////////////////////////
+
 public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
         ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
@@ -24,137 +29,5 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
         myException.printStackTrace();
     }
 
-    @Test
-    public void testBadReDeclareVar() {
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "int foo1 = 1;" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadScope() {
-        String foo = "public class one {" +
-                "public void main(int one) {" +
-                "one = 1;" +
-                "}" +
-                "" +
-                "public void main2(){" +
-                "one = 1;" + //var not declared
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testVarScope() throws Exception {
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "foo1 = 1;" +
-                "}" +
-                "}";
-        testNewTypeChecker(foo);
-    }
-
-    @Test
-    public void testDontAllowReDeclare() {
-        String foo = "public class one {" +
-                "public void main(int one) {" +
-                "}" +
-                "" +
-                "int main;" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testDontAllowAssignmentExceptInMethod1() {
-        String foo = "public class one {" +
-                "int i = 0;" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testDontAllowAssignmentExceptInMethod2() throws Exception {
-        String foo = "public class one {" +
-                "int i;" +
-                "public void main() {" +
-                "i = 0;" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadForwardRefExtends() {
-        String foo = "public class one extends two {" + //two is not known yet
-                "int foo1;" +
-                "}" +
-                "public class two {" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadDefinitionString() { //bad way to define a string
-        String foo = "public class one {" +
-                "public string one;" + //it thinks "string" is an identifier of a class, that hasnt been defined -> fail
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testGoodDefinitionString() throws Exception { //good way to define a string
-        String foo = "public class one {" +
-                "public String one;" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testExtends() throws Exception {
-        String foo = "public class one {" +
-                "int foo1;" +
-                "}" +
-                "public class two extends one {" +
-                "public void main() {" +
-                "foo1 = 0;" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadParamCollision1() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        String foo = "public class example {" +
-                "public int cool;" +
-                "public void method1(int cool) {" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadParamCollision2Self() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        String foo = "public class example {" +
-                "public void method1(int cool, int cool) {" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadParamCollision3() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        String foo = "public class example {" +
-                "public void method1(int cool) {" +
-                "int cool;" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
+    //put tests here
 }

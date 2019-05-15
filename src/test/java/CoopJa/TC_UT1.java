@@ -6,6 +6,11 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 
+//INFO: this is another class where Typechecker Unit Tests can be created
+//      all unit tests that were here have been moved to the PROPER unit test class "Typechecker_UnitTests.java"
+//Why have duplicate classes? -- It was used when multiple people at once were bug checking the Typechecker
+////////////////////////
+
 public class TC_UT1 {
     public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
         ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
@@ -24,136 +29,5 @@ public class TC_UT1 {
         myException.printStackTrace();
     }
 
-    @Test
-    public void testGoodIfBlockDeclarations() throws Exception{
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "if(true){" +
-                "int i;" +
-                "i = 1;" +
-                "}" +
-                "else {" +
-                "}" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadIfBlockDeclarations(){
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "if(true){" +
-                "int i;" +
-                "}" +
-                "else {" +
-                "}" +
-                "i = 2;" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testGoodNestedIfBlockDeclarations() throws Exception{
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "if(true){" +
-                "int i;" +
-                "if(true){" +
-                "i = 2;" +
-                "}" +
-                "else{" +
-                "}" +
-                "}" +
-                "else {" +
-                "}" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadNestedIfBlockDeclarations(){
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "if(true){" +
-                "int i;" +
-                "if(true){" +
-                "int i = 2;" +
-                "}" +
-                "else{" +
-                "}" +
-                "}" +
-                "else {" +
-                "}" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testGoodWhileBlockDeclarations() throws Exception{
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "while(true){" +
-                "foo1 = 2;" +
-                "}" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadWhileBlockDeclarations(){
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "while(true){" +
-                "int foo1 = 2;" +
-                "}" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testGoodScopeForStatement() throws Exception{
-        String foo = "public class foo2{" +
-                "public int main(){" +
-                "for(int i = 1; i < 10; i=i+1;){" +
-                "i = 3;" +
-                "}" +
-                "}" +
-                "}";
-        goodTest(foo);
-    }
-
-    @Test
-    public void testBadScopeForStatment(){
-        String foo = "public class foo2{" +
-                "public int main(){" +
-                "for(int i = 1; i < 10; i=i+1;){" +
-                "for(int i = 1; i < 10; i=i+1;){" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadForwardRefExtends() {
-        String foo = "public class one extends two {" + //two is not known yet
-                "int foo1;" +
-                "}" +
-                "public class two {" +
-                "}";
-        badTest(foo);
-    }
+    //put tests here
 }
