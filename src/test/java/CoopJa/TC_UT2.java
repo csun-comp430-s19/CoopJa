@@ -7,7 +7,6 @@ import org.typemeta.funcj.parser.Input;
 import java.util.ArrayList;
 
 public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
-
     public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
         ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -69,8 +68,7 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
                 "" +
                 "int main;" +
                 "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
+        badTest(foo);
     }
 
     @Test
@@ -78,8 +76,7 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
         String foo = "public class one {" +
                 "int i = 0;" +
                 "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
+        badTest(foo);
     }
 
     @Test
@@ -90,6 +87,29 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
                 "i = 0;" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadForwardRefExtends() {
+        String foo = "public class one extends two {" + //two is not known yet
+                "int foo1;" +
+                "}" +
+                "public class two {" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testExtends() throws Exception { //not yet
+        String foo = "public class one {" +
+                "int foo1;" +
+                "}" +
+                "public class two extends one {" +
+                "public void main() {" +
+                "foo1 = 0;" +
+                "}" +
+                "}";
+        goodTest(foo);
     }
 }

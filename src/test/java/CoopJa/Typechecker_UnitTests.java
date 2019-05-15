@@ -10,7 +10,25 @@ import java.util.Arrays;
 
 public class Typechecker_UnitTests {
 
-    public void testTypecheck(final String input) {
+    public void testNewTypeChecker(String input) throws TypeCheckerException, Exception { //updated to contain good and bad test methods
+        ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
+        Input<Token> tokenListInput = new TokenParserInput(tokenList);
+        MainParser parsers = new MainParser(); //create MainParser object
+        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
+        System.out.println();
+        Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
+    }
+
+    public void goodTest (String foo) throws Exception { //call when the test will succeed
+        testNewTypeChecker(foo);
+    }
+
+    public void badTest (String foo) { //call when the test will fail, to handle exception properly for testing
+        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        myException.printStackTrace();
+    }
+
+    public void old_testTypecheck(final String input) {
         try {
             ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
             Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -46,28 +64,28 @@ public class Typechecker_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        testTypecheck(foo);
+        ///x////testTypecheck(foo);
     }
 
     @Test
     public void testImplicitExtends() { //CHANGE LATER
         String foo = "public class foo extends foo2{public int foo4 = 0;}" +
                 "public class foo2 {int fooGood = 0;}";
-        testTypecheck(foo);
+        ///x////testTypecheck(foo);
     }
 
     @Test
     public void testProperExtends() {
         String foo = "public class foo {public int foo4 = 0;}" +
                 "public class foo2 extends foo {int fooGood = 0;}";
-        testTypecheck(foo);
+        ////x///testTypecheck(foo);
     }
 
     @Test
     public void testBadExtends() {
         String foo = "public class foo extends foo3 {public int foo4 = 0;}" +
                 "public class foo2 extends foo {int fooGood = 0;}";
-        testTypecheck(foo);
+        ///x////testTypecheck(foo);
     }
 
     @Test
@@ -92,19 +110,19 @@ public class Typechecker_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        testTypecheck(foo);
+        ////x////testTypecheck(foo);
     }
 
     @Test
     public void testNameCollision() {
         String foo = "public class MainClass {public int foo = 0; public int foo = 0;}";
-        testTypecheck(foo);
+        ////x///testTypecheck(foo);
     }
 
     @Test
     public void testValidJavaConvention() { //this is valid Java convention, may or may not change, valid now
         String foo = "public class foo {public int foo = 0;}";
-        testTypecheck(foo);
+        ///x////testTypecheck(foo);
     }
 
     @Test
@@ -112,7 +130,7 @@ public class Typechecker_UnitTests {
         String foo = "public class foo {" +
                 "int foo = 0;" +
                 "int foo = 0; }";
-        testTypecheck(foo);
+        ////x////testTypecheck(foo);
     }
 
     @Test
@@ -123,29 +141,33 @@ public class Typechecker_UnitTests {
                 "int three = 1;" +
                 "}" +
                 "}";
-        testTypecheck(foo);
+        ////x////testTypecheck(foo);
     }
 
-    public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
-            ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
-            Input<Token> tokenListInput = new TokenParserInput(tokenList);
-            MainParser parsers = new MainParser(); //create MainParser object
-            PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
-            System.out.println();
-            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
-    }
+//    public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
+//            ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
+//            Input<Token> tokenListInput = new TokenParserInput(tokenList);
+//            MainParser parsers = new MainParser(); //create MainParser object
+//            PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
+//            System.out.println();
+//            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
+//    }
 
     @Test
     public void testAll() throws Exception{
-        String foo = "public class foo{public int foo4 = 0;}" +
-                "public class foo6 extends foo{public int foo4 = 1;}" +
-                "public class foo2{" +
-                "public string foo3 = 1 + \"string thingy\";" +
-                "public string foo966;" +
-                "public boolean foofi = true | 1 < 2;" +
-                "public int foo8 = 1;" +
-                "public int bar = foo8;" +
+        String foo = "public class foo{public int foo4;}" +
+                "public class foo6 extends foo{public int foo44;}" +
+                "public class foo2 {" +//
+                "public String foo3;" + //lower case "string" gives error "Class of Variable Type not defined", thinking its an identifier
+                "public String foo966;" + //capital "String" gives error "TypeCheck Error: Expected KEYWORD_STRING got KEYWORD_STRING" (that old bug...)
+                "public boolean foofi;" +
+                "public int foo8;" +
+                "public int bar;" +//
                 "public int main(){" +
+                "foo3 = 1 + \"string thingy\";" +
+                "foofi = true | 1 < 2;" +
+                "foo8 = 1;" +
+                "bar = foo8;" +
                 "foo.foo4(); " +
                 "int foo67; " +
                 "string foo9 = foo3;" +
@@ -166,11 +188,11 @@ public class Typechecker_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
     }
 
     @Test
-    public void testGoodIfStatement() throws Exception{
+    public void testGoodIfStatement() throws Exception { //updated
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "if (1 == 1){" +
@@ -180,11 +202,11 @@ public class Typechecker_UnitTests {
                 "return 1;" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
     }
 
     @Test
-    public void testBadIfStatement(){
+    public void testBadIfStatement() { //updated
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "if (1 + 1){" +
@@ -194,29 +216,29 @@ public class Typechecker_UnitTests {
                 "return;" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     @Test
-    public void testGoodWhileStatement() throws Exception{
+    public void testGoodWhileStatement() throws Exception { //updated
         String foo = "public class foo2{" +
                 "public int main(){" +
-                "while( 3 < 5 ){" +
+                "while( 3 < 5 ) {" +
                 "}" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
     }
 
     @Test
-    public void testBadWhileStatement(){
+    public void testBadWhileStatement() { //updated
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "while( \"Phosphophyllite\" ){" +
                 "}" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     @Test
@@ -301,7 +323,7 @@ public class Typechecker_UnitTests {
                 "class testProg{"+
                 "public int testInt = method(0);"+
                 "}";
-        testTypecheck(testProg);
+        ///x////testTypecheck(testProg);
     }
 
     @Test
@@ -311,7 +333,7 @@ public class Typechecker_UnitTests {
                 "public int testInt = method(0);"+
                 "}";
 
-        testTypecheck(testProg);
+        ///x/////testTypecheck(testProg);
     }
 
     @Test
@@ -323,7 +345,7 @@ public class Typechecker_UnitTests {
                 "public boolean b = True;"+
                 "public int testInt = main(4,b);"+
                 "}";
-        testTypecheck(testProg);
+        //x///x////testTypecheck(testProg);
     }
 
     @Test
@@ -334,7 +356,7 @@ public class Typechecker_UnitTests {
                 "}"+
                 "public int testInt = main();"+
                 "}";
-        testTypecheck(testProg);
+        /////////x//x///testTypecheck(testProg);
     }
 }
 
