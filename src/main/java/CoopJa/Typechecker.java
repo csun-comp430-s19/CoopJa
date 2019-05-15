@@ -889,9 +889,19 @@ public class Typechecker {
                 //combinedVars.putAll(output); //add new vars to combined vars list
 
                 String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString(); //name
+                System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!" + tempVarName);
                 VarStor tempWW = output.get(tempVarName);
 
+                if (tempFS.Parameters == null) {
+                    tempFS.Parameters = new ArrayList<VarStor>();
+                }
+
                 tempFS.Parameters.add(i, tempWW); //add param to FunctStor object, ordered
+
+                if (tempFS.VariableNames == null) {
+                    tempFS.VariableNames = new HashMap<>();
+                }
+
                 tempFS.VariableNames.put(tempVarName, tempWW);
 
                 GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
@@ -943,7 +953,7 @@ public class Typechecker {
         if (input.statementList != null) {
             System.out.println("Method Declaration Body: Statement List");
             //Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
-            Storage newStorageFunct = classTemp.Copy();
+            //Storage newStorageFunct = classTemp.Copy();
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
@@ -954,7 +964,7 @@ public class Typechecker {
                     varName = ((PVariableDeclaration) tempStmtExp).identifier.getTokenString();
                 }
 
-                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, newStorageFunct); //return vdt output, in the case of Variable Declarations
+                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, GOODMETHOD); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
                     tempFS.VariableNames.put(varName, returnedVDT.get(varName));
 
