@@ -146,4 +146,14 @@ public class TC_UT1 {
                 "}";
         badTest(foo);
     }
+
+    @Test
+    public void testBadForwardRefExtends() {
+        String foo = "public class one extends two {" + //two is not known yet
+                "int foo1;" +
+                "}" +
+                "public class two {" +
+                "}";
+        badTest(foo);
+    }
 }
