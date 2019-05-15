@@ -90,13 +90,11 @@ public class Typechecker {
                 "foo1 = 1;" +
                 "one = 1;" +
                 "int foo2 = 0;" +
-                //"int foo2 = 9;" +
                 "foo2 = 9;" +
                 "}" +
-                "public void main2(int two){" +
+                "public void main2(int one){" +
                 "int foo3;" +
                 "}" +
-                //"int one;" +
                 "}";
 
 
