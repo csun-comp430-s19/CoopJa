@@ -1294,10 +1294,13 @@ public class Typechecker {
 
     private static void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Storage currentScope) throws TypeCheckerException {
         Storage whileScope = currentScope.Copy();
+        HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
         if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("While Loop Expression must be of type BOOLEAN");
         for (PStatement statement : whileStatement.statementList) {
-            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, whileScope);
+            blockVariables = TEMP_unused_code_for_PStmts__PSTATEMENT(statement, whileScope);
+            if (blockVariables != null)
+                whileScope.VariableNames.putAll(blockVariables);
         }
     }
 
@@ -1319,7 +1322,7 @@ public class Typechecker {
         for (PStatement statement : ifStatement.elseStatementList) {
             blockVariables = TEMP_unused_code_for_PStmts__PSTATEMENT(statement, elseScope);
             if (blockVariables != null)
-                ifScope.VariableNames.putAll(blockVariables);
+                elseScope.VariableNames.putAll(blockVariables);
         }
     }
 

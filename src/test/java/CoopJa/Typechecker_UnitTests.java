@@ -177,7 +177,7 @@ public class Typechecker_UnitTests {
                 "}" +
                 "else{" +
                 "}" +
-                "return;" +
+                "return 1;" +
                 "}" +
                 "}";
         testNewTypeChecker(foo);

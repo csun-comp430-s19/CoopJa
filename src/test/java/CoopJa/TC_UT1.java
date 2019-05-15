@@ -71,7 +71,64 @@ public class TC_UT1 {
                 "}" +
                 "else {" +
                 "}" +
-                "i = 2;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadNestedIfBlockDeclarations(){
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "if(true){" +
+                "int i = 2;" +
+                "}" +
+                "else{" +
+                "}" +
+                "}" +
+                "else {" +
+                "}" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodWhileBlockDeclarations() throws Exception{
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "while(true){" +
+                "foo1 = 2;" +
+                "}" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadWhileBlockDeclarations(){
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "while(true){" +
+                "int foo1 = 2;" +
+                "}" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodScopeForStatement() throws Exception{
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "i = 3;" +
+                "}" +
                 "}" +
                 "}";
         goodTest(foo);
