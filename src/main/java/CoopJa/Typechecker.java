@@ -1716,7 +1716,8 @@ class FunctStor { //store method stuff
     }
 
     public FunctStor() {
-
+        Parameters = new ArrayList<VarStor>();
+        VariableNames = new HashMap<String, VarStor>();
     }
 }
 
