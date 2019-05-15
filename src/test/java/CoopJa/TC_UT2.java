@@ -26,6 +26,59 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     @Test
+    public void testGoodIfBlockDeclarations() throws Exception{
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "i = 1;" +
+                "}" +
+                "else {" +
+                "}" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadIfBlockDeclarations(){
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "}" +
+                "else {" +
+                "}" +
+                "i = 2;" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodNestedIfBlockDeclarations() throws Exception{
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "if(true){" +
+                "i = 2;" +
+                "}" +
+                "else{" +
+                "}" +
+                "}" +
+                "else {" +
+                "}" +
+                "i = 2;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
     public void testBadReDeclareVar() {
         String foo = "public class one {" +
                 "int foo1;" +

@@ -1304,16 +1304,22 @@ public class Typechecker {
     private static void typeCheckIfStatement(PStatementIfStatement ifStatement, Storage currentScope) throws TypeCheckerException {
         Storage ifScope = currentScope.Copy(); //if statement needs its own scope, anything declared inside stays inside
         Storage elseScope = currentScope.Copy(); //exclusive scope for the else block that wont interfere with anything outside
+        HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
         //check if expression is boolean
         if (getExpressionType(ifStatement.expression, ifScope) != Token.TokenType.KEYWORD_BOOLEAN)
             throw new TypeCheckerException("Expression in IF statement not a Boolean");
         //typecheck elements in if statement
         for (PStatement statement : ifStatement.statementList) {
-            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, ifScope);
+            blockVariables = TEMP_unused_code_for_PStmts__PSTATEMENT(statement, ifScope);
+            if (blockVariables != null)
+                ifScope.VariableNames.putAll(blockVariables);
         }
         //typecheck elements in else statement
+        blockVariables = null;
         for (PStatement statement : ifStatement.elseStatementList) {
-            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, elseScope);
+            blockVariables = TEMP_unused_code_for_PStmts__PSTATEMENT(statement, elseScope);
+            if (blockVariables != null)
+                ifScope.VariableNames.putAll(blockVariables);
         }
     }
 
