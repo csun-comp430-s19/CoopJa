@@ -2,8 +2,12 @@ package CoopJa;
 
 import org.typemeta.funcj.parser.Input;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class START {
 
@@ -23,13 +27,43 @@ public class START {
 
     public static void main(String args[]) throws IOException {
 
+        String ProgramString;
+
         if (args.length <= 0) {
-            System.err.println("You have not given a file");
-            System.exit(-1);
+            System.out.println("You have not given a file. So we will run the Default Program String.");
+            ProgramString = DefaultProgramString;
         } else {
-            System.out.println("Yes you have");
-            System.out.println(args[0]);
+            String filename = args[0];
+            System.out.println("You have given file named: " + filename);
+            StringBuilder ProgInput = new StringBuilder();
+            BufferedReader reader = null;
+            try {
+                File file = new File(filename);
+                reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    ProgInput.append(line).append("\n");
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("Final Input:");
+            System.out.println(ProgInput);
+            ProgramString = ProgInput.toString();
         }
+
+        //now run stuff
+
+        System.out.println("Program test");
+        System.out.println(ProgramString);
+
 
 
 
