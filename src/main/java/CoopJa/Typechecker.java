@@ -179,12 +179,8 @@ public class Typechecker {
             System.out.println();
         }
 
-        System.out.println("one typecheck done");
+        System.out.println("one typecheck done"); //XXXXXXXXXXXX
 
-        //extra call to Expression and Statement Typechecker
-        //this can be thought of as a SECOND typechecker that covers Expressions and statements
-        //--ExpressionTypeChecker cTypeChkr = new ExpressionTypeChecker(fooTester);
-        //--cTypeChkr.typeCheck();
     }
 
     //idea, recursive methodology
@@ -195,9 +191,6 @@ public class Typechecker {
             return Token.TokenType.KEYWORD_STRING;
         if (exp instanceof PExpressionAtomBooleanLiteral)
             return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
-//        if (exp instanceof PExpressionVariable) { //changed XXXXXXXXX CHANGE TO CHECK VARIABLES IN SCOPE XXXXXXXXwont call if this is the caseXXXXXXXXXXXXXXXZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ~~~~~
-//            return ((PExpressionVariable) exp).variable.getType();
-//        }
         if (exp instanceof PExpressionBinOp) {
             //recursivly do both hands of the expressions
             Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
@@ -263,8 +256,6 @@ public class Typechecker {
                     throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
                 output = Token.TokenType.KEYWORD_BOOLEAN;
             }/*****     *****/
-            //else if( operator ==
-            //if the two sides match just return the type of one of the sides
             return output;
         }
         return null;
@@ -397,274 +388,6 @@ public class Typechecker {
         } else {
             throw new TypeCheckerException("TypeCheck Error: Type mismatch (variable type: " + varType + ", assignment type: " + assType + ")");
         }
-    }
-
-    //getExpressionType()
-    public static void old_typeCheckVariableDec(PVariableDeclaration varDec, Storage varMap) throws TypeCheckerException {
-        System.out.println("Checking Variable Declaration Body");
-
-        Token.TokenType varType = varDec.variableType.getType();
-        Token.TokenType assType; //good comment
-
-        //boolean autoPossible = false; //true if right side could be auto
-
-        assType = old_PExpressionChecker(varDec.assignment, varMap);
-
-        if (varDec.assignment instanceof PExpressionBinOp) {
-            System.out.println("PExpressionBinOp");
-            if (varType == assType) {
-                System.out.println("Variable Declaration Succeeded");
-            } else {
-                if (varType == Token.TokenType.KEYWORD_AUTO) {
-                    System.out.println("AUTO var type detected!");
-                    //change auto type
-                    String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                    //remnants of how AutoHandler used to work
-                    //AutoHandler.add(auto);
-                } else { //type mismatch
-                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
-                }
-            }
-        } else if (varDec.assignment instanceof PExpressionIdentifierReference) {
-            System.out.println("!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\nPExpressionIdentifierReference");
-            //unused
-            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
-        } else if (varDec.assignment instanceof PExpressionVariable) {
-            System.out.println("PExpressionVariable");
-            String varName = ((PExpressionVariable) varDec.assignment).variable.getTokenString(); //PExpressionVariable name
-            //we only know the return type of PExpressionChecker(), not where the var was found (parent or child), so if PExpressionChecker() didnt fail, the var must be in one of them
-            if (varMap.VariableNames.containsKey(varName)) { //if var is in current class vars
-                if (varType == Token.TokenType.KEYWORD_AUTO && assType != Token.TokenType.KEYWORD_AUTO) { //if left is auto
-                    System.out.println("AUTO var type detected!");
-                    //change auto type
-                    String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                    //remnants of how AutoHandler used to work
-                    //AutoHandler.add(auto);
-                } else if (assType == Token.TokenType.KEYWORD_AUTO && varType != Token.TokenType.KEYWORD_AUTO) { //right side is auto
-                    System.out.println("Assignment Var has AUTO type!");
-                    //change auto type of assignment var
-                    String[] auto = {ClassString, "Variable", MethodString, varName, varType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                    //remnants of how AutoHandler used to work
-                    //AutoHandler.add(auto);
-                } else if (assType == varType && assType == Token.TokenType.KEYWORD_AUTO) { //both auto
-                    throw new TypeCheckerException("TypeCheck Error: AUTO Var cannot be assigned to another AUTO Var");
-                } else {
-                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
-                }
-            } else { //else it was in the parent
-                if (varType == Token.TokenType.KEYWORD_AUTO && assType != Token.TokenType.KEYWORD_AUTO) { //if left is auto
-                    System.out.println("AUTO var type detected!");
-                    //change auto type
-                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                    //remnants of how AutoHandler used to work
-                    //AutoHandler.add(auto);
-                } else if (assType == Token.TokenType.KEYWORD_AUTO && varType != Token.TokenType.KEYWORD_AUTO) { //right side is auto
-                    System.out.println("Assignment Var has AUTO type!");
-                    //change auto type of assignment var
-                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varName, varType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                    //remnants of how AutoHandler used to work
-                    //AutoHandler.add(auto);
-                } else if (assType == varType && assType == Token.TokenType.KEYWORD_AUTO) { //both auto
-                    throw new TypeCheckerException("TypeCheck Error: AUTO Var cannot be assigned to another AUTO Var");
-                } else {
-                    throw new TypeCheckerException("TypeCheck Error: Type mismatch");
-                }
-            } ///FIXED TO THIS POINT
-        } else if (varDec.assignment instanceof PStatementFunctionCall) {
-            System.out.println("PStatementFunctionCall");
-            PStatementFunctionCall STMT = (PStatementFunctionCall) varDec.assignment;
-            String functName = STMT.identifier.getTokenString();
-            int functParamSize = STMT.expressionsInput.size();
-            if (varMap.MethodNames.containsKey(functName)) { //if funct exists
-                FunctStor tempFunct = varMap.MethodNames.get(functName);
-                if (functParamSize == tempFunct.Parameters.size()) { //if param list size matches
-                    System.out.println("Params Amount Match");
-                    for (int i = 0; i < functParamSize; i++) { //for all params
-                        PExpression temp1 = STMT.expressionsInput.get(i); //param in funct call
-                        VarStor temp2 = tempFunct.Parameters.get(i); //params list already defined
-                        Token.TokenType tempT2 = temp2.Type.getType(); //type of param defined
-                        //XXXXXXXXX could do it better, obscure to method, but cant think of a clean way to do right now, since different things are needed for each time referenced
-                        if (temp1 instanceof PExpressionBinOp) {
-                            Token.TokenType tempT1 = getType(temp1); //param in funct call type
-                            if (tempT1 == tempT2) { //if equal, good
-                                //match
-                            } else { //if not equal, why?
-                                if (tempT2 == Token.TokenType.KEYWORD_AUTO) { //if pre defined param had auto type, change
-                                    System.out.println("Param " + i + " Var has AUTO type!");
-                                    //change auto type of assignment var
-                                    String[] auto = {ClassString, "Parameter", MethodString, "" + i, tempT1.toString()}; //in class name, in parent, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                    //remnants of how AutoHandler used to work
-                                    //AutoHandler.add(auto);
-                                } else if (tempT1 == Token.TokenType.KEYWORD_AUTO) {
-                                    //var being passed into funct has an auto type, but we now know the type
-                                    //except, this case will not occur since we know its an instance of PExpressionBinOp
-                                } else {
-                                    throw new TypeCheckerException("TypeCheck Error: Param Types do not match");
-                                }
-                            }
-                        } else if (temp1 instanceof PExpressionIdentifierReference) {
-                            //do nothing since not exist
-                            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
-                        } else if (temp1 instanceof PExpressionVariable) {
-                            String varName = ((PExpressionVariable) temp1).variable.getTokenString(); //param name of var
-                            if (varMap.VariableNames.containsKey(varName)) { //var exists in current class
-                                VarStor tempVarCheck = varMap.VariableNames.get(varName);
-                                assType = tempVarCheck.Type.getType();
-                                //autoPossible = true; //mostly for reference
-                                if (tempT2 == assType) {
-                                    //good
-                                } else { //not match
-                                    if (tempT2 == Token.TokenType.KEYWORD_AUTO) { //funct param declared with auto type
-                                        System.out.println("Param " + i + " Var has AUTO type!");
-                                        //change auto type of assignment var
-                                        String[] auto = {ClassString, "Parameter", MethodString, "" + i, assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                        //remnants of how AutoHandler used to work
-                                        //AutoHandler.add(auto);
-                                    } else if (assType == Token.TokenType.KEYWORD_AUTO) { //var being passed into method as param has an auto type, fix
-                                        System.out.println("Param has AUTO type!");
-                                        //change auto type of assignment var
-                                        String[] auto = {ClassString, "Variable", MethodString, varName, tempT2.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                        //remnants of how AutoHandler used to work
-                                        //AutoHandler.add(auto);
-                                    }
-                                }
-                            } else { //check parent
-                                if (varMap.extendsClass != null) { //if extends
-                                    if (varMap.extendsClass.VariableNames.containsKey(varName)) {
-                                        VarStor tempVarCheck = varMap.extendsClass.VariableNames.get(varName); //param var
-                                        if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) {
-                                            throw new TypeCheckerException("TypeCheck Error: Parent Var has Private access");
-                                        } else { //good access
-                                            assType = tempVarCheck.Type.getType();
-                                            //autoPossible = true; //mostly for reference
-                                            if (tempT2 == assType) {
-                                                //good
-                                            } else { //not match
-                                                if (tempT2 == Token.TokenType.KEYWORD_AUTO) { //funct param declared with auto type
-                                                    System.out.println("Param " + i + " Var has AUTO type!");
-                                                    //change auto type of assignment var
-                                                    String[] auto = {ClassString, "Parameter", MethodString, "" + i, assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                                    //remnants of how AutoHandler used to work
-                                                    //AutoHandler.add(auto);
-                                                } else if (assType == Token.TokenType.KEYWORD_AUTO) { //var being passed into method as param has an auto type, fix
-                                                    System.out.println("Param has AUTO type!");
-                                                    //change auto type of assignment var
-                                                    String[] auto = {ClassString, "Parent", "Variable", MethodString, varName, tempT2.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                                    //remnants of how AutoHandler used to work
-                                                    //AutoHandler.add(auto);
-                                                } else { //bad types
-                                                    throw new TypeCheckerException("TypeCheck Error: Param Types do not match");
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        throw new TypeCheckerException("TypeCheck Error: Var Does not exist in Parent or Child");
-                                    }
-                                } else {
-                                    throw new TypeCheckerException("TypeCheck Error: Var does not exist");
-                                }
-                            } //end parent class check
-                        } else if (temp1 instanceof PStatementFunctionCall) {
-                            ///hhhhhh
-                        } else if (temp1 instanceof PExpressionAtom) {
-                            ///hhhhhh
-                            if (varDec.assignment.getClass().toString().equals("class CoopJa.PIdentifierReference")) {
-                                System.out.println("PIdentifierReference");
-                                PIdentifierReference tempVar = (PIdentifierReference) varDec.assignment;
-                                String PIRvarname = tempVar.identifier.getTokenString();
-                                if (varMap.VariableNames.containsKey(PIRvarname)) {
-                                    ///hhhhhh
-                                    //var found, check next identifier
-                                    VarStor PIRtemp = varMap.VariableNames.get(PIRvarname);
-                                } else {
-                                    if (varMap.extendsClass != null) {
-                                        if (varMap.extendsClass.VariableNames.containsKey(PIRvarname)) {
-                                            ///hhhhhh
-                                        } else {
-                                            ///hhhhhh
-                                        }
-                                    } else {
-                                        throw new TypeCheckerException("TypeCheck Error: Var does not exist in Parent or Child");
-                                    }
-                                }
-                            } else {
-                                System.out.println("PExpressionAtom");
-                                PExpressionAtom tempVar = (PExpressionAtom) varDec.assignment;
-                                Token.TokenType tempType = getType(tempVar);
-                                if (tempT2 == tempType) {
-                                    //good
-                                } else {
-                                    if (tempT2 == Token.TokenType.KEYWORD_AUTO) { //funct param declared with auto type
-                                        System.out.println("Param " + i + " Var has AUTO type!");
-                                        //change auto type of assignment var
-                                        String[] auto = {ClassString, "Parameter", MethodString, "" + i, tempType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                                        //remnants of how AutoHandler used to work
-                                        //AutoHandler.add(auto);
-                                    } else if (false) {
-                                        //no need to check if right side is auto, since it is a defined type
-                                    } else { //bad types
-                                        throw new TypeCheckerException("TypeCheck Error: Param Types do not match");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    throw new TypeCheckerException("TypeCheck Error: Function Parameters Do Not Match!");
-                }
-            } else { //check if function is in parent
-                if (varMap.extendsClass != null) { //yes extends
-                    if (varMap.extendsClass.MethodNames.containsKey(functName)) { //if function is in list in parent
-                        //COPY ABOVE
-                        // varMap.extendsClass.MethodNames.get(functName);
-                    }
-                } else { //no function exists with this name
-                    throw new TypeCheckerException("TypeCheck Error: Function does not exist");
-                }
-            }
-        } else if (varDec.assignment instanceof PExpressionAtom) {
-            if (varDec.assignment.getClass().toString().equals("class CoopJa.PIdentifierReference")) {
-                System.out.println("PIdentifierReference");
-                /////////////////////XXXXXXXXXXXX
-            } else {
-                System.out.println("PExpressionAtom");
-                assType = getType(varDec.assignment);
-                if (varType == assType) {
-                    System.out.println("Variable Declaration Succeeded");
-                } else {
-                    if (varType == Token.TokenType.KEYWORD_AUTO) {
-                        System.out.println("AUTO var type detected!");
-                        //change auto type
-                        String[] auto = {ClassString, "Variable", MethodString, varDec.identifier.getTokenString(), assType.toString()}; //in class name, type (variable/method), in method name (could be empty if in class, var name, type to change to
-                        //remnants of how AutoHandler used to work
-                        //AutoHandler.add(auto);
-                    }
-                }
-            }
-        }
-
-        System.out.println("[[[[[[[[[[[[[[[[[[[[" + varDec.assignment.getClass() + "]]]]]]]]]]]]]");
-
-        System.out.println(getType(varDec.assignment));
-
-
-//        if (varDec.assignment != null) { //assuming there is an expression to be checked //now useless
-//            Token.TokenType assignment = getType(varDec.assignment); //BODY
-//            System.out.println("Variable Declared as Type: " + varDec.variableType.getType());
-//            System.out.println("VarDec Assignment Type is: " + varDec.assignment.getClass());
-//            if (assignment == Token.TokenType.KEYWORD_STRING) {
-//                if (varDec.variableType.getType() != assignment) //string = not string
-//                    throw new TypeCheckerException("TypeCheck Error: Expected " +
-//                            varDec.variableType.getType() + " got " + assignment);
-//            }
-//            if (assignment == Token.TokenType.IDENTIFIER) {
-//                System.out.println("IDENTIFIER Dectected");
-//                System.out.println(varDec.assignment.getClass() + " -------class");
-//            }
-//        } else {
-//            System.out.println("Empty VarDec Body");
-//        }
-//        System.out.println("Variable Declaration is Valid");
     }
 
     public static HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input, boolean assignmentAllowed, boolean autoAllowed) throws TypeCheckerException { //take in map of all vars declared in scope, and the declaration stmt
@@ -848,49 +571,13 @@ public class Typechecker {
         ClassListAll.put(ClassString, GOODMETHOD); //replace class
 
         MethodString = input.identifier.getTokenString(); //used for auto
-        //Storage classTemp = new Storage();
 
         //deal with params
-        //HashMap<String, VarStor> tempFunctionVars = new HashMap<String, VarStor>();
         if (input.variableDeclarations != null) { //if method has params
             System.out.println("Method Parameters:");
-            //HashMap<String, VarStor> tempClassVars = map.VariableNames; //grab list of all class vars
-            //tempFunctionVars = map.MethodNames.get(input.identifier.getTokenString()).VariableNames; //grab all method vars
-            //HashMap<String, VarStor> combinedVars = new HashMap<>(); //define hashmap to store all vars the method needs to know about
-            //combinedVars.putAll(tempClassVars); //add class vars to combined vars list
-            //if (tempFunctionVars != null) { //if stuff is in list ///PUTALL ISSUE: here it will fail if you put "...size() != 0" but down it will fail if you put "... != null"
-                //combinedVars.putAll(tempFunctionVars); //add method vars to combined vars list, ie merge them
-            //} else { //if the list is empty, it will fail to putall
-                //no need to merge, but need to initialize
-                //tempFunctionVars = new HashMap<String, VarStor>();
-            //}
-//            if (map.extendsClass != null) { //if extends, add stuff
-//                System.out.println("extends");
-//                if (map.extendsClass.VariableNames != null || map.extendsClass.VariableNames.size() > 0) { //if extends class has stuff
-//                    combinedVars.putAll(map.extendsClass.VariableNames);
-//                }
-//                if (map.extendsClass.MethodNames != null || map.extendsClass.MethodNames.size() > 0) { //if extends class has stuff
-//                    Set<String> keys = map.extendsClass.MethodNames.keySet(); //pull out all keys of hashmap, since they dont match since vars use VarStor and methods use FunctStor
-//                    for (String key : keys) { //add each key to combined list and use blank VarStor because we just care about name conflicts
-//                        combinedVars.put(key, new VarStor());
-//                    }
-//                }
-//            } else {
-//                System.out.println("no extends");
-//            } //commented out block note: i think VDT already handles this, but i wrote it, so it's staying here just in case
-
-//            //create local copy of ClassListAll
-//            HashMap<String, Storage> localCLA = ClassListAll;
-//            classTemp = localCLA.get(ClassString); //pull class stor
-//            FunctStor funcTemp = classTemp.MethodNames.get(MethodString); //get this function list
-//            classTemp.MethodNames.put(MethodString, tempFS); //place updated temporary copy of this funct
-//            //classTemp is now a good local copy..?
-
-            //Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String, VarStor> output; //declare var for return of VDT()
                 output = VariableDeclarationTypecheck(GOODMETHOD, input.variableDeclarations.get(i), false, false); //send GOODMETHOD to ensure parameters know scope
-                //combinedVars.putAll(output); //add new vars to combined vars list
 
                 String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString(); //name
                 System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!" + tempVarName); //debug stuff
@@ -918,53 +605,14 @@ public class Typechecker {
                 //System.out.println(tempFS.);
                 ClassListAll.put(ClassString, GOODMETHOD);
                 //END NEW FIX
-//
-//                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
-//                Storage localtempClasstemp = classTemp.Copy();
-//                FunctStor tempFSOMG;
-//                //null---
-//                if (localtempClasstemp.MethodNames.get(MethodString) == null) { //trying to fix null pointer
-//                    tempFSOMG = new FunctStor();
-//                } else {
-//                    tempFSOMG = localtempClasstemp.MethodNames.get(MethodString);
-//                }
-//                VarStor tempParamVar = output.get(tempVarName);
-//                if (tempFSOMG.VariableNames != null) {
-//                    tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
-//                } else {
-//                    VarStor newTTT = new VarStor();
-//                    newTTT.AccessModifier = tempParamVar.AccessModifier;
-//                    newTTT.Type = tempParamVar.Type;
-//                    tempFSOMG.VariableNames = new HashMap<>();
-//                    tempFSOMG.VariableNames.put(tempVarName, newTTT);
-//                }
-//                //null--uncomment below and comment out this above
-//                //tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
-//                classTemp.MethodNames.put(MethodString, tempFSOMG); //replace the funct obj
-//                tempFS.Parameters.add(i, tempParamVar); //add param to FunctStor object, ordered
-//                //tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
             } //end for params
 
         } else { //no method params
             System.out.println("Method has no Parameters");
         }
 
-        ///Storage tempMethodStorageWithUpdate = new Storage();
-        //tempFunctionVars
-        ////////////null///////tempFS.VariableNames.putAll(classTemp.MethodNames.get(MethodString).VariableNames); //add params to list..?????
-
-//        HashMap<String, VarStor> methodBodyVars = new HashMap<String, VarStor>(); //store all method vars here
-//        if (tempFunctionVars != null) { //add params to method vars
-//            System.out.println("Method Params added to Variable List");
-//            methodBodyVars.putAll(tempFunctionVars);
-//        } else {
-//            System.out.println("Method had no variables, so none added to pre-check variable list");
-//        }
-
         if (input.statementList != null) {
             System.out.println("Method Declaration Body: Statement List");
-            //Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
-            //Storage newStorageFunct = classTemp.Copy();
             Storage statementBlockStorage = GOODMETHOD.Copy();
             statementBlockStorage.VariableNames.putAll(tempFS.VariableNames);//place parameter variables into method scope
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
@@ -979,18 +627,8 @@ public class Typechecker {
 
                 HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, statementBlockStorage); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
-                    //tempFS.VariableNames.put(varName, returnedVDT.get(varName));
-
                     statementBlockStorage.VariableNames.put(varName, returnedVDT.get(varName));
-                    /*
-                    GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
-                    GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
-                    GOODMETHOD.VariableNames.putAll(tempFS.VariableNames); //i love you miguel
-                    */
-
-                    //ClassListAll.put(ClassString, GOODMETHOD); //replace class
                 }
-                ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars" --old comment
 
                 globalAutoOff = false; //turn off after
                 ///CHECK AUTO STUFF HERE!!!!!!!!!XXXXXXXXXXXXXXXxxxxxxxxxxXXXXXXXXXXXXXXXXXXXXx
@@ -1003,15 +641,6 @@ public class Typechecker {
             tempFS.VariableNames = new HashMap<>();
         }
 
-//        if (methodBodyVars.size() != 0) { //yes method body vars ///PUTALL ISSUE: here, it will not work correctly if you say "... != null", but above it will fail if you put "...size() != 0"
-//            tempFS.VariableNames.putAll(methodBodyVars); //XXXXXXXXXX Fix, right now it is EMPTY, used to give all var names for method
-//            //all 5 parts of tempFS (FunctStor) obj added, need to replace this FunctStor object for this method in map
-//        } else { //no method body vars, empty
-//            //do nothing since empty
-//        }
-
-        ///map.MethodNames.put(input.identifier.getTokenString(), tempFS); //update FunctStor (before was blank), replace previous entry
-
         GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
         GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
         ClassListAll.put(ClassString, GOODMETHOD); //replace class
@@ -1019,7 +648,7 @@ public class Typechecker {
         MethodString = ""; //reset val
         MethodDeclarationNumber = -1; //reset val
 
-        //////return map; //return class Storage object updated, useless
+        //not returning a map anymore, just updating as we go
 
     }
 
@@ -1068,80 +697,7 @@ public class Typechecker {
         }
     }
 
-    //old and unused
-    //entirely replaced by getExpressionType()~~~~~~
-    //Should return a type.
-    public static void TEMP_unused_code_for_Expressions__VARDEC(PVariableDeclaration input, Storage containingClassMembers) throws TypeCheckerException {
-        System.out.println("Declaration Body: ");
-        if (input.assignment != null) {
-
-            if (input.assignment instanceof PExpressionStub) {
-                System.out.println("Instance of PExpressionStub");
-                PExpressionStub tempExp = (PExpressionStub) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PExpressionBinOp) { //----------------
-                System.out.println("Instance of PExpressionBinOp");
-                PExpressionBinOp tempExp = (PExpressionBinOp) input.assignment;
-                //2 pexpressions 1 token
-            }
-            if (input.assignment instanceof PExpressionIdentifierReference) {
-                System.out.println("Instance of PExpressionIdentifierReference");
-                PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference) input.assignment;
-                //1 token 1 pexpr
-            }
-            if (input.assignment instanceof PExpressionVariable) { //----------------
-                System.out.println("Instance of PExpressionVariable");
-                PExpressionVariable tempExp = (PExpressionVariable) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PStatementFunctionCall) {
-                System.out.println("Instance of PStatementFunctionCall");
-                PStatementFunctionCall tempExp = (PStatementFunctionCall) input.assignment;
-                ////XXXXXXX this method should now be obsolete, with the implementation of getType() etc, the one we need to work on is the ...PSTATEMENT temp method()
-                ////XXXXXXX if this is not the case, what is not being handled?
-                //Do we need to check if the function being called exists, or has it been checked by this point. ---> no, this is called during function evaluation / declaration, but that's fine XXXXXXXXXXXX
-                //_will just typecheck here again for safety.
-                //Function call token doesn't have return type member, so we have to get it.
-                checkFunctionCallExists(tempExp, containingClassMembers); //probably old method~~~~~~
-                //1 Token , 1 ArrayList<PExpression>
-            }
-            if (input.assignment instanceof PExpressionAtomBooleanLiteral) { //----------------
-                System.out.println("Instance of PExpressionAtomBooleanLiteral");
-                PExpressionAtomBooleanLiteral tempExp = (PExpressionAtomBooleanLiteral) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PExpressionAtomNullLiteral) {
-                System.out.println("Instance of PExpressionAtomNullLiteral");
-                PExpressionAtomNullLiteral tempExp = (PExpressionAtomNullLiteral) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PExpressionAtomNumberLiteral) { //----------------
-                System.out.println("Instance of PExpressionAtomNumberLiteral");
-                PExpressionAtomNumberLiteral tempExp = (PExpressionAtomNumberLiteral) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PExpressionAtomObjectConstruction) {
-                System.out.println("Instance of PExpressionAtomObjectConstruction");
-                PExpressionAtomObjectConstruction tempExp = (PExpressionAtomObjectConstruction) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PExpressionAtomStringLiteral) { //----------------
-                System.out.println("Instance of PExpressionAtomStringLiteral");
-                PExpressionAtomStringLiteral tempExp = (PExpressionAtomStringLiteral) input.assignment;
-                //1 token
-            }
-            if (input.assignment instanceof PIdentifierReference) {
-                System.out.println("Instance of PIdentifierReference");
-                PIdentifierReference tempExp = (PIdentifierReference) input.assignment;
-                //1 Token , 1 PStatement
-            }
-        } else {
-            System.out.println("Declaration PExpression assignment Empty");
-        }
-    }
-
-    //now actually used
+    //now actually used!
     public static HashMap<String, VarStor> TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp, Storage currentScope) throws TypeCheckerException {
         if (tempStmtExp instanceof PExpressionIdentifierReference) { //done
             System.out.println("Instance of PExpressionIdentifierReference");
@@ -1251,58 +807,6 @@ public class Typechecker {
         return null; //no need to return anything, since never reached, but whatever
     }
 
-    //old and unused
-    public static void checkFunctionCallExists(PStatementFunctionCall tempExp, Storage containingClassMembers) throws TypeCheckerException {
-        //Get the functions in the storage.
-      /*(i)(!) because we check class's PStatements (functions) after vars,
-        methods used in a line before they're declared will throw an TypeCheckerException.
-      */
-        HashMap<String, FunctStor> methodsInScope = containingClassMembers.MethodNames;
-        //check if the function call doesn't exist.
-        if (!(methodsInScope.containsKey(tempExp.identifier.getTokenString()))) {
-            //we throw an TypeCheckerException
-            throw new TypeCheckerException("Method Call Error: Method " + tempExp.identifier.getTokenString() + " does not exist.");
-        } else //we check if the signature is a match, so param vs arg types.
-        {
-            FunctStor possMatch = methodsInScope.get(tempExp);
-
-            //(!) The parser should have checked that the params are the same length?
-            if (possMatch.Parameters.size() != tempExp.expressionsInput.size())
-                throw new TypeCheckerException("Method Call Error: Method " + tempExp.identifier.getTokenString() + " does not exist.");
-
-            for (int param = 0; param < possMatch.Parameters.size(); param++) {
-                //No good. Needs better way to distinguish Types of tokens, or better var names, because Type.TokenType ??
-                //Token argType = TEMP_unused_code_for_Expressions__VARDEC(tempExp.expressionsInput.get(param));
-                //Go through list of parameters.
-                //if(possMatch.Parameters.get(param).Type.TokenType != argType.TokenType)
-                //   throw new TypeCheckerException("Method Call Error: Method parameter"+param+" expected type " +
-                //                  possMatch.Parameters.get(param).Type.getTokenString()+
-                //                "but instead got type " + tempExp.identifier.getTokenString());
-            }
-        }//End check signature matcch.
-    }//End checkFunctionCallExists( ).
-
-    //***************************************EXPRESSION TYPECHECKING********************************
-
-    //now using CheckVarAss()
-    private static void typeCheckVariableAssignment(PVariableAssignment varAss, Storage currentScope) throws TypeCheckerException {
-        //typecheck assignement
-        Token.TokenType assignment = getExpressionType(varAss.value, currentScope);
-        //check if assignee is within the scope
-        Token.TokenType assignee = VariableInScope(varAss.identifier.getTokenString(), currentScope);
-        //weirdness going on for string stuff, was used to fix a bug long ago, but now it looks bizarre
-        //possilble failure point for string typechecking
-        if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-            if (!assignee.equals("string"))
-                throw new TypeCheckerException("TypeCheck Error: Expected " +
-                        assignee + " got " + assignment);
-
-        } else if (assignment != assignee) {
-            throw new TypeCheckerException("TypeCheck Error: Expected " +
-                    assignee + " got " + assignment);
-        }
-    }
-
     private static void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Storage currentScope) throws TypeCheckerException {
         Storage whileScope = currentScope.Copy();
         HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
@@ -1357,28 +861,6 @@ public class Typechecker {
                 forScope.VariableNames.putAll(blockVariables);
         }
     }
-
-    //this part is likely unnessesary as VDT can handles this part
-    /*
-    private static void typeCheckStatementVariableDec(PVariableDeclaration varDec, Storage currentScope) throws TypeCheckerException {
-        //not sure if already initialized variables are typechecked yet
-        //add here if they arent
-        VarStor newVariableStore = new VarStor(varDec.accessModifier, varDec.variableType);
-        currentScope.VariableNames.put(varDec.identifier.getTokenString(), newVariableStore);
-        if (varDec.assignment != null) { //assuming there is an expression to be checked
-            Token.TokenType assignment = getExpressionType(varDec.assignment, currentScope); //BODY
-            if (assignment == Token.TokenType.KEYWORD_STRING) {//strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-                if (!(varDec.variableType.getTokenString().equals("String") || varDec.variableType.getTokenString().equals("string")))
-                    throw new TypeCheckerException("TypeCheck Error: Expected " +
-                            varDec.variableType.getType() + " got " + assignment);
-
-            } else if (assignment != varDec.variableType.getType()) {//compare types with assignment
-                throw new TypeCheckerException("TypeCheck Error: Expected " +
-                        varDec.variableType.getType() + " got " + assignment);
-            }
-        }
-    }
-    */
 
     //idea, recursive methodology also make sure that currentScope is a copy.
     public static Token.TokenType getExpressionType(PExpression exp, Storage currentScope) throws TypeCheckerException {
@@ -1605,21 +1087,6 @@ public class Typechecker {
                 throw new TypeCheckerException("Cannot give an AUTO var an AUTO type!");
             } else if (expectedType == Token.TokenType.KEYWORD_AUTO) { //if param was declared as auto --> FAIL
                 throw new TypeCheckerException("Cannot give function param Auto type!"); //probably never reach bc handled earlier
-//                AutoTicket auto = new AutoTicket(); //creating an auto ticket to handle later
-//                auto.ClassName = ClassString; //class name currently dealing with
-//                auto.ClassNumb = ClassNumber; //where in the class array are we
-//                auto.ClassDecNumb = ClassDeclarationNumber; //where in the declaration list array are we for the above class
-//                auto.inParentClass = true; //NOT SURE, not even sure if this is necessary, since we can just check it anyway
-//                auto.inMethod = true; //in this case, since we are dealing with funct params, true
-//                auto.MethodName = identifierName; //i added this var as a param to this method, but it might not be necessary because of the MethodString, then again it might not cover a case of super nested function, where this would be better i think
-//                auto.MethodDecNum = MethodDeclarationNumber; //store the iteration number the MDT() is dealing with
-//                auto.isParam = true; //yes, in this case, we are dealing specifically with params
-//                auto.ParamNum = i; //current param number is in this for loop as "i"
-//                auto.isFunctReturn = false; //not doing that here
-//                auto.TargetVarName = "idk"; //not sure the name of this param, but we already know the funct name and param number, hopefully its fine
-//                auto.NewType = givenType; //change the given type to the other type, being assigned to it
-//                AutoHandler.add(auto);
-//                System.err.println("AUTOTICKET GENERATED");
             } else if (givenType == Token.TokenType.KEYWORD_AUTO) { //if given var was declared auto
                 AutoTicket auto = new AutoTicket(); //creating an auto ticket to handle later
                 auto.ClassName = ClassString; //class name currently dealing with
@@ -1645,8 +1112,6 @@ public class Typechecker {
     //cleanly check for variable in scope
     //if it does not exist throw an TypeCheckerException
     public static Token.TokenType VariableInScope (String varName, Storage currentScope) throws TypeCheckerException{
-
-
         System.out.println("PExpressionVariable");
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
@@ -1680,9 +1145,10 @@ public class Typechecker {
             }
         }
     }
-}//End TypChecker class
 
-class Storage {
+} //End Typechecker class
+
+class Storage { //store all info about a class
 
     HashMap<String, VarStor> VariableNames; //name, object
     HashMap<String, FunctStor> MethodNames;
@@ -1704,12 +1170,6 @@ class Storage {
         HashMap<String, VarStor> copyVariableNames = new HashMap<>(VariableNames);
         HashMap<String, FunctStor> coptMethodNames = new HashMap<>(MethodNames);
         Storage copyStorage = extendsClass;
-//        //merge extends class with current storage for copy
-//        if (extendsClass != null){
-//            copyVariableNames.putAll(extendsClass.VariableNames);
-//            coptMethodNames.putAll(extendsClass.MethodNames);
-//        }
-//        //no extends class for any copy, it will always be nullified and merged to current hashtables
         copyStorage = new Storage(copyVariableNames , coptMethodNames, copyStorage); //need to keep extends i think
         return copyStorage;
     }
