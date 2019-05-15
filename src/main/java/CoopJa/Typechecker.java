@@ -972,6 +972,7 @@ public class Typechecker {
 
                     GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
                     GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                    GOODMETHOD.VariableNames.putAll(tempFS.VariableNames); //i love you miguel
                     ClassListAll.put(ClassString, GOODMETHOD); //replace class
                 }
                 ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars" --old comment
