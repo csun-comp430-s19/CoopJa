@@ -120,7 +120,7 @@ public class Typechecker_UnitTests {
 
 
     @Test
-    public void testParamCollision() {
+    public void testParamCollision() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         String foo = "public class example {" +
                 "public int cool;" + //collide with this
                 "public void method1(int cool, int cool) {" + //and these should collide
@@ -128,15 +128,6 @@ public class Typechecker_UnitTests {
                 "}";
         badTest(foo);
     }
-
-//    public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
-//            ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
-//            Input<Token> tokenListInput = new TokenParserInput(tokenList);
-//            MainParser parsers = new MainParser(); //create MainParser object
-//            PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
-//            System.out.println();
-//            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
-//    }
 
     @Test
     public void testAll() throws Exception{
@@ -177,7 +168,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testGoodIfStatement() throws Exception { //updated
+    public void testGoodIfStatement() throws Exception {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "if (1 == 1){" +
@@ -191,7 +182,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testBadIfStatement() { //updated
+    public void testBadIfStatement() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "if (1 + 1){" +
@@ -205,7 +196,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testGoodWhileStatement() throws Exception { //updated
+    public void testGoodWhileStatement() throws Exception {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "while( 3 < 5 ) {" +
@@ -216,7 +207,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testBadWhileStatement() { //updated
+    public void testBadWhileStatement() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "while( \"Phosphophyllite\" ){" +
@@ -227,7 +218,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testGoodForStatement() throws Exception{
+    public void testGoodForStatement() throws Exception {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "for(int i = 1; i < 10; i=i+1;){" +
@@ -238,7 +229,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testBadForStatement(){
+    public void testBadForStatement() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "for(int i = 1; i + 10; i=i+1;){" +
@@ -249,7 +240,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testBadScopeWhile(){
+    public void testBadScopeWhile() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "while( true ){" +
@@ -258,11 +249,11 @@ public class Typechecker_UnitTests {
                 "i = 2;" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     @Test
-    public void testBadScopeIfStatement(){
+    public void testBadScopeIfStatement() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "if (1 == 1){" +
@@ -271,14 +262,14 @@ public class Typechecker_UnitTests {
                 "else{" +
                 "i = i + 1;" +
                 "}" +
-                "return;" +
+                "return 0;" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     @Test
-    public void testGoodScopeForStatement() throws Exception{
+    public void testGoodScopeForStatement() throws Exception {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "for(int i = 1; i < 10; i=i+1;){" +
@@ -286,11 +277,11 @@ public class Typechecker_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
     }
 
     @Test
-    public void testBadScopeForStatement(){
+    public void testBadScopeForStatement() {
         String foo = "public class foo2{" +
                 "public int main(){" +
                 "for(int i = 1; i < 10; i=i+1;){" +
@@ -298,51 +289,34 @@ public class Typechecker_UnitTests {
                 "i = 9;" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     //************ UNIT TESTS originally in file "T_TypeCheck_UnitTests" ******************** (originally called "testTypeChecker()" test function, identitcal to "testTypecheck()")
-    @Test
-    public void testMethodDoubleDecker() {
-        String testProg = "public "+
-                "class testProg{"+
-                "public int testInt = method(0);"+
-                "}";
-        ///x////testTypecheck(testProg);
-    }
 
-    @Test
-    public void testMethod() {
-        String testProg = "public "+
-                "class testProg{"+
-                "public int testInt = method(0);"+
-                "}";
 
-        ///x/////testTypecheck(testProg);
-    }
-
-    @Test
-    public void testMethodSignatureType() {
-        String testProg = "public class testProg {"+
-                "public int main(int a, int b){"+
-                "return 4;"+
-                "}"+
-                "public boolean b = True;"+
-                "public int testInt = main(4,b);"+
-                "}";
-        //x///x////testTypecheck(testProg);
-    }
-
-    @Test
-    public void testMethodSignature() {
-        String testProg = "public class testProg {"+
-                "public int main(int a){"+
-                "return 4;"+
-                "}"+
-                "public int testInt = main();"+
-                "}";
-        /////////x//x///testTypecheck(testProg);
-    }
+//    @Test
+//    public void testMethodSignatureType() { //XXXXXXXXXXXXXXXmaybe use
+//        String testProg = "public class testProg {"+
+//                "public int main(int a, int b){"+
+//                "return 4;"+
+//                "}"+
+//                "public boolean b = True;"+
+//                "public int testInt = main(4,b);"+
+//                "}";
+//        //x///x////testTypecheck(testProg);
+//    }
+//
+//    @Test
+//    public void testMethodSignature() { ///////////////////////////////////maybe use
+//        String testProg = "public class testProg {"+
+//                "public int main(int a){"+
+//                "return 4;"+
+//                "}"+
+//                "public int testInt = main();"+
+//                "}";
+//        /////////x//x///testTypecheck(testProg);
+//    }
 }
 
     //************ EXPRESSION AND STATEMENT UNIT TESTS ********************

@@ -848,7 +848,7 @@ public class Typechecker {
         ClassListAll.put(ClassString, GOODMETHOD); //replace class
 
         MethodString = input.identifier.getTokenString(); //used for auto
-        Storage classTemp = new Storage();
+        //Storage classTemp = new Storage();
 
         //deal with params
         //HashMap<String, VarStor> tempFunctionVars = new HashMap<String, VarStor>();
@@ -889,14 +889,14 @@ public class Typechecker {
             //Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
                 HashMap<String, VarStor> output; //declare var for return of VDT()
-                output = VariableDeclarationTypecheck(classTemp, input.variableDeclarations.get(i), false, false);
+                output = VariableDeclarationTypecheck(GOODMETHOD, input.variableDeclarations.get(i), false, false); //send GOODMETHOD to ensure parameters know scope
                 //combinedVars.putAll(output); //add new vars to combined vars list
 
                 String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString(); //name
-                System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!" + tempVarName);
+                System.err.println("!!!!!!!!!!!!!!!!!!!!!!!!" + tempVarName); //debug stuff
                 VarStor tempWW = output.get(tempVarName);
 
-                if (tempFS.Parameters == null) {
+                if (tempFS.Parameters == null) { //probably useless now, was because FunctStor didnt declare the hashmap a new hashmap
                     tempFS.Parameters = new ArrayList<VarStor>();
                 }
 
@@ -907,6 +907,10 @@ public class Typechecker {
                 }
 
                 tempFS.VariableNames.put(tempVarName, tempWW);
+
+                ///NEW FIX
+                
+                //END NEW FIX
 //
 //                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
 //                Storage localtempClasstemp = classTemp.Copy();

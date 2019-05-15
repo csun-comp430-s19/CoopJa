@@ -117,7 +117,7 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     @Test
-    public void testExtends() throws Exception { //not yet
+    public void testExtends() throws Exception {
         String foo = "public class one {" +
                 "int foo1;" +
                 "}" +
@@ -127,5 +127,34 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
                 "}" +
                 "}";
         goodTest(foo);
+    }
+
+    @Test
+    public void testBadParamCollision1() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        String foo = "public class example {" +
+                "public int cool;" +
+                "public void method1(int cool) {" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testBadParamCollision2Self() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        String foo = "public class example {" +
+                "public void method1(int cool, int cool) {" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testBadParamCollision3() { ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        String foo = "public class example {" +
+                "public void method1(int cool) {" +
+                "int cool;" +
+                "}" +
+                "}";
+        badTest(foo);
     }
 }
