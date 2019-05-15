@@ -2,9 +2,7 @@ package CoopJa;
 
 import org.typemeta.funcj.parser.Input;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*; //ArrayList, HashMap, Set
 
 public class Typechecker {
 
@@ -20,35 +18,6 @@ public class Typechecker {
 
     public static void main(String[] args) throws TypeCheckerException {
 
-//        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
-//                "public class foo6 extends foo{public int foo4 = 1;}" +
-//                "public class foo2{" +
-//                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
-//                "public int foo3 = 0;" +
-//                "public int main(){" +
-//                "foo.foo4(); " +
-//                "foo3 = (1 + 9)*5;" +
-//                "for (int i = 0; i < 9; i = i+1;){" +
-//                "foo = foo + 5;" +
-//                "}" +
-//                "if (1 == 1){" +
-//                "int i = 0;" +
-//                "}" +
-//                "else{" +
-//                "int i = 1;" +
-//                "}" +
-//                "int i = 2;" +
-//                "return;" +
-//                "}" +
-//                "}";
-
-//        String foo = "public class example {" +
-//                "public string cool = \"Cool1\";" +
-//                "public void method1(int one, int two) {" +
-//                "int three = 1;" +
-//                "}" +
-//                "}";
-
 //        String foo = "public class one {" +
 //                "int test = 0;" +
 //                "public void main() {" +
@@ -58,11 +27,6 @@ public class Typechecker {
 //                "public void main(int test1) {" +
 //                //"int test = 0;" + //not detecting inside stuff
 //                "}" +
-//                "}";
-
-//        String foo = "public class one {" +
-//                "public void main(int one, int one) {" + //handled
-//                "" +
 //                "}";
 
 //        String foo = "public class one {" +
@@ -85,17 +49,11 @@ public class Typechecker {
 //                "}";
 
         String foo = "public class one {" +
-                "int foo1;" +
-                "public void main(int one) {" + //int one
-                "foo1 = 1;" +
-                "one = 1;" +
-                "int foo2 = 0;" +
-                //"int foo2 = 9;" +
-                "foo2 = 9;" +
-                "}" +
-                "" +
-                "public void main2(int two){" +
-                "one = 1;" + //declared as main() param, fail
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "i = 0;" +
+                "j = true;" +
                 "}" +
                 "}";
 
@@ -170,6 +128,8 @@ public class Typechecker {
                 }
                 System.out.println("End Declaration #" + y);
                 System.out.println();
+
+                //somewhere here we edit parser / deal with auto //////////XXXXXXXXXXXXXX
             }
 
             ClassNumber = -1;
@@ -324,7 +284,7 @@ public class Typechecker {
             auto.TargetVarName = varName;
             auto.NewType = assType;
             AutoHandler.add(auto);
-            System.err.println("AUTOTICKET GENERATED");
+            System.err.println("AUTOTICKET GENERATED"); //will have type
 
         } else if (assType == Token.TokenType.KEYWORD_AUTO && varType != Token.TokenType.KEYWORD_AUTO) { //right side is auto
             //only certain things could be auto, but let handler deal with it
@@ -345,7 +305,7 @@ public class Typechecker {
             auto.TargetVarName = varName;
             auto.NewType = assType;
             AutoHandler.add(auto);
-            System.err.println("AUTOTICKET GENERATED");
+            System.err.println("AUTOTICKET GENERATED"); //will have type
 
         } else if (assType == varType && assType == Token.TokenType.KEYWORD_AUTO) { //both auto
             throw new TypeCheckerException("TypeCheck Error: AUTO Var cannot be assigned to another AUTO Var");
@@ -393,7 +353,7 @@ public class Typechecker {
                     auto.TargetVarName = input.identifier.getTokenString();
                     auto.NewType = tempType;
                     AutoHandler.add(auto);
-                    System.err.println("AUTOTICKET GENERATED");
+                    System.err.println("AUTOTICKET GENERATED"); //this would not have the type yet, if it was declared in the class
                 }
             } else { //auto not allowed
                 throw new TypeCheckerException("Auto type not allowed here!");
@@ -597,7 +557,40 @@ public class Typechecker {
                 }
 
                 globalAutoOff = false; //turn off after
-                ///CHECK AUTO STUFF HERE!!!!!!!!!XXXXXXXXXXXXXXXxxxxxxxxxxXXXXXXXXXXXXXXXXXXXXx
+
+                //check auto stuff here, after every method stmt
+                if (AutoHandler.size() != 0) { //if autohandler is not empty
+                    HashMap<String, Token.TokenType> orderedlistauto = new HashMap<String, Token.TokenType>(); //will hold name,newtype of things to change
+                    String[] nameslist = new String[AutoHandler.size()]; //new string array size of current autohandler, will fill with just names at first
+                    for (int i = 0; i < AutoHandler.size(); i++) { //for all autotickets
+                        AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
+                        System.err.println("AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                "\nType should be: " + tempauto.NewType); //print it
+                        //create array of string (name), check for matches
+                        nameslist[i] = tempauto.TargetVarName; //load string array with the name
+                        if (tempauto.NewType != null) { //if the auto type has been RESOLVED (not detected, but determined the new type)
+                            orderedlistauto.put(tempauto.TargetVarName, tempauto.NewType); //put this resolution inside the orderlistauto
+                        } else { //else, auto has just been detected, not resolved
+                            System.err.println("Found no resolutions for Auto");
+                        }
+                    } //end for all autotickets
+                    System.err.println("List of Name before"); //just for info, string names array before removal of duplicates
+                    for (int i = 0; i < nameslist.length; i++) {
+                        System.err.println(nameslist[i]); //print list
+                    }
+                    nameslist = new HashSet<String>(Arrays.asList(nameslist)).toArray(new String[0]); //removes all duplicates in string array of names
+                    System.err.println("List of names after");
+                    for (int i = 0; i < nameslist.length; i++) { //just proof it is being removed
+                        System.err.println(nameslist[i]);
+                    }
+                    System.err.println("After AutoHandler completed...checking for matches");
+                    System.err.println("size of orderlistauto: " + orderedlistauto.size());
+                    for (int j = 0; j < nameslist.length; j++) { //for all names to resolve
+                        Token.TokenType type = orderedlistauto.get(nameslist[j]); //pull type from hashmap by name
+                        System.err.println(nameslist[j] + " must be type " + type); //-------->>>>here! (we have the types to resolve)
+                    }
+                    //autohandler would now be empty, since you pull it out.....maybe
+                }
             }
         } else {
             System.out.println("Method Body has no statements");
@@ -1068,7 +1061,7 @@ public class Typechecker {
                 auto.TargetVarName = "idk"; //not sure the name of this param, but we already know the funct name and param number, hopefully its fine
                 auto.NewType = expectedType; //change the given type to the other type, being assigned to it
                 AutoHandler.add(auto);
-                System.err.println("AUTOTICKET GENERATED");
+                System.err.println("AUTOTICKET GENERATED"); //should have type
             } else { //neither type is auto, just a type mismatch
                 throw new TypeCheckerException("expected type " + expectedType + " got " + givenType);
             }

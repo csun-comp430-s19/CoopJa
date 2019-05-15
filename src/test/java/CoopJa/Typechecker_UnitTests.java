@@ -51,6 +51,24 @@ public class Typechecker_UnitTests {
         goodTest(foo);
     }
 
+    @Test
+    public void testProperMethodLocalScopeing() {
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main(int one) {" + //int one declared
+                "foo1 = 1;" +
+                "one = 1;" + //successful "one" assignment
+                "int foo2 = 0;" +
+                "foo2 = 9;" +
+                "}" +
+                "" +
+                "public void main2(int two){" +
+                "one = 1;" + //one not found --> GOOD
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
 //    ////BUG IN THIS UNIT TEST, READ NOTES
 //    @Test
 //    public void testBadImplicitExtends() { //READ!!!!!!-----this specific unit tests is giving an odd issue. when ran individually, it works correctly. when run with the group, it fails. in reality, the test will pass
