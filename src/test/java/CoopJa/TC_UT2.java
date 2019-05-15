@@ -17,6 +17,14 @@ public class TC_UT2 {
         Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
     }
 
+    public void goodTest (String foo) throws Exception {
+        testNewTypeChecker(foo);
+    }
+    public void badTest (String foo){
+        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        myException.printStackTrace();
+    }
+
     @Test
     public void testBadReDeclareVar() {
         String foo = "public class one {" +
@@ -25,8 +33,7 @@ public class TC_UT2 {
                 "int foo1 = 1;" +
                 "}" +
                 "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
+        badTest(foo);
     }
 
     @Test
@@ -40,8 +47,7 @@ public class TC_UT2 {
                 "one = 1;" + //var not declared
                 "}" +
                 "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
+        badTest(foo);
     }
 
     @Test
@@ -52,6 +58,6 @@ public class TC_UT2 {
                 "}" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 }
