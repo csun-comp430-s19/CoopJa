@@ -18,32 +18,27 @@ public class TC_UT2 {
     }
 
     @Test
-    public void testVar1() throws Exception{
+    public void testBadReDeclareVar() {
         String foo = "public class one {" +
                 "int foo1;" +
                 "public void main() {" +
                 "int foo1 = 1;" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        myException.printStackTrace();
     }
 
     @Test
-    public void testGoodWhileStatement() throws Exception{ ////fix upppp
+    public void testBadScope() {
         String foo = "public class one {" +
-                "int foo1;" +
-                "public void main(int one) {" + //int one
-                "foo1 = 1;" +
+                "public void main(int one) {" +
                 "one = 1;" +
-                "int foo2 = 0;" +
-                //"int foo2 = 9;" +
-                "foo2 = 9;" +
                 "}" +
                 "" +
-                "public void main2(int two){" +
-                "one = 1;" + //params still global -- declared as main() param, but doesnt fail here
+                "public void main2(){" +
+                "one = 1;" + //var not declared
                 "}" +
-                //"int foo2;" +
                 "}";
         Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
         myException.printStackTrace();
