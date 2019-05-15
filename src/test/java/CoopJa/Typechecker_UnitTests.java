@@ -28,29 +28,16 @@ public class Typechecker_UnitTests {
         myException.printStackTrace();
     }
 
-    public void old_testTypecheck(final String input) {
-        try {
-            ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
-            Input<Token> tokenListInput = new TokenParserInput(tokenList);
-            MainParser parsers = new MainParser(); //create MainParser object
-            PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
-            System.out.println();
-            Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
-        } catch (Exception e) {
-            System.err.println("Error detected properly");
-            System.err.println(e);
-        }
-    }
+    //Tests
 
     @Test
-    public void testRegularPass() {
-        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
-                "public class foo6 extends foo{public int foo4 = 1;}" +
+    public void testRegularPass() throws Exception {
+        String foo = "public class foo{public int foo4;}" +
+                "public class foo6 extends foo{public int foo99;}" +
                 "public class foo2{" +
-                //"public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
-                "public int foo3 = 0;" +
+                "public int foo3;" +
                 "public int main(){" +
-                "foo.foo4(); " +
+                "int yyy = foo.foo4; " +
                 "foo3 = (1 + 9)*5;" +
                 "for (int i = 0; i < 9; i = i+1;){" +
                 "}" +
@@ -64,84 +51,82 @@ public class Typechecker_UnitTests {
                 "return i;" +
                 "}" +
                 "}";
-        ///x////testTypecheck(foo);
+        goodTest(foo);
     }
 
     @Test
-    public void testImplicitExtends() { //CHANGE LATER
-        String foo = "public class foo extends foo2{public int foo4 = 0;}" +
-                "public class foo2 {int fooGood = 0;}";
-        ///x////testTypecheck(foo);
+    public void testBadImplicitExtends() {
+        String foo = "public class foo extends foo2{public int foo4;}" +
+                "public class foo2 {int fooGood;}";
+        badTest(foo);
     }
 
     @Test
-    public void testProperExtends() {
-        String foo = "public class foo {public int foo4 = 0;}" +
-                "public class foo2 extends foo {int fooGood = 0;}";
-        ////x///testTypecheck(foo);
+    public void testProperExtends() throws Exception {
+        String foo = "public class foo {public int foo4;}" +
+                "public class foo2 extends foo {int fooGood;}";
+        goodTest(foo);
     }
 
     @Test
     public void testBadExtends() {
-        String foo = "public class foo extends foo3 {public int foo4 = 0;}" +
-                "public class foo2 extends foo {int fooGood = 0;}";
-        ///x////testTypecheck(foo);
+        String foo = "public class foo extends foo3 {public int foo4;}" +
+                "public class foo2 extends foo {int fooGood;}";
+        badTest(foo);
     }
 
     @Test
     public void testDuplicateVar() {
-        String foo = "public class foo{public int foo4 = 0;}" + //example string to be parsed
-                "public class foo6 extends foo{public int foo4 = 1;}" +
-                "public class foo2{" +
-                "public int foo3 = 0;" + //duplicate var able to be detected, not inside methods yet
-                "public int foo3 = 0;" +
-                "public int main(){" +
-                "foo.foo4(); " +
-                "foo3 = (1 + 9)*5;" +
-                "for (int i = 0; i < 9; i = i+1;){" +
-                "}" +
-                "if (1 == 1){" +
-                "int i = 0;" +
-                "}" +
-                "else{" +
-                "int i = 1;" +
-                "}" +
-                "int i = 2;" +
-                "return;" +
-                "}" +
+        String foo = "public class foo2{" +
+                "public int foo3;" + //duplicate var
+                "public int foo3;" +
                 "}";
-        ////x////testTypecheck(foo);
+        badTest(foo);
+    }
+
+    @Test
+    public void testBadVarAssignmentPlace() {
+        String foo = "public class foo2{" +
+                "public int foo3 = 0;" + //not allowed to give a variable an assignment in a class, only in a function
+                "}";
+        badTest(foo);
     }
 
     @Test
     public void testNameCollision() {
-        String foo = "public class MainClass {public int foo = 0; public int foo = 0;}";
-        ////x///testTypecheck(foo);
+        String foo = "public class MainClass {public int foo; public int foo;}";
+        badTest(foo);
     }
 
     @Test
-    public void testValidJavaConvention() { //this is valid Java convention, may or may not change, valid now
-        String foo = "public class foo {public int foo = 0;}";
-        ///x////testTypecheck(foo);
+    public void testValidJavaConvention() throws Exception { //this is valid Java convention, may or may not change, valid now
+        String foo = "public class foo {public int foo;}";
+        goodTest(foo);
     }
 
     @Test
-    public void testClassVarCollision() {
-        String foo = "public class foo {" +
-                "int foo = 0;" +
-                "int foo = 0; }";
-        ////x////testTypecheck(foo);
-    }
-
-    @Test
-    public void testBadMethodParamVarname() {
+    public void testGoodStuff1() throws Exception {
         String foo = "public class example {" +
-                "public String cool = \"Cool1\" + \"yeah\";" + ///string
+                "public String cool;" +
                 "public void method1(int one, int two) {" +
                 "int three = 1;" +
+                "cool = \"Cool1\" + \"yeah\";" +
                 "}" +
                 "}";
-        ////x////testTypecheck(foo);
+        goodTest(foo);
+    }
+
+    //////////////////////up to this point
+
+
+    @Test
+    public void testParamCollision() {
+        String foo = "public class example {" +
+                "public int cool;" + //collide with this
+                "public void method1(int cool, int cool) {" + //and these should collide
+                "}" +
+                "}";
+        badTest(foo);
     }
 
 //    public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
@@ -249,7 +234,7 @@ public class Typechecker_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
     }
 
     @Test
@@ -260,7 +245,7 @@ public class Typechecker_UnitTests {
                 "}" +
                 "}" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        badTest(foo);
     }
 
     @Test
