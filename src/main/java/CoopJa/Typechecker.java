@@ -89,10 +89,11 @@ public class Typechecker {
                 "public void main(int one) {" + //int one
                 "foo1 = 1;" +
                 "one = 1;" +
-                //"int foo2 = 0;" +
+                "int foo2 = 0;" +
                 //"int foo2 = 9;" +
+                "foo2 = 9;" +
                 "}" +
-                //"int main;" +
+                //"int one;" +
                 "}";
 
 
