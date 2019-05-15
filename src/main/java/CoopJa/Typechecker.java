@@ -1655,8 +1655,9 @@ public class Typechecker {
     public static Token.TokenType VariableInExtendedScope (String varName, Storage currentScope) throws TypeCheckerException{
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
-            if (tempVarCheck.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
-                throw new TypeCheckerException("Private Access Violation");
+            if (tempVarCheck.AccessModifier != null)
+                if (tempVarCheck.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+                    throw new TypeCheckerException("Private Access Violation");
             return tempVarCheck.Type.getType();
         }
         else { //check parent if any
