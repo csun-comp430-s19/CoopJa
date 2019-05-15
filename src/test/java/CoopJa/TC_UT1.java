@@ -6,8 +6,7 @@ import org.typemeta.funcj.parser.Input;
 
 import java.util.ArrayList;
 
-public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
-
+public class TC_UT1 {
     public void testNewTypeChecker(String input) throws TypeCheckerException, Exception{
         ArrayList<Token> tokenList = Token.tokenize(input); //tokenize example string
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
@@ -26,70 +25,55 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     @Test
-    public void testBadReDeclareVar() {
+    public void testGoodIfBlockDeclarations() throws Exception{
         String foo = "public class one {" +
                 "int foo1;" +
                 "public void main() {" +
-                "int foo1 = 1;" +
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testBadScope() {
-        String foo = "public class one {" +
-                "public void main(int one) {" +
-                "one = 1;" +
-                "}" +
-                "" +
-                "public void main2(){" +
-                "one = 1;" + //var not declared
-                "}" +
-                "}";
-        badTest(foo);
-    }
-
-    @Test
-    public void testVarScope() throws Exception {
-        String foo = "public class one {" +
-                "int foo1;" +
-                "public void main() {" +
-                "foo1 = 1;" +
-                "}" +
-                "}";
-        testNewTypeChecker(foo);
-    }
-
-    @Test
-    public void testDontAllowReDeclare() {
-        String foo = "public class one {" +
-                "public void main(int one) {" +
-                "}" +
-                "" +
-                "int main;" +
-                "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
-    }
-
-    @Test
-    public void testDontAllowAssignmentExceptInMethod1() {
-        String foo = "public class one {" +
-                "int i = 0;" +
-                "}";
-        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
-        myException.printStackTrace();
-    }
-
-    @Test
-    public void testDontAllowAssignmentExceptInMethod2() throws Exception {
-        String foo = "public class one {" +
+                "if(true){" +
                 "int i;" +
-                "public void main() {" +
-                "i = 0;" +
+                "i = 1;" +
+                "}" +
+                "else {" +
+                "}" +
                 "}" +
                 "}";
-        testNewTypeChecker(foo);
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadIfBlockDeclarations(){
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "}" +
+                "else {" +
+                "}" +
+                "i = 2;" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodNestedIfBlockDeclarations() throws Exception{
+        String foo = "public class one {" +
+                "int foo1;" +
+                "public void main() {" +
+                "if(true){" +
+                "int i;" +
+                "if(true){" +
+                "i = 2;" +
+                "}" +
+                "else{" +
+                "}" +
+                "}" +
+                "else {" +
+                "}" +
+                "i = 2;" +
+                "}" +
+                "}";
+        goodTest(foo);
     }
 }
