@@ -86,10 +86,13 @@ public class Typechecker {
 
         String foo = "public class one {" +
                 "int foo1;" +
-                "public void main(int one) {" +
+                "public void main(int one) {" + //int one
                 "foo1 = 1;" +
                 "one = 1;" +
+                //"int foo2 = 0;" +
+                //"int foo2 = 9;" +
                 "}" +
+                //"int main;" +
                 "}";
 
 
@@ -154,9 +157,12 @@ public class Typechecker {
                     System.out.println("Declaration #" + y + " is instance of PStatementFunctionDeclaration");
                     PStatementFunctionDeclaration tempFunc = (PStatementFunctionDeclaration) tempDeclar.get(j); //cast PDeclaration object to its proper type
 
-                    Storage tempSendClassStor = ClassListAll.get(ClassString); //retrieve current class's Storage object
-                    Storage replaceClassStor = MethodDeclarationTypecheck(tempSendClassStor, tempFunc); //call MDT, send it current class's Stor obj & the PStatementFunctionDeclaration obj, returns an updated Stor obj after typechecking the method
-                    ClassListAll.put(ClassString, replaceClassStor); //update the class's stor obj with method info
+                    //Storage tempSendClassStor = ClassListAll.get(ClassString); //retrieve current class's Storage object
+                    //Storage replaceClassStor = ;tempSendClassStor
+                    HashMap<String, Storage> tempClass111111 = ClassListAll;
+                    Storage local111111 = tempClass111111.get(ClassString); //send it a copy
+                    MethodDeclarationTypecheck(local111111, tempFunc); //call MDT, send it current class's Stor obj & the PStatementFunctionDeclaration obj, returns an updated Stor obj after typechecking the method
+                    //ClassListAll.put(ClassString, replaceClassStor); //update the class's stor obj with method info
                 }
                 System.out.println("End Declaration #" + y);
                 System.out.println();
@@ -758,7 +764,7 @@ public class Typechecker {
         return mapNEW; //return the updated map of all defined variables in current scope
     }
 
-    public static Storage MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws Exception { //input: a class's Storage object & function declaration
+    public static void MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws Exception { //input: a class's Storage object & function declaration
 
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
@@ -791,6 +797,7 @@ public class Typechecker {
             throw new Exception("Method Declaration Error: Return Type unrecognized");
         }
 
+        Storage GOODMETHOD = new Storage();
         FunctStor tempFS = new FunctStor(); //store all function stuff
         //check if method name already exists in scope (given map obj), check both var names and method names
         if (map.extendsClass != null) { //yes extends
@@ -809,7 +816,9 @@ public class Typechecker {
                 tempFS.ReturnType = input.returnType;
                 tempFS.Classname = ClassString;
                 //two more things to add: params & stmts, to FunctStor at this point
-                map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+                GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+                GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                ClassListAll.put(ClassString, GOODMETHOD); //replace class
             }
         } else { //no extends
             System.out.println("no extends");
@@ -823,9 +832,16 @@ public class Typechecker {
                 tempFS.ReturnType = input.returnType;
                 tempFS.Classname = ClassString;
                 //two more things to add: params & stmts, to FunctStor at this point
-                map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+                //map.MethodNames.put(input.identifier.getTokenString(), new FunctStor()); //add method to method names list with Blank FunctStor object for now
+                GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+                GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                ClassListAll.put(ClassString, GOODMETHOD); //replace class
             }
         }
+
+        GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+        GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+        ClassListAll.put(ClassString, GOODMETHOD); //replace class
 
         MethodString = input.identifier.getTokenString(); //used for auto
         Storage classTemp = new Storage();
@@ -859,12 +875,12 @@ public class Typechecker {
 //                System.out.println("no extends");
 //            } //commented out block note: i think VDT already handles this, but i wrote it, so it's staying here just in case
 
-            //create local copy of ClassListAll
-            HashMap<String, Storage> localCLA = ClassListAll;
-            classTemp = localCLA.get(ClassString); //pull class stor
-            FunctStor funcTemp = classTemp.MethodNames.get(MethodString); //get this function list
-            classTemp.MethodNames.put(MethodString, tempFS); //place updated temporary copy of this funct
-            //classTemp is now a good local copy..?
+//            //create local copy of ClassListAll
+//            HashMap<String, Storage> localCLA = ClassListAll;
+//            classTemp = localCLA.get(ClassString); //pull class stor
+//            FunctStor funcTemp = classTemp.MethodNames.get(MethodString); //get this function list
+//            classTemp.MethodNames.put(MethodString, tempFS); //place updated temporary copy of this funct
+//            //classTemp is now a good local copy..?
 
             //Storage tempBuiltStor = new Storage(combinedVars, map.MethodNames, map.extendsClass); //create temp Storage object, so var combinations arent permanent, send this to verify var
             for (int i = 0; i < input.variableDeclarations.size(); i++) { //for all parameters in method
@@ -872,31 +888,41 @@ public class Typechecker {
                 output = VariableDeclarationTypecheck(classTemp, input.variableDeclarations.get(i), false, false);
                 //combinedVars.putAll(output); //add new vars to combined vars list
 
-                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
-                Storage localtempClasstemp = classTemp.Copy();
-                FunctStor tempFSOMG;
-                //null---
-                if (localtempClasstemp.MethodNames.get(MethodString) == null) { //trying to fix null pointer
-                    tempFSOMG = new FunctStor();
-                } else {
-                    tempFSOMG = localtempClasstemp.MethodNames.get(MethodString);
-                }
-                VarStor tempParamVar = output.get(tempVarName);
-                if (tempFSOMG.VariableNames != null) {
-                    tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
-                } else {
-                    VarStor newTTT = new VarStor();
-                    newTTT.AccessModifier = tempParamVar.AccessModifier;
-                    newTTT.Type = tempParamVar.Type;
-                    tempFSOMG.VariableNames = new HashMap<>();
-                    tempFSOMG.VariableNames.put(tempVarName, newTTT);
-                }
-                //null--uncomment below and comment out this above
-                //tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
-                classTemp.MethodNames.put(MethodString, tempFSOMG); //replace the funct obj
-                tempFS.Parameters.add(i, tempParamVar); //add param to FunctStor object, ordered
-                //tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
-            }
+                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString(); //name
+                VarStor tempWW = output.get(tempVarName);
+
+                tempFS.Parameters.add(i, tempWW); //add param to FunctStor object, ordered
+                tempFS.VariableNames.put(tempVarName, tempWW);
+
+                GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+                GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                ClassListAll.put(ClassString, GOODMETHOD); //replace class
+//
+//                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
+//                Storage localtempClasstemp = classTemp.Copy();
+//                FunctStor tempFSOMG;
+//                //null---
+//                if (localtempClasstemp.MethodNames.get(MethodString) == null) { //trying to fix null pointer
+//                    tempFSOMG = new FunctStor();
+//                } else {
+//                    tempFSOMG = localtempClasstemp.MethodNames.get(MethodString);
+//                }
+//                VarStor tempParamVar = output.get(tempVarName);
+//                if (tempFSOMG.VariableNames != null) {
+//                    tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
+//                } else {
+//                    VarStor newTTT = new VarStor();
+//                    newTTT.AccessModifier = tempParamVar.AccessModifier;
+//                    newTTT.Type = tempParamVar.Type;
+//                    tempFSOMG.VariableNames = new HashMap<>();
+//                    tempFSOMG.VariableNames.put(tempVarName, newTTT);
+//                }
+//                //null--uncomment below and comment out this above
+//                //tempFSOMG.VariableNames.put(tempVarName, tempParamVar); //put param in temp list
+//                classTemp.MethodNames.put(MethodString, tempFSOMG); //replace the funct obj
+//                tempFS.Parameters.add(i, tempParamVar); //add param to FunctStor object, ordered
+//                //tempFunctionVars.put(input.variableDeclarations.get(i).identifier.getTokenString(), tempStor); //put param in method var storage
+            } //end for params
 
         } else { //no method params
             System.out.println("Method has no Parameters");
@@ -904,7 +930,7 @@ public class Typechecker {
 
         ///Storage tempMethodStorageWithUpdate = new Storage();
         //tempFunctionVars
-        tempFS.VariableNames.putAll(classTemp.MethodNames.get(MethodString).VariableNames); //add params to list..?????
+        ////////////null///////tempFS.VariableNames.putAll(classTemp.MethodNames.get(MethodString).VariableNames); //add params to list..?????
 
 //        HashMap<String, VarStor> methodBodyVars = new HashMap<String, VarStor>(); //store all method vars here
 //        if (tempFunctionVars != null) { //add params to method vars
@@ -931,6 +957,10 @@ public class Typechecker {
                 HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, newStorageFunct); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
                     tempFS.VariableNames.put(varName, returnedVDT.get(varName));
+
+                    GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+                    GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                    ClassListAll.put(ClassString, GOODMETHOD); //replace class
                 }
                 ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars" --old comment
 
@@ -952,12 +982,16 @@ public class Typechecker {
 //            //do nothing since empty
 //        }
 
-        map.MethodNames.put(input.identifier.getTokenString(), tempFS); //update FunctStor (before was blank), replace previous entry
+        ///map.MethodNames.put(input.identifier.getTokenString(), tempFS); //update FunctStor (before was blank), replace previous entry
+
+        GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
+        GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+        ClassListAll.put(ClassString, GOODMETHOD); //replace class
 
         MethodString = ""; //reset val
         MethodDeclarationNumber = -1; //reset val
 
-        return map; //return class Storage object updated
+        //////return map; //return class Storage object updated, useless
 
     }
 
