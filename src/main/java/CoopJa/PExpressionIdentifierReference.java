@@ -1,10 +1,10 @@
 package CoopJa;
 
-// identifier.Expression
-
 import java.util.LinkedHashMap;
 
-public class PExpressionIdentifierReference implements PStatement, PExpression, PExpressionAtom{
+public class PExpressionIdentifierReference implements PStatement, PExpression, PExpressionAtom {
+    //UNUSED, see PIdentifierReference
+
     public Token identifier;
     public PExpression next;
 
