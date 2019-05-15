@@ -101,6 +101,22 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     @Test
+    public void testBadDefinitionString() { //bad way to define a string
+        String foo = "public class one {" +
+                "public string one;" + //it thinks "string" is an identifier of a class, that hasnt been defined -> fail
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodDefinitionString() throws Exception { //good way to define a string
+        String foo = "public class one {" +
+                "public String one;" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
     public void testExtends() throws Exception { //not yet
         String foo = "public class one {" +
                 "int foo1;" +

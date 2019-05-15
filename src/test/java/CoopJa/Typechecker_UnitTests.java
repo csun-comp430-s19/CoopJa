@@ -158,8 +158,8 @@ public class Typechecker_UnitTests {
         String foo = "public class foo{public int foo4;}" +
                 "public class foo6 extends foo{public int foo44;}" +
                 "public class foo2 {" +//
-                "public String foo3;" + //lower case "string" gives error "Class of Variable Type not defined", thinking its an identifier
-                "public String foo966;" + //capital "String" gives error "TypeCheck Error: Expected KEYWORD_STRING got KEYWORD_STRING" (that old bug...)
+                "public String foo3;" +
+                "public String foo966;" +
                 "public boolean foofi;" +
                 "public int foo8;" +
                 "public int bar;" +//
