@@ -93,6 +93,9 @@ public class Typechecker {
                 //"int foo2 = 9;" +
                 "foo2 = 9;" +
                 "}" +
+                "public void main2(int two){" +
+                "int foo3;" +
+                "}" +
                 //"int one;" +
                 "}";
 
@@ -956,6 +959,7 @@ public class Typechecker {
             System.out.println("Method Declaration Body: Statement List");
             //Storage statementStorage = map.Copy();//extendclass Merged copy of storage for use in statement blocks without editing the real map
             //Storage newStorageFunct = classTemp.Copy();
+            Storage statementBlockStorage = GOODMETHOD.Copy();
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
@@ -966,14 +970,18 @@ public class Typechecker {
                     varName = ((PVariableDeclaration) tempStmtExp).identifier.getTokenString();
                 }
 
-                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, GOODMETHOD); //return vdt output, in the case of Variable Declarations
+                HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, statementBlockStorage); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
-                    tempFS.VariableNames.put(varName, returnedVDT.get(varName));
+                    //tempFS.VariableNames.put(varName, returnedVDT.get(varName));
 
+                    statementBlockStorage.VariableNames.put(varName, returnedVDT.get(varName));
+                    /*
                     GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
                     GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
                     GOODMETHOD.VariableNames.putAll(tempFS.VariableNames); //i love you miguel
-                    ClassListAll.put(ClassString, GOODMETHOD); //replace class
+                    */
+
+                    //ClassListAll.put(ClassString, GOODMETHOD); //replace class
                 }
                 ///need to keep a "HashMap<String,VarStor>" of all vars, then add to "tempFS.VariableNames", using "methodBodyVars" --old comment
 
