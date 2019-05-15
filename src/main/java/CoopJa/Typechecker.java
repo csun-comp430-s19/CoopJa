@@ -1328,18 +1328,22 @@ public class Typechecker {
 
     private static void typeCheckForStatement(PStatementForStatement forStatement, Storage currentScope) throws TypeCheckerException {
         Storage forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
+        HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
         if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
             throw new TypeCheckerException("First Statement in For Loop Must be a variable declaration");
         //remember to add the incrementor declaration to the scope of the for loop
         PVariableDeclaration varDec = (PVariableDeclaration) forStatement.statement1;
+        TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration,....might not be implemented in this function
         VarStor newVariableStore = new VarStor(varDec.variableType, varDec.accessModifier);
         forScope.VariableNames.put(varDec.identifier.getTokenString(), newVariableStore);
-        TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration,....might not be implemented in this function
         if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
             throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
-        //we're going to ignore the third part of the for loop for now.....
+        if (!(forStatement.statement2 instanceof PVariableAssignment))
+            throw new TypeCheckerException("Third statement in for loop must be variable assignement, instead got: " + forStatement.statement2.getClass());
         for (PStatement statement : forStatement.statementList) {
-            TEMP_unused_code_for_PStmts__PSTATEMENT(statement, forScope);
+            blockVariables = TEMP_unused_code_for_PStmts__PSTATEMENT(statement, forScope);
+            if (blockVariables != null)
+                forScope.VariableNames.putAll(blockVariables);
         }
     }
 

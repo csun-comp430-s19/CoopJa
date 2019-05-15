@@ -133,4 +133,17 @@ public class TC_UT1 {
                 "}";
         goodTest(foo);
     }
+
+    @Test
+    public void testBadScopeForStatment(){
+        String foo = "public class foo2{" +
+                "public int main(){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "for(int i = 1; i < 10; i=i+1;){" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
 }
