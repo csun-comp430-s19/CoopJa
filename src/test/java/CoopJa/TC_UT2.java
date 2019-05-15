@@ -45,7 +45,8 @@ public class TC_UT2 {
                 "}" +
                 //"int foo2;" +
                 "}";
-        Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        Exception myException = Assertions.assertThrows(TypeCheckerException.class, ()-> {testNewTypeChecker(foo);});
+        myException.printStackTrace();
     }
 
     @Test
