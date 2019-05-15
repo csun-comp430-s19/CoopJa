@@ -906,6 +906,7 @@ public class Typechecker {
 
                 GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj
                 GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS);
+                GOODMETHOD.VariableNames.putAll(tempFS.VariableNames);
                 ClassListAll.put(ClassString, GOODMETHOD); //replace class
 //
 //                String tempVarName = input.variableDeclarations.get(i).identifier.getTokenString();
