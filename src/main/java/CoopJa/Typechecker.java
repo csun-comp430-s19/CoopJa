@@ -261,40 +261,6 @@ public class Typechecker {
         return null;
     }
 
-    public static Token.TokenType old_PExpressionChecker(PExpression input, Storage varMap) throws TypeCheckerException {
-        if (input instanceof PExpressionBinOp) {
-            System.out.println("PExpressionBinOp");
-            return getType(input);
-        } else if (input instanceof PExpressionIdentifierReference) {
-            System.out.println("!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\n!!!!\nPExpressionIdentifierReference");
-            //unused
-            throw new TypeCheckerException("TypeCheck Error: Never reached / Undefined behavior");
-        } else if (input instanceof PExpressionVariable) {
-            System.out.println("PExpressionVariable");
-            String varName = ((PExpressionVariable) input).variable.getTokenString(); //PExpressionVariable name
-            if (varMap.VariableNames.containsKey(varName)) { //if var is in class
-                VarStor tempVarCheck = varMap.VariableNames.get(varName);
-                return tempVarCheck.Type.getType();
-            } else { //check parent if any
-                if (varMap.extendsClass != null) { //if there is a parent class
-                    if (varMap.extendsClass.VariableNames.containsKey(varName)) { //yes in parent
-                        VarStor tempVarCheck = varMap.extendsClass.VariableNames.get(varName);
-                        if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE) { //if parent is private
-                            throw new TypeCheckerException("TypeCheck Error: Parent var has PRIVATE access");
-                        } else {
-                            return tempVarCheck.Type.getType();
-                        }
-                    } else { //not in parent
-                        throw new TypeCheckerException("TypeCheck Error: No var exists in Parent or Child");
-                    }
-                } else { //no parent class
-                    throw new TypeCheckerException("TypeCheck Error: No var exists");
-                }
-            }
-        }
-        return null;
-    }
-
     //entrypoint for checking variable declaration / assignment (more info in body)
     public static void CheckVarAss(Object input, Storage varMap) throws TypeCheckerException {
         //originally named typeCheckVariableDec() (which was renamed to old_...) and called from VDT()
