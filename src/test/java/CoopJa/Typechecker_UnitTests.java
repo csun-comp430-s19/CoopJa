@@ -170,7 +170,7 @@ public class Typechecker_UnitTests {
                 "bar = foo8;" +
                 "foo.foo4(); " +
                 "int foo67; " +
-                "string foo9 = foo3;" +
+                "String foo9 = foo3;" +
                 "foo67 = (1 + 9)*5;" +
                 "while (foo67 < 60) {" +
                 "foo67 = foo67 + 1;"+

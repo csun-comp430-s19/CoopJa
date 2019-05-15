@@ -329,7 +329,7 @@ public class Typechecker {
             //weirdness going on for string stuff, was used to fix a bug long ago, but now it looks bizarre
             //possilble failure point for string typechecking
             if (assignment == Token.TokenType.KEYWORD_STRING) { //strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-                if (!assignee.equals("string"))
+                if (!assignee.equals(assignment))
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                             assignee + " got " + assignment);
             }
