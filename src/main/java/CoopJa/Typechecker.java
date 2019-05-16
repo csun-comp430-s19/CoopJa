@@ -11,6 +11,7 @@ public class Typechecker {
     public static HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
     public static String MethodString = "";
+    public static ArrayList<String> ClassNamesListAll = new ArrayList<>(); //holds the names of all declared classes (sorted) for easy ref
     public static ArrayList<AutoTicket> AutoHandler = new ArrayList<>(); //holds all autotickets
     public static ArrayList<AutoTicket> ResolvedAutoTickets = new ArrayList<>(); //holds all resolved autotickets
     public static int ClassNumber; //holds array val of which class we are working on
@@ -29,13 +30,26 @@ public class Typechecker {
 //                "" +
 //                "}";
 
+//        String foo = "public class one {" +
+//                "auto i;" +
+//                "auto j;" +
+//                "public void main() {" +
+//                "auto tempv = 7;" +
+//                "i = 0;" +
+//                "j = true;" +
+//                "}" +
+//                "}";
+
         String foo = "public class one {" +
                 "auto i;" +
-                "auto j;" +
+                //"auto j;" +
                 "public void main() {" +
-                "auto tempv = 7;" +
+                //"auto tempv = 7;" +
                 "i = 0;" +
-                "j = true;" +
+                //"j = true;" +
+                "i = 5;" +
+                "i = 7;" +
+                "i = 100;" +
                 "}" +
                 "}";
 
@@ -530,12 +544,95 @@ public class Typechecker {
                 } //end if autohandler is not empty
                 //at the end of a stmt, try to resolve auto
                 if (ResolvedAutoTickets.size() != 0) { //if we have a resolved auto ticket
-                    System.err.println("RESOLVED AUTO TICKET FOUND!");
-                    //resolve auto keyword in scope
-                    
-                    //resolve auto keyword in duplicate pprogram
-
-                }
+                    for (int i = 0; i < ResolvedAutoTickets.size(); i++) { //for all resolved auto tickets
+                        System.err.println("RESOLVED AUTO TICKET FOUND!");
+                        AutoTicket autoTT = ResolvedAutoTickets.get(i);
+                        int classnum11 = autoTT.ClassNumb;
+                        int classdec11 = autoTT.ClassDecNumb;
+                        int method11 = autoTT.MethodDecNum;
+                        String varname11 = autoTT.TargetVarName;
+                        Token.TokenType type11 = autoTT.NewType;
+                        Storage classDuplicateTemp = ClassListAll.get(ClassNamesListAll.get(classnum11)); //PULLING OUT current class
+                        //resolve auto keyword in scope----------!
+                        if (autoTT.MethodName.equals("")) { //if empty method, it is in the class declarations
+                            if (classDuplicateTemp.VariableNames.containsKey(varname11)) { //if the var is there
+                                VarStor tempReplaceType = classDuplicateTemp.VariableNames.get(varname11);
+                                String tokenstringTemp = Token.VarTypeMap.get(type11); //use the stored type's token to extract tokentype, then use to pull the proper string from token.java new hashmap
+                                tempReplaceType.Type = new Token(tokenstringTemp); //give new token with proper type to var in storage
+                                classDuplicateTemp.VariableNames.put(varname11, tempReplaceType); //replace varstor in local
+                                ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED CLASS
+                                System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
+                            } else {
+                                throw new TypeCheckerException("How did this happen? -- Variable DNE"); //dont think this is possible
+                            }
+                        } else { //in method
+                            if (classDuplicateTemp.MethodNames.containsKey(autoTT.MethodName)) {
+                                FunctStor tempFunctS1 = classDuplicateTemp.MethodNames.get(autoTT.MethodName); //grab method info
+                                VarStor tempReplaceType = tempFunctS1.VariableNames.get(varname11);
+                                String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                                tempReplaceType.Type = new Token(tempTokenString); //update type in local varstor
+                                tempFunctS1.VariableNames.put(varname11, tempReplaceType); //update var in functstor local
+                                classDuplicateTemp.MethodNames.put(autoTT.MethodName, tempFunctS1); //replace functstor in local class stor
+                                ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED FUNCTSTOR
+                                System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
+                            } else {
+                                throw new TypeCheckerException("How did this happen? -- Method DNE"); //dont think this is possible
+                            }
+                        }
+                        //resolve auto keyword in duplicate pprogram----------!
+                        if (autoTT.MethodName.equals("")) { //if method is empty, look in class declarations (i know this is a duplicate if structure, but doing it to show difference between storage and pprog)
+                            PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
+                            PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
+                            if (tempDecl instanceof PVariableDeclaration) { //it should be
+                                PVariableDeclaration varDecTBD = (PVariableDeclaration) tempDecl;
+                                if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
+                                    String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                                    varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
+                                    classPPRog.declarationList.set(classdec11, varDecTBD); //replace in local class dec
+                                    DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE VARDEC IN PPROGRAM
+                                    System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
+                                } else { //auto not detected, error
+                                    //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
+                                    //        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11);
+                                    //theres something where it keeps replacing, but should be fine
+                                }
+                            } else {
+                                throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
+                                        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
+                            }
+                        } else { //inside a method
+                            PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
+                            PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
+                            if (tempDecl instanceof PStatementFunctionDeclaration) { //found method dec
+                                PStatementFunctionDeclaration methodDecTBD = (PStatementFunctionDeclaration) tempDecl;
+                                PStatement tempSTMTM = methodDecTBD.statementList.get(method11);
+                                if (tempSTMTM instanceof PVariableDeclaration) { //find var dec in method decs
+                                    PVariableDeclaration varDecTBD = (PVariableDeclaration) tempSTMTM;
+                                    if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
+                                        String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                                        varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
+                                        methodDecTBD.statementList.set(method11, varDecTBD); //set updated vardec in local method
+                                        classPPRog.declarationList.set(classdec11, methodDecTBD); //replace method in local class dec
+                                        DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE METHOD IN PPROGRAM
+                                        System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
+                                    } else { //auto not detected, error
+                                        //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
+                                        //        "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
+                                        //        "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
+                                        //theres something where it keeps replacing, but should be fine
+                                    }
+                                } else { //not found vardec
+                                    throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
+                                            "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
+                                            "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
+                                }
+                            } else { //didnt find method dec here
+                                throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PStatementFunctionDeclaration instance in" +
+                                        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
+                            }
+                        } //end inside method
+                    } //end for resolved tickets
+                } //end resolved ticket start
             } //end for all body stmts
         } else {
             System.out.println("Method Body has no statements");
@@ -564,6 +661,7 @@ public class Typechecker {
 
         System.out.println("Class Identifier (Name): " + input.identifier.getType() + " " + input.identifier.getTokenString());
         ClassString = input.identifier.getTokenString(); //assign current class name
+        ClassNamesListAll.add(ClassNumber, ClassString); //add the name of the class at class number in arraylist (note, both vars are already declared at this point)
 
         System.out.print("Class Extends a Class?: "); //find out if this current class extends another class (based on its declaration)
         if (input.extendsIdentifier != null) { //the class does extend another

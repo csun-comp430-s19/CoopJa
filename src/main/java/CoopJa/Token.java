@@ -174,4 +174,15 @@ public class Token {
         Token token = (Token) o;
         return token.type == this.type && token.tokenString.equals(this.tokenString);
     }
+
+    public static Map<TokenType, String> VarTypeMap =
+            new HashMap<TokenType, String>() {{
+                put(TokenType.KEYWORD_VOID, "void");
+                put(TokenType.KEYWORD_INT, "int");
+                put(TokenType.KEYWORD_DOUBLE, "double");
+                put(TokenType.KEYWORD_CHAR, "char");
+                put(TokenType.KEYWORD_BOOLEAN, "boolean");
+                put(TokenType.KEYWORD_STRING, "String");
+                put(TokenType.KEYWORD_AUTO, "auto");
+            }};
 }
