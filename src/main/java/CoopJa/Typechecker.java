@@ -2,6 +2,7 @@ package CoopJa;
 
 import org.typemeta.funcj.parser.Input;
 
+import java.lang.reflect.Array;
 import java.util.*; //ArrayList, HashMap, Set
 
 public class Typechecker {
@@ -9,7 +10,8 @@ public class Typechecker {
     public static HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
     public static String MethodString = "";
-    public static ArrayList<AutoTicket> AutoHandler = new ArrayList<>();
+    public static ArrayList<AutoTicket> AutoHandler = new ArrayList<>(); //holds all autotickets
+    public static ArrayList<AutoTicket> ResolvedAutoTickets = new ArrayList<>(); //holds all resolved autotickets
     public static int ClassNumber; //holds array val of which class we are working on
     public static int ClassDeclarationNumber; //holds the array val for which stmt inside the class we are on (auto related)
     public static int MethodDeclarationNumber; //if method has a body, used to store the dec number (in array format, starting with 0) for later reference
@@ -17,28 +19,6 @@ public class Typechecker {
     public static boolean globalAutoOff = false; //used to send to VDT to handle auto in nestings
 
     public static void main(String[] args) throws TypeCheckerException {
-
-//        String foo = "public class one {" +
-//                "int test = 0;" +
-//                "public void main() {" +
-//                "}" +
-//                "}" +
-//                "public class two extends one {" +
-//                "public void main(int test1) {" +
-//                //"int test = 0;" + //not detecting inside stuff
-//                "}" +
-//                "}";
-
-//        String foo = "public class one {" +
-//                "int foo1 = 9<90;" + //PExpressionBinOp //boolean
-//                "int foo2 = foo2.oo();" + //PExpressionAtom --?-- PIdentifierReference //null
-//                "int foo3 = foo2;" + //PExpressionVariable //identifier
-//                "int foo4 = foo();" + //PStatementFunctionCall //null
-//                "int foo5 = 1;" + //PExpressionAtom --m --- PExpressionAtomNumberLiteral //int
-//                "int foo6 = \"uuu\";" + //PExpressionAtom --m -- PExpressionAtomStringLiteral //string
-//                "public void main(int one) {" +
-//                "" +
-//                "}";
 
 //        String foo = "public class one {" +
 //                "String foo1 = null;" + //PExpressionAtomNullLiteral //null
@@ -143,89 +123,9 @@ public class Typechecker {
 
     }
 
-    //idea, recursive methodology
-    public static Token.TokenType getType(PExpression exp) throws TypeCheckerException {
-        if (exp instanceof PExpressionAtomNumberLiteral)
-            return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
-        if (exp instanceof PExpressionAtomStringLiteral)
-            return Token.TokenType.KEYWORD_STRING;
-        if (exp instanceof PExpressionAtomBooleanLiteral)
-            return Token.TokenType.KEYWORD_BOOLEAN; //technically not the "boolean" keyword, but lets use this for now
-        if (exp instanceof PExpressionBinOp) {
-            //recursivly do both hands of the expressions
-            Token.TokenType lhs = getType(((PExpressionBinOp) exp).lhs);
-
-            Token.TokenType rhs = getType(((PExpressionBinOp) exp).rhs);
-
-            if (lhs != rhs) //The operand types do not match.
-            {
-                //Allows string & integer concatenation
-                if ((lhs == Token.TokenType.KEYWORD_STRING && rhs == Token.TokenType.KEYWORD_INT) ||
-                        (lhs == Token.TokenType.KEYWORD_INT && rhs == Token.TokenType.KEYWORD_STRING))
-                    return Token.TokenType.KEYWORD_STRING; //concatinating an integer to a string
-                else //anything else must fail
-                    throw new TypeCheckerException("TypeCheck Error: Expected " +
-                            lhs.name() + " got " + rhs.name());
-            }
-
-            Token.TokenType output = lhs;//at this point we already determined lhs and rhs are the same type
-            //check if the operator is the right type for the expression
-            Token.TokenType operator = ((PExpressionBinOp) exp).operatorToken.getType();
-            //System.out.println("\t"+rhs.name()+"_"+operator.name()+"_"+lhs.name());
-            /********** + *************/
-            if (operator == Token.TokenType.SYMBOL_PLUS) //plus operator works w/ ints and strings.
-            {
-
-                if ((output != Token.TokenType.KEYWORD_STRING) && (output != Token.TokenType.KEYWORD_INT)) {
-                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
-                }
-            }/********** numeric ops *************/
-            else if (operator == Token.TokenType.SYMBOL_MINUS || //number operations
-                    operator == Token.TokenType.SYMBOL_ASTERISK ||
-                    operator == Token.TokenType.SYMBOL_SLASH ||
-                    /****** BITWISE OPS ******/
-                    operator == Token.TokenType.SYMBOL_SHIFTRIGHT ||
-                    operator == Token.TokenType.SYMBOL_SHIFTLEFT ||
-                    operator == Token.TokenType.SYMBOL_AMPERSAND ||
-                    operator == Token.TokenType.SYMBOL_BAR ||
-                    operator == Token.TokenType.SYMBOL_CARET ||
-                    operator == Token.TokenType.SYMBOL_TILDE) {
-                if (output != Token.TokenType.KEYWORD_INT) /////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
-            }/********* DOUBLE EQUALS *******/
-            else if ((operator == Token.TokenType.SYMBOL_DOUBLEEQUALS) || //plus operator works w/ ints and strings.
-                    (operator == Token.TokenType.SYMBOL_NOTEQUAL)) {   /*Add more valid operand types for double equals if necessary.*/
-                if ((output != Token.TokenType.KEYWORD_INT) &&
-                        (output != Token.TokenType.KEYWORD_BOOLEAN)) {
-                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type: Expected type" +
-                            /*Token.TokenType.KEYWORD_INT.name().split("_")[0] + */
-                            output.name());
-                }
-                output = Token.TokenType.KEYWORD_BOOLEAN;
-            }/********** Boolean ops ***********/
-            else if (operator == Token.TokenType.SYMBOL_DOUBLEAMPERSAND ||
-                    operator == Token.TokenType.SYMBOL_DOUBLEBAR) {
-                if (output != Token.TokenType.KEYWORD_BOOLEAN) //at this point we already determined lhs and rhs are the same type
-                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
-            }/************ numeric equality ops ***********/
-            else if (operator == Token.TokenType.SYMBOL_GREATERTHAN ||
-                    operator == Token.TokenType.SYMBOL_GREATERTHANEQUAL ||
-                    operator == Token.TokenType.SYMBOL_LESSTHAN ||
-                    operator == Token.TokenType.SYMBOL_LESSTHANEQUAL) {
-                if (output != Token.TokenType.KEYWORD_INT) //in these cases the lhs rhs are ints and the output is boolean
-                    throw new TypeCheckerException("TypeCheck Error: Wrong Operator Type");
-                output = Token.TokenType.KEYWORD_BOOLEAN;
-            }/*****     *****/
-            return output;
-        }
-        return null;
-    }
-
     //entrypoint for checking variable declaration / assignment (more info in body)
     public static void CheckVarAss(Object input, Storage varMap) throws TypeCheckerException {
-        //originally named typeCheckVariableDec() (which was renamed to old_...) and called from VDT()
         //still called from VDT(), just name changed and logic moved around and repurposed to be recursive
-        //will call recursive method getExpressionType() to work out the type (sometimes eval-ing it in cases like parameters)
 
         Token.TokenType varType;
         Token.TokenType assType; //good comment
@@ -588,9 +488,32 @@ public class Typechecker {
                     for (int j = 0; j < nameslist.length; j++) { //for all names to resolve
                         Token.TokenType type = orderedlistauto.get(nameslist[j]); //pull type from hashmap by name
                         System.err.println(nameslist[j] + " must be type " + type); //-------->>>>here! (we have the types to resolve)
+                        ArrayList<AutoTicket> fix = new ArrayList<>();
+                        for (int y = 0; y < AutoHandler.size(); y++) { //check all autotickets again against hopefully resolutions
+                            AutoTicket tempauto;
+                            if (AutoHandler.get(y).TargetVarName.equals(nameslist[j])) { //if one of the resolved vars is here
+                                tempauto = AutoHandler.get(y); //pull out temp
+                                AutoHandler.remove(y); //remove it from list
+                                if (tempauto.NewType != null) { //if this ticket is actually valid and not null
+                                    fix.add(tempauto); //keep this autoticket
+                                } //otherwise, let it go, this will not remove unresolved names
+                            } //else if unresolved name is here, leave it
+                        } //end for resolutions
+                        System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
+                        System.err.println("New AutoHandler array:");
+                        for (int i = 0; i < AutoHandler.size(); i++) {
+                            AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
+                            System.err.println("$$$$$$ AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                    "\nType should be: " + tempauto.NewType); //print it
+                        }
+                        System.err.println("New FIXAUTO array:");
+                        for (int i = 0; i < fix.size(); i++) {
+                            AutoTicket tempauto = fix.get(i); //grab one of the tickets
+                            System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                    "\nType should be: " + tempauto.NewType); //print it
+                        }
                     }
-                    //autohandler would now be empty, since you pull it out.....maybe
-                }
+                } //end if autohandler is not empty
             }
         } else {
             System.out.println("Method Body has no statements");

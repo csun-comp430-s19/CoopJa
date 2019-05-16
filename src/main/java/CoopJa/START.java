@@ -43,7 +43,6 @@ public class START {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     ProgInput.append(line).append("\n");
-                    System.out.println(line);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -54,8 +53,6 @@ public class START {
                     e.printStackTrace();
                 }
             }
-            System.out.println("Final Input:");
-            System.out.println(ProgInput);
             ProgramString = ProgInput.toString();
         }
 
