@@ -63,12 +63,25 @@ public class START {
 
 
 
-
-
         //ArrayList<Token> tokenList = Token.tokenize(foo); //Tokenize
         //Input<Token> tokenListInput = new TokenParserInput(tokenList);
         //MainParser parsers = new MainParser();
         //PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse
+				/* Generate the C File */
+				// try
+				// {
+					// String generatedProgramString = fooTester.generateProgramString();
+					// System.out.println("\nGenerated Program:");
+					// System.out.printf("%s", generatedProgramString);
+				// }
+				// catch (CodeGenException e)
+				// {
+					// ;
+				// }
+				/* Save & Execute as a C File.
+						If it doesn't print to console on its own,
+						try piping output to stdout console?
+				*/
     }
 
 
