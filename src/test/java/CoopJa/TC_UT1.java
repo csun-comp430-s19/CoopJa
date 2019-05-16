@@ -18,7 +18,8 @@ public class TC_UT1 {
         MainParser parsers = new MainParser(); //create MainParser object
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
         System.out.println();
-        Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
+        Typechecker tempTypeC = new Typechecker(); //create typechecker object
+        tempTypeC.TypecheckMain(fooTester); //call typechecker with pprogram obj
     }
 
     public void goodTest (String foo) throws Exception {

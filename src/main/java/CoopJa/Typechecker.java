@@ -7,20 +7,20 @@ import java.util.*; //ArrayList, HashMap, Set
 
 public class Typechecker {
 
-    public static PProgram DuplicateProgram; //holds a copy of the input program to edit later
-    public static HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
-    public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
-    public static String MethodString = "";
-    public static ArrayList<String> ClassNamesListAll = new ArrayList<>(); //holds the names of all declared classes (sorted) for easy ref
-    public static ArrayList<AutoTicket> AutoHandler = new ArrayList<>(); //holds all autotickets
-    public static ArrayList<AutoTicket> ResolvedAutoTickets = new ArrayList<>(); //holds all resolved autotickets
-    public static int ClassNumber; //holds array val of which class we are working on
-    public static int ClassDeclarationNumber; //holds the array val for which stmt inside the class we are on (auto related)
-    public static int MethodDeclarationNumber; //if method has a body, used to store the dec number (in array format, starting with 0) for later reference
-    public static Storage FunctionCallParameterScope; //global for the special case where a recursive function call needs to refer to parameters from its original scope
-    public static boolean globalAutoOff = false; //used to send to VDT to handle auto in nestings
+    public PProgram DuplicateProgram; //holds a copy of the input program to edit later
+    public HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
+    public String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
+    public String MethodString = "";
+    public ArrayList<String> ClassNamesListAll = new ArrayList<>(); //holds the names of all declared classes (sorted) for easy ref
+    public ArrayList<AutoTicket> AutoHandler = new ArrayList<>(); //holds all autotickets
+    public ArrayList<AutoTicket> ResolvedAutoTickets = new ArrayList<>(); //holds all resolved autotickets
+    public int ClassNumber; //holds array val of which class we are working on
+    public int ClassDeclarationNumber; //holds the array val for which stmt inside the class we are on (auto related)
+    public int MethodDeclarationNumber; //if method has a body, used to store the dec number (in array format, starting with 0) for later reference
+    public Storage FunctionCallParameterScope; //global for the special case where a recursive function call needs to refer to parameters from its original scope
+    public boolean globalAutoOff = false; //used to send to VDT to handle auto in nestings
 
-    public static void main(String[] args) throws TypeCheckerException {
+    public void main(String[] args) throws TypeCheckerException {
 
         String foo = "public class one {" +
                 "auto i;" +
@@ -43,7 +43,7 @@ public class Typechecker {
 
     } //end Main()
 
-    public static PProgram TypecheckMain(PProgram fooTester) throws TypeCheckerException { //typechecker
+    public PProgram TypecheckMain(PProgram fooTester) throws TypeCheckerException { //typechecker
         DuplicateProgram = fooTester; //create duplicate program for later
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
@@ -147,12 +147,31 @@ public class Typechecker {
             } //else do nothing
         }
 
+        //PProgram copyprog = Cleaner(DuplicateProgram);
+
         System.out.println("Typechecker has Completed"); //:)
+        //return copyprog;
         return DuplicateProgram;
     }
 
+    public PProgram Cleaner(PProgram progdup) {
+        DuplicateProgram = null;
+        ClassListAll = new HashMap();
+        ClassString = "";
+        MethodString = "";
+        ClassNamesListAll = new ArrayList<>();
+        AutoHandler = new ArrayList<>();
+        ResolvedAutoTickets = new ArrayList<>();
+        ClassNumber = 0;
+        ClassDeclarationNumber = 0;
+        MethodDeclarationNumber = 0;
+        FunctionCallParameterScope = null;
+        globalAutoOff = false;
+        return progdup;
+    }
+
     //entrypoint for checking variable declaration / assignment (more info in body)
-    public static void CheckVarAss(Object input, Storage varMap) throws TypeCheckerException {
+    public void CheckVarAss(Object input, Storage varMap) throws TypeCheckerException {
         //still called from VDT(), just name changed and logic moved around and repurposed to be recursive
 
         Token.TokenType varType;
@@ -253,7 +272,7 @@ public class Typechecker {
         }
     }
 
-    public static HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input, boolean assignmentAllowed, boolean autoAllowed) throws TypeCheckerException { //take in map of all vars declared in scope, and the declaration stmt
+    public HashMap<String, VarStor> VariableDeclarationTypecheck(Storage map, PVariableDeclaration input, boolean assignmentAllowed, boolean autoAllowed) throws TypeCheckerException { //take in map of all vars declared in scope, and the declaration stmt
 
         HashMap<String, VarStor> mapNEW = new HashMap<>(); //used to hold new vars
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
@@ -358,7 +377,7 @@ public class Typechecker {
         return mapNEW; //return the updated map of all defined variables in current scope
     }
 
-    public static void MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws TypeCheckerException { //input: a class's Storage object & function declaration
+    public void MethodDeclarationTypecheck(Storage map, PStatementFunctionDeclaration input) throws TypeCheckerException { //input: a class's Storage object & function declaration
 
         AccessModifierTypecheck(input.accessModifier, false); //check if the access modifier is valid or not
         if (input.accessModifier != null) { //this if/else could be removed, mostly for visual output
@@ -529,7 +548,7 @@ public class Typechecker {
 
     }
 
-    public static void AutoVarChecker() throws TypeCheckerException {
+    public void AutoVarChecker() throws TypeCheckerException {
         //check auto stuff here, after every method stmt
         if (AutoHandler.size() != 0) { //if autohandler is not empty
             HashMap<String, Token.TokenType> orderedlistauto = new HashMap<String, Token.TokenType>(); //will hold name,newtype of things to change
@@ -677,7 +696,7 @@ public class Typechecker {
         } //end resolved ticket start
     }
 
-    public static String ClassTypecheck(PClassDeclaration input) throws TypeCheckerException { //typecheck the class declaration
+    public String ClassTypecheck(PClassDeclaration input) throws TypeCheckerException { //typecheck the class declaration
 
         String extendsHandler = null; //no
         AccessModifierTypecheck(input.accessModifier, true); //make sure the access modifier is valid
@@ -706,7 +725,7 @@ public class Typechecker {
 
     }
 
-    public static void AccessModifierTypecheck(Token input, boolean isClass) throws TypeCheckerException {
+    public void AccessModifierTypecheck(Token input, boolean isClass) throws TypeCheckerException {
         //access modifier required in class, but will fail at parser level if not there
         if (isClass) {
             if (input.getType() == Token.TokenType.KEYWORD_PUBLIC || input.getType() == Token.TokenType.KEYWORD_PRIVATE || input.getType() == Token.TokenType.KEYWORD_PROTECTED) {
@@ -724,7 +743,7 @@ public class Typechecker {
     }
 
     //now actually used!
-    public static HashMap<String, VarStor> TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp, Storage currentScope) throws TypeCheckerException {
+    public HashMap<String, VarStor> TEMP_unused_code_for_PStmts__PSTATEMENT(PStatement tempStmtExp, Storage currentScope) throws TypeCheckerException {
         if (tempStmtExp instanceof PExpressionIdentifierReference) { //done
             System.out.println("Instance of PExpressionIdentifierReference");
             PExpressionIdentifierReference tempExp = (PExpressionIdentifierReference) tempStmtExp;
@@ -833,7 +852,7 @@ public class Typechecker {
         return null; //no need to return anything, since never reached, but whatever
     }
 
-    private static void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Storage currentScope) throws TypeCheckerException {
+    private void typeCheckWhileStatement(PStatementWhileStatement whileStatement, Storage currentScope) throws TypeCheckerException {
         Storage whileScope = currentScope.Copy();
         HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
         if (getExpressionType(whileStatement.expression, whileScope) != Token.TokenType.KEYWORD_BOOLEAN)
@@ -845,7 +864,7 @@ public class Typechecker {
         }
     }
 
-    private static void typeCheckIfStatement(PStatementIfStatement ifStatement, Storage currentScope) throws TypeCheckerException {
+    private void typeCheckIfStatement(PStatementIfStatement ifStatement, Storage currentScope) throws TypeCheckerException {
         Storage ifScope = currentScope.Copy(); //if statement needs its own scope, anything declared inside stays inside
         Storage elseScope = currentScope.Copy(); //exclusive scope for the else block that wont interfere with anything outside
         HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
@@ -867,7 +886,7 @@ public class Typechecker {
         }
     }
 
-    private static void typeCheckForStatement(PStatementForStatement forStatement, Storage currentScope) throws TypeCheckerException {
+    private void typeCheckForStatement(PStatementForStatement forStatement, Storage currentScope) throws TypeCheckerException {
         Storage forScope = currentScope.Copy();//exclusive scope for the For Loop that wont interfere with anything outside
         HashMap<String, VarStor> blockVariables;//for storing any variables declared in a block
         if (!(forStatement.statement1 instanceof PVariableDeclaration))//make sure first statement is a variable declaration
@@ -889,7 +908,7 @@ public class Typechecker {
     }
 
     //idea, recursive methodology also make sure that currentScope is a copy.
-    public static Token.TokenType getExpressionType(PExpression exp, Storage currentScope) throws TypeCheckerException {
+    public Token.TokenType getExpressionType(PExpression exp, Storage currentScope) throws TypeCheckerException {
         if (exp instanceof PExpressionAtomNumberLiteral)
             return Token.TokenType.KEYWORD_INT; //Expand here once we have more than just ints
         else if (exp instanceof PExpressionAtomStringLiteral)
@@ -982,7 +1001,7 @@ public class Typechecker {
 
     //for both FunctionCallTypeCheck and IdentifierReferenceTypeCheck, we need to make sure the parameters are typechecked properly as well
     //probably check to make sure we dont use the wrong storage for the internal parameters
-    public static Token.TokenType FunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+    public Token.TokenType FunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
         System.out.println("PStatementFunctionCall");
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
@@ -1000,7 +1019,7 @@ public class Typechecker {
     }
 
     //to handle private instances in extended classes
-    public static Token.TokenType ExtendedFunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+    public Token.TokenType ExtendedFunctionCallTypeCheck (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
             FunctStor method = currentScope.MethodNames.get(identifierName);
@@ -1021,7 +1040,7 @@ public class Typechecker {
     //this will work as a recursive method within the recursive method getExpressionType
     //this will run through its own recursive routine to handle
     //foo.foo1.foo2(x, y) is valid foo.foo1().foo2 is not
-    public static Token.TokenType IdentifierReferenceTypeCheckDriver (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
+    public Token.TokenType IdentifierReferenceTypeCheckDriver (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
         Token.TokenType resultingType;
         //set global to keep track of surface storage
         FunctionCallParameterScope = currentScope;
@@ -1031,7 +1050,7 @@ public class Typechecker {
     }
 
     //as this method runs through its recursive calls the FunctionCallParameterScope will remain the scope on its surface
-    public static Token.TokenType IdentifierReferenceTypeCheck (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
+    public Token.TokenType IdentifierReferenceTypeCheck (PIdentifierReference PIR, Storage currentScope) throws TypeCheckerException{
         System.out.println("PIdentifierReference");
         String identifierName = PIR.identifier.getTokenString();
         if (ClassListAll.containsKey(identifierName)) {//make sure the class being called is in the list
@@ -1058,7 +1077,7 @@ public class Typechecker {
 
     //same as FunctionCallTypeCheck but using FunctionCallParameterScope ClassSpecificStorage is still used to determine the method validity
     //for use in IdentifierReferenceTypeCheck
-    public static Token.TokenType FunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+    public Token.TokenType FunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
         System.out.println("PStatementFunctionCall");
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
@@ -1081,7 +1100,7 @@ public class Typechecker {
     }
 
     //for extended class function calls
-    public static Token.TokenType ExtendedFunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
+    public Token.TokenType ExtendedFunctionCallTypeCheckFromIRef (PStatementFunctionCall functionCall, Storage currentScope)throws TypeCheckerException{
         System.out.println("PStatementFunctionCall");
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
@@ -1102,7 +1121,7 @@ public class Typechecker {
         }
     }
 
-    public static void TypeCheckFunctionCallParameters(String identifierName, ArrayList<VarStor> parameters, PStatementFunctionCall functionCall, Storage currentScope) throws TypeCheckerException{
+    public void TypeCheckFunctionCallParameters(String identifierName, ArrayList<VarStor> parameters, PStatementFunctionCall functionCall, Storage currentScope) throws TypeCheckerException{
         for (int i=0; i < parameters.size(); i++){//TypeCheck all of the parameters
             Token.TokenType expectedType = parameters.get(i).Type.getType();//retrive expected Type of parameter (declared param type)
             PExpression givenVariable = functionCall.expressionsInput.get(i);//retrieve given type of parameter
@@ -1138,7 +1157,7 @@ public class Typechecker {
 
     //cleanly check for variable in scope
     //if it does not exist throw an TypeCheckerException
-    public static Token.TokenType VariableInScope (String varName, Storage currentScope) throws TypeCheckerException{
+    public Token.TokenType VariableInScope (String varName, Storage currentScope) throws TypeCheckerException{
         System.out.println("PExpressionVariable");
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
@@ -1155,7 +1174,7 @@ public class Typechecker {
     }
 
     //similar to VariableInScope, however will throw TypeCheckerException if Variable has private access type
-    public static Token.TokenType VariableInExtendedScope (String varName, Storage currentScope) throws TypeCheckerException{
+    public Token.TokenType VariableInExtendedScope (String varName, Storage currentScope) throws TypeCheckerException{
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
             if (tempVarCheck.AccessModifier != null)

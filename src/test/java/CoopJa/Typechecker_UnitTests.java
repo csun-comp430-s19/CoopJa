@@ -15,7 +15,11 @@ public class Typechecker_UnitTests {
         MainParser parsers = new MainParser(); //create MainParser object
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse the example var
         System.out.println();
-        Typechecker.TypecheckMain(fooTester); //call typechecker with parsed program obj
+        Typechecker tempTypeC = new Typechecker(); //create typechecker object
+        tempTypeC.TypecheckMain(fooTester); //call typechecker with pprogram obj
+        //note, when typechecker was static, a fix for the unit tests persisting was to add the line:
+        //java.lang.System.gc();
+        //which forces java's garbage collection to run
     }
 
     public void goodTest (String foo) throws Exception { //call when the test will succeed
@@ -69,14 +73,12 @@ public class Typechecker_UnitTests {
         badTest(foo);
     }
 
-//    ////BUG IN THIS UNIT TEST, READ NOTES
-//    @Test
-//    public void testBadImplicitExtends() { //READ!!!!!!-----this specific unit tests is giving an odd issue. when ran individually, it works correctly. when run with the group, it fails. in reality, the test will pass
-//        String foo = "public class foo extends foo2{public int foo4;}" +
-//                "public class foo2 {int fooGood;}";
-//        System.err.println("!!_READ_!!\n!!_READ_!!\nThere is a bug with this unit test.\nWhen ran individually, it acts as it should,\nAND PASSES THE TEST.\nWhen ran in a group, it gives incorrect result.\n!!_READ_!!\n!!_READ_!!\n");
-//        badTest(foo);
-//    }
+    @Test
+    public void testBadImplicitExtends() {
+        String foo = "public class foo extends foo2{public int foo4;}" +
+                "public class foo2 {int fooGood;}";
+        badTest(foo);
+    }
 
     @Test
     public void testProperExtends() throws Exception {
@@ -132,9 +134,6 @@ public class Typechecker_UnitTests {
                 "}";
         goodTest(foo);
     }
-
-    //////////////////////up to this point
-
 
     @Test
     public void testParamCollisionM() {
@@ -350,7 +349,7 @@ public class Typechecker_UnitTests {
     }
 
     @Test
-    public void testGoodMethodSignature() throws Exception { ///////////////////////////////////maybe use
+    public void testGoodMethodSignature() throws Exception {
         String foo = "public class one {" +
                 "public int testInt;"+
                 "public int main(int a){"+
@@ -505,17 +504,15 @@ public class Typechecker_UnitTests {
         badTest(foo);
     }
 
-//    ////BUG IN THIS UNIT TEST, READ NOTES
-//    @Test
-//    public void testBadForwardRefExtends() { //READ!!!!!!-----this specific unit tests is giving an odd issue. when ran individually, it works correctly. when run with the group, it fails. in reality, the test will pass
-//        String foo = "public class one extends two {" + //two is not known yet
-//                "int foo1;" +
-//                "}" +
-//                "public class two {" +
-//                "}";
-//        System.err.println("!!_READ_!!\n!!_READ_!!\nThere is a bug with this unit test.\nWhen ran individually, it acts as it should,\nAND PASSES THE TEST.\nWhen ran in a group, it gives incorrect result.\n!!_READ_!!\n!!_READ_!!\n");
-//        badTest(foo);
-//    }
+    @Test
+    public void testBadForwardRefExtends() {
+        String foo = "public class one extends two {" + //two is not known yet
+                "int foo1;" +
+                "}" +
+                "public class two {" +
+                "}";
+        badTest(foo);
+    }
 
     @Test
     public void testGoodDefinitionString() throws Exception { //good way to define a string
@@ -702,15 +699,14 @@ public class Typechecker_UnitTests {
         badTest(foo);
     }
 
-//    //BUG IN THIS UNIT TEST, READ NOTES
-//    @Test
-//    public void testBadForwardRefExtends() { //READ!!!!!!-----this specific unit tests is giving an odd issue. when ran individually, it works correctly. when run with the group, it fails. in reality, the test will pass
-//        String foo = "public class one extends two {" + //two is not known yet
-//                "int foo1;" +
-//                "}" +
-//                "public class two {" +
-//                "}";
-//        System.err.println("!!_READ_!!\n!!_READ_!!\nThere is a bug with this unit test.\nWhen ran individually, it acts as it should,\nAND PASSES THE TEST.\nWhen ran in a group, it gives incorrect result.\n!!_READ_!!\n!!_READ_!!\n");
-//        badTest(foo);
-//    }
+    //BUG IN THIS UNIT TEST, READ NOTES
+    @Test
+    public void testBadForwardRefExtends2() {
+        String foo = "public class one extends two {" + //two is not known yet
+                "int foo1;" +
+                "}" +
+                "public class two {" +
+                "}";
+        badTest(foo);
+    }
 }

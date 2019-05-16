@@ -67,6 +67,12 @@ public class START {
         //Input<Token> tokenListInput = new TokenParserInput(tokenList);
         //MainParser parsers = new MainParser();
         //PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse
+
+        //Typechecker tempTypeC = new Typechecker();
+        //PProgram FixedProgram = tempTypeC.TypecheckMain(fooTester); //Typecheck
+
+        //*****use "FixedProgram" var, the one returned from typechecker to run codegen
+
 				/* Generate the C File */
 				// try
 				// {
