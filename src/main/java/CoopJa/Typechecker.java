@@ -22,34 +22,6 @@ public class Typechecker {
 
     public static void main(String[] args) throws TypeCheckerException {
 
-//        String foo = "public class one {" +
-//                "String foo1 = null;" + //PExpressionAtomNullLiteral //null
-//                "boolean foo2 = true;" + //PExpressionAtomBooleanLiteral //boolean
-//                //"Object foo3 = new Object();" +
-//                "public void main(int one) {" +
-//                "" +
-//                "}";
-
-//        String foo = "public class one {" +
-//                "auto i;" +
-//                //"auto j;" +
-//                "public void main() {" +
-//                //"auto tempv = 7;" +
-//                "i = 0;" +
-//                //"j = true;" +
-//                "i = 5;" +
-//                "i = 7;" +
-//                "i = 100;" +
-//                "}" +
-//                "}";
-
-//        String foo = "public class one {" +
-//                //"int test1;" + //proves empty class list works
-//                "}" +
-//                "public class two extends one {" +
-//                //"int testing2;" +
-//                "}";
-
         String foo = "public class one {" +
                 "auto i;" +
                 "auto j;" +
@@ -206,7 +178,7 @@ public class Typechecker {
             //weirdness going on for string stuff, was used to fix a bug long ago, but now it looks bizarre
             //possilble failure point for string typechecking
             if (assignment == Token.TokenType.KEYWORD_STRING) { //strings types name return as type identifiers rather than KEYWORD_STRING, this if handles that
-                if (!assignee.equals(assignment))
+                if (!assignee.equals(assignment) && assignee != Token.TokenType.KEYWORD_AUTO)
                     throw new TypeCheckerException("TypeCheck Error: Expected " +
                             assignee + " got " + assignment);
             }

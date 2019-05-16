@@ -30,6 +30,122 @@ public class TC_UT1 {
     }
 
 
+    @Test
+    public void testGoodAutoLarge() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "auto k;" +
+                "auto p;" +
+                "auto m;" +
+                "auto n;" +
+                "public void main() {" +
+                "auto localvar = 7;" +
+                "i = 0;" +
+                "j = true;" +
+                "k = \"Hello!\";" +
+                "p = 15 / 3;" +
+                "m = 1 < 2;" +
+                "n = 99;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testGoodAutotoAuto() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "i = 0;" +
+                "j = i;" + //auto j given assignment (what was) auto i
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testGoodAutoMultiMethod() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "i = 0;" +
+                "}" +
+                "public void main2() {" +
+                "j = 9;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadAutotoAuto() {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "i = j;" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodAutoMultiClass() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "public void main() {" +
+                "i = 0;" +
+                "}" +
+                "}" +
+                "public class two {" +
+                "auto j;" +
+                "public void main() {" +
+                "j = 88;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testBadAutoNotResolvedMulti() {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "auto k;" +
+                "public void main() {" +
+                "i = 0;" +
+                "i = i + 1;" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testBadAutoNotResolved() {
+        String foo = "public class one {" +
+                "auto i;" +
+                "public void main() {" +
+                "}" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodAutoMultiAssign() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "public void main() {" +
+                "i = 0;" +
+                "i = 5;" +
+                "i = 7;" +
+                "i = 100;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
 
     @Test
     public void testGoodAutoReplace1() throws Exception {
