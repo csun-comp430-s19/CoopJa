@@ -40,17 +40,24 @@ public class Typechecker {
 //                "}" +
 //                "}";
 
+//        String foo = "public class one {" +
+//                "auto i;" +
+//                //"auto j;" +
+//                "public void main() {" +
+//                //"auto tempv = 7;" +
+//                "i = 0;" +
+//                //"j = true;" +
+//                "i = 5;" +
+//                "i = 7;" +
+//                "i = 100;" +
+//                "}" +
+//                "}";
+
         String foo = "public class one {" +
-                "auto i;" +
-                //"auto j;" +
-                "public void main() {" +
-                //"auto tempv = 7;" +
-                "i = 0;" +
-                //"j = true;" +
-                "i = 5;" +
-                "i = 7;" +
-                "i = 100;" +
+                //"int test1;" + //proves empty class list works
                 "}" +
+                "public class two extends one {" +
+                //"int testing2;" +
                 "}";
 
 
@@ -64,7 +71,7 @@ public class Typechecker {
 
     } //end Main()
 
-    public static void TypecheckMain(PProgram fooTester) throws TypeCheckerException { //typechecker
+    public static PProgram TypecheckMain(PProgram fooTester) throws TypeCheckerException { //typechecker
         DuplicateProgram = fooTester; //create duplicate program for later
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
@@ -125,8 +132,6 @@ public class Typechecker {
                 }
                 System.out.println("End Declaration #" + y);
                 System.out.println();
-
-                //somewhere here we edit parser / deal with auto //////////XXXXXXXXXXXXXX
             }
 
             ClassNumber = -1;
@@ -136,8 +141,42 @@ public class Typechecker {
             System.out.println();
         }
 
-        System.out.println("one typecheck done"); //XXXXXXXXXXXX
+        //check autohandler to see if it still has stuff in it
+        if (AutoHandler.size() == 0) { //good, no open auto tickets
+            //nothing
+        } else {
+            String autoErrOut = "";
+            for (int i = 0; i < AutoHandler.size(); i++) {
+                AutoTicket tempauto = AutoHandler.get(i);
+                autoErrOut = "VarName: " + tempauto.TargetVarName + " in Class: " + tempauto.ClassName + ", Awaited Type: " + tempauto.NewType + "\n";
+            }
+            throw new TypeCheckerException("Auto Typecheck Error: Could not resolve some Auto Variable Types\n" +
+                    "AutoHandler Size: " + AutoHandler.size() + "\n" + autoErrOut);
+        }
 
+        //reorder PProgram object
+        //info: in order to help CodeGen, because of the way it works (each piece generates its own code in the order its in)
+        //only in the case of Inheritance, we need to reorder the variable declarations in the child to align with the Parent & add them together
+        //this has to do with how C inheritance works
+        //Example: Parent{var1,var2,funct1,var3}
+        //child before: {var4,var5,funct2,funct3}
+        //Child After: {var1,var2,funct1,var3,var4,var5,funct2,funct3}
+        for (int i = 0; i < DuplicateProgram.classDeclarationList.size(); i++) {
+            PClassDeclaration tempClassCHILD = DuplicateProgram.classDeclarationList.get(i);
+            if (tempClassCHILD.extendsIdentifier != null) { //if the class extends another
+                int ParentLoc = ClassNamesListAll.indexOf(tempClassCHILD.extendsIdentifier.getTokenString()); //find the index of the parent class, using the name of the parent, retrieves the pos in arraylist
+                PClassDeclaration tempClassPARENT = DuplicateProgram.classDeclarationList.get(ParentLoc); //grab parent class dec
+                ArrayList<PDeclaration> CombinedDeclarations = tempClassPARENT.declarationList; //make a combined declarations list, insert parent first
+                CombinedDeclarations.addAll(tempClassCHILD.declarationList); //add child declarations
+                tempClassCHILD.declarationList = CombinedDeclarations; //replace child dec with combined dec local copy
+                DuplicateProgram.classDeclarationList.set(i, tempClassCHILD); //REPLACE CHILD IN PPROGRAM, i is pos of child
+                System.err.println("TYPECHECKER REORDER INFO: Found that Class " + tempClassCHILD.identifier.getTokenString() + " has Parent Class: " + tempClassPARENT.identifier.getTokenString() + "" +
+                        ", so Typechecker has combined its Declarations in order {Parent,Child}");
+            } //else do nothing
+        }
+
+        System.out.println("Typechecker has Completed"); //:)
+        return DuplicateProgram;
     }
 
     //entrypoint for checking variable declaration / assignment (more info in body)
