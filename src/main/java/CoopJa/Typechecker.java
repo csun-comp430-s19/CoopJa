@@ -511,6 +511,8 @@ public class Typechecker {
             Storage statementBlockStorage = GOODMETHOD.Copy();
             statementBlockStorage.VariableNames.putAll(tempFS.VariableNames);//place parameter variables into method scope
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
+                AutoVarChecker(); //check auto here
+
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
 
@@ -526,152 +528,8 @@ public class Typechecker {
                 }
 
                 globalAutoOff = false; //turn off after
+                //auto check used to be here
 
-                //check auto stuff here, after every method stmt
-                if (AutoHandler.size() != 0) { //if autohandler is not empty
-                    HashMap<String, Token.TokenType> orderedlistauto = new HashMap<String, Token.TokenType>(); //will hold name,newtype of things to change
-                    String[] nameslist = new String[AutoHandler.size()]; //new string array size of current autohandler, will fill with just names at first
-                    for (int i = 0; i < AutoHandler.size(); i++) { //for all autotickets
-                        AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
-                        //create array of string (name), check for matches
-                        nameslist[i] = tempauto.TargetVarName; //load string array with the name
-                        if (tempauto.NewType != null) { //if the auto type has been RESOLVED (not detected, but determined the new type)
-                            //System.err.println("type " + tempauto.NewType + " not equal to null, proceed!");
-                            orderedlistauto.put(tempauto.TargetVarName, tempauto.NewType); //put this resolution inside the orderlistauto
-                        } else { //else, auto has just been detected, not resolved
-                            //System.err.println("Found no resolutions for Auto");
-                        }
-                    } //end for all autotickets
-                    nameslist = new HashSet<String>(Arrays.asList(nameslist)).toArray(new String[0]); //removes all duplicates in string array of names
-                    //System.err.println("After AutoHandler completed...checking for matches");
-                    System.err.println("size of orderlistauto: " + orderedlistauto.size());
-                    HashMap<String, Token.TokenType> TEMPLIST = orderedlistauto;
-                    System.err.println(orderedlistauto.toString()); //!!_!!!_!! only contains resolutions, could be nothing!
-                    for (int j = 0; j < nameslist.length; j++) { //for all names to resolve
-                        if (TEMPLIST.containsKey(nameslist[j])) { //if the resolution bank
-                            Token.TokenType type = TEMPLIST.get(nameslist[j]); //pull type from hashmap by name
-                            //orderedlistauto.put(nameslist[j], type); //ADD IT BACK INTO THE HASHMAP, HASHMAPS ARE WTF
-                            System.err.println("()()()()()" + nameslist[j] + " must be type " + type); //-------->>>>here! (we have noooo//oppee the types to resolve)
-                            ArrayList<AutoTicket> fix = new ArrayList<>();///////////NEWTYPE
-                            for (int y = 0; y < AutoHandler.size(); y++) { //check all autotickets again against a single name resolution, remove all duplicate instances
-                                AutoTicket tempauto;
-                                if (AutoHandler.get(y).TargetVarName.equals(nameslist[j])) { //if one of the resolved vars is here
-                                    tempauto = AutoHandler.get(y); //pull out temp
-                                    AutoHandler.remove(y); //remove it from list
-                                    if (tempauto.isDeclaration) { //if this ticket is the declaration ticket
-                                        //System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^" + type);
-                                        tempauto.NewType = type; //update the declaration ticket with type
-                                        fix.add(tempauto); //store this autoticket (the declaration one with the updated type)
-                                    } //otherwise, let it go, this will not remove unresolved names
-                                } //else if unresolved name is here, leave it
-                            } //end for resolutions
-                            System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
-                            //System.err.println("New FIXAUTO array:");
-                            if (fix.size() > 0) { //if not empty
-                                for (int i = 0; i < fix.size(); i++) {
-                                    AutoTicket tempauto = fix.get(i); //grab one of the tickets
-                                    System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
-                                            "\nType should be: " + tempauto.NewType + "\n" +
-                                            "Class,ClassDec,Method#s: " + tempauto.ClassNumb + "," + tempauto.ClassDecNumb + "," + tempauto.MethodDecNum); //print it
-                                }
-                                ResolvedAutoTickets.addAll(fix);
-                            }
-                        } else {
-                            System.err.println("Cannot resolve name yet : " + nameslist[j]);
-                        }
-                    }
-                } //end if autohandler is not empty
-                //at the end of a stmt, try to resolve auto
-                if (ResolvedAutoTickets.size() != 0) { //if we have a resolved auto ticket
-                    for (int i = 0; i < ResolvedAutoTickets.size(); i++) { //for all resolved auto tickets
-                        System.err.println("RESOLVED AUTO TICKET FOUND!");
-                        AutoTicket autoTT = ResolvedAutoTickets.get(i);
-                        int classnum11 = autoTT.ClassNumb;
-                        int classdec11 = autoTT.ClassDecNumb;
-                        int method11 = autoTT.MethodDecNum;
-                        String varname11 = autoTT.TargetVarName;
-                        Token.TokenType type11 = autoTT.NewType;
-                        Storage classDuplicateTemp = ClassListAll.get(ClassNamesListAll.get(classnum11)); //PULLING OUT current class
-                        //resolve auto keyword in scope----------!
-                        if (autoTT.MethodName.equals("")) { //if empty method, it is in the class declarations
-                            if (classDuplicateTemp.VariableNames.containsKey(varname11)) { //if the var is there
-                                VarStor tempReplaceType = classDuplicateTemp.VariableNames.get(varname11);
-                                String tokenstringTemp = Token.VarTypeMap.get(type11); //use the stored type's token to extract tokentype, then use to pull the proper string from token.java new hashmap
-                                tempReplaceType.Type = new Token(tokenstringTemp); //give new token with proper type to var in storage
-                                classDuplicateTemp.VariableNames.put(varname11, tempReplaceType); //replace varstor in local
-                                ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED CLASS
-                                System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
-                            } else {
-                                throw new TypeCheckerException("How did this happen? -- Variable DNE"); //dont think this is possible
-                            }
-                        } else { //in method
-                            if (classDuplicateTemp.MethodNames.containsKey(autoTT.MethodName)) {
-                                FunctStor tempFunctS1 = classDuplicateTemp.MethodNames.get(autoTT.MethodName); //grab method info
-                                VarStor tempReplaceType = tempFunctS1.VariableNames.get(varname11);
-                                String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
-                                tempReplaceType.Type = new Token(tempTokenString); //update type in local varstor
-                                tempFunctS1.VariableNames.put(varname11, tempReplaceType); //update var in functstor local
-                                classDuplicateTemp.MethodNames.put(autoTT.MethodName, tempFunctS1); //replace functstor in local class stor
-                                ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED FUNCTSTOR
-                                System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
-                            } else {
-                                throw new TypeCheckerException("How did this happen? -- Method DNE"); //dont think this is possible
-                            }
-                        }
-                        //resolve auto keyword in duplicate pprogram----------!
-                        if (autoTT.MethodName.equals("")) { //if method is empty, look in class declarations (i know this is a duplicate if structure, but doing it to show difference between storage and pprog)
-                            PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
-                            PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
-                            if (tempDecl instanceof PVariableDeclaration) { //it should be
-                                PVariableDeclaration varDecTBD = (PVariableDeclaration) tempDecl;
-                                if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
-                                    String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
-                                    varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
-                                    classPPRog.declarationList.set(classdec11, varDecTBD); //replace in local class dec
-                                    DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE VARDEC IN PPROGRAM
-                                    System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
-                                } else { //auto not detected, error
-                                    //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
-                                    //        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11);
-                                    //theres something where it keeps replacing, but should be fine
-                                }
-                            } else {
-                                throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
-                                        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
-                            }
-                        } else { //inside a method
-                            PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
-                            PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
-                            if (tempDecl instanceof PStatementFunctionDeclaration) { //found method dec
-                                PStatementFunctionDeclaration methodDecTBD = (PStatementFunctionDeclaration) tempDecl;
-                                PStatement tempSTMTM = methodDecTBD.statementList.get(method11);
-                                if (tempSTMTM instanceof PVariableDeclaration) { //find var dec in method decs
-                                    PVariableDeclaration varDecTBD = (PVariableDeclaration) tempSTMTM;
-                                    if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
-                                        String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
-                                        varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
-                                        methodDecTBD.statementList.set(method11, varDecTBD); //set updated vardec in local method
-                                        classPPRog.declarationList.set(classdec11, methodDecTBD); //replace method in local class dec
-                                        DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE METHOD IN PPROGRAM
-                                        System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
-                                    } else { //auto not detected, error
-                                        //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
-                                        //        "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
-                                        //        "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
-                                        //theres something where it keeps replacing, but should be fine
-                                    }
-                                } else { //not found vardec
-                                    throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
-                                            "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
-                                            "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
-                                }
-                            } else { //didnt find method dec here
-                                throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PStatementFunctionDeclaration instance in" +
-                                        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
-                            }
-                        } //end inside method
-                    } //end for resolved tickets
-                } //end resolved ticket start
             } //end for all body stmts
         } else {
             System.out.println("Method Body has no statements");
@@ -690,6 +548,154 @@ public class Typechecker {
 
         //not returning a map anymore, just updating as we go
 
+    }
+
+    public static void AutoVarChecker() throws TypeCheckerException {
+        //check auto stuff here, after every method stmt
+        if (AutoHandler.size() != 0) { //if autohandler is not empty
+            HashMap<String, Token.TokenType> orderedlistauto = new HashMap<String, Token.TokenType>(); //will hold name,newtype of things to change
+            String[] nameslist = new String[AutoHandler.size()]; //new string array size of current autohandler, will fill with just names at first
+            for (int i = 0; i < AutoHandler.size(); i++) { //for all autotickets
+                AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
+                //create array of string (name), check for matches
+                nameslist[i] = tempauto.TargetVarName; //load string array with the name
+                if (tempauto.NewType != null) { //if the auto type has been RESOLVED (not detected, but determined the new type)
+                    //System.err.println("type " + tempauto.NewType + " not equal to null, proceed!");
+                    orderedlistauto.put(tempauto.TargetVarName, tempauto.NewType); //put this resolution inside the orderlistauto
+                } else { //else, auto has just been detected, not resolved
+                    //System.err.println("Found no resolutions for Auto");
+                }
+            } //end for all autotickets
+            nameslist = new HashSet<String>(Arrays.asList(nameslist)).toArray(new String[0]); //removes all duplicates in string array of names
+            //System.err.println("After AutoHandler completed...checking for matches");
+            System.err.println("size of orderlistauto: " + orderedlistauto.size());
+            HashMap<String, Token.TokenType> TEMPLIST = orderedlistauto;
+            System.err.println(orderedlistauto.toString()); //!!_!!!_!! only contains resolutions, could be nothing!
+            for (int j = 0; j < nameslist.length; j++) { //for all names to resolve
+                if (TEMPLIST.containsKey(nameslist[j])) { //if the resolution bank
+                    Token.TokenType type = TEMPLIST.get(nameslist[j]); //pull type from hashmap by name
+                    //orderedlistauto.put(nameslist[j], type); //ADD IT BACK INTO THE HASHMAP, HASHMAPS ARE WTF
+                    System.err.println("()()()()()" + nameslist[j] + " must be type " + type); //-------->>>>here! (we have noooo//oppee the types to resolve)
+                    ArrayList<AutoTicket> fix = new ArrayList<>();///////////NEWTYPE
+                    for (int y = 0; y < AutoHandler.size(); y++) { //check all autotickets again against a single name resolution, remove all duplicate instances
+                        AutoTicket tempauto;
+                        if (AutoHandler.get(y).TargetVarName.equals(nameslist[j])) { //if one of the resolved vars is here
+                            tempauto = AutoHandler.get(y); //pull out temp
+                            AutoHandler.remove(y); //remove it from list
+                            if (tempauto.isDeclaration) { //if this ticket is the declaration ticket
+                                //System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^" + type);
+                                tempauto.NewType = type; //update the declaration ticket with type
+                                fix.add(tempauto); //store this autoticket (the declaration one with the updated type)
+                            } //otherwise, let it go, this will not remove unresolved names
+                        } //else if unresolved name is here, leave it
+                    } //end for resolutions
+                    System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
+                    //System.err.println("New FIXAUTO array:");
+                    if (fix.size() > 0) { //if not empty
+                        for (int i = 0; i < fix.size(); i++) {
+                            AutoTicket tempauto = fix.get(i); //grab one of the tickets
+                            System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                    "\nType should be: " + tempauto.NewType + "\n" +
+                                    "Class,ClassDec,Method#s: " + tempauto.ClassNumb + "," + tempauto.ClassDecNumb + "," + tempauto.MethodDecNum); //print it
+                        }
+                        ResolvedAutoTickets.addAll(fix);
+                    }
+                } else {
+                    System.err.println("Cannot resolve name yet : " + nameslist[j]);
+                }
+            }
+        } //end if autohandler is not empty
+        //at the end of a stmt, try to resolve auto
+        if (ResolvedAutoTickets.size() != 0) { //if we have a resolved auto ticket
+            for (int i = 0; i < ResolvedAutoTickets.size(); i++) { //for all resolved auto tickets
+                System.err.println("RESOLVED AUTO TICKET FOUND!");
+                AutoTicket autoTT = ResolvedAutoTickets.get(i);
+                int classnum11 = autoTT.ClassNumb;
+                int classdec11 = autoTT.ClassDecNumb;
+                int method11 = autoTT.MethodDecNum;
+                String varname11 = autoTT.TargetVarName;
+                Token.TokenType type11 = autoTT.NewType;
+                Storage classDuplicateTemp = ClassListAll.get(ClassNamesListAll.get(classnum11)); //PULLING OUT current class
+                //resolve auto keyword in scope----------!
+                if (autoTT.MethodName.equals("")) { //if empty method, it is in the class declarations
+                    if (classDuplicateTemp.VariableNames.containsKey(varname11)) { //if the var is there
+                        VarStor tempReplaceType = classDuplicateTemp.VariableNames.get(varname11);
+                        String tokenstringTemp = Token.VarTypeMap.get(type11); //use the stored type's token to extract tokentype, then use to pull the proper string from token.java new hashmap
+                        tempReplaceType.Type = new Token(tokenstringTemp); //give new token with proper type to var in storage
+                        classDuplicateTemp.VariableNames.put(varname11, tempReplaceType); //replace varstor in local
+                        ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED CLASS
+                        System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
+                    } else {
+                        throw new TypeCheckerException("How did this happen? -- Variable DNE"); //dont think this is possible
+                    }
+                } else { //in method
+                    if (classDuplicateTemp.MethodNames.containsKey(autoTT.MethodName)) {
+                        FunctStor tempFunctS1 = classDuplicateTemp.MethodNames.get(autoTT.MethodName); //grab method info
+                        VarStor tempReplaceType = tempFunctS1.VariableNames.get(varname11);
+                        String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                        tempReplaceType.Type = new Token(tempTokenString); //update type in local varstor
+                        tempFunctS1.VariableNames.put(varname11, tempReplaceType); //update var in functstor local
+                        classDuplicateTemp.MethodNames.put(autoTT.MethodName, tempFunctS1); //replace functstor in local class stor
+                        ClassListAll.put(ClassNamesListAll.get(classnum11), classDuplicateTemp); //REPLACE STORAGE WITH UPDATED FUNCTSTOR
+                        System.err.println("AUTO VAR UPDATED IN CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " STORAGE: {name: " + varname11 + "; new type: " + type11 + "}");
+                    } else {
+                        throw new TypeCheckerException("How did this happen? -- Method DNE"); //dont think this is possible
+                    }
+                }
+                //resolve auto keyword in duplicate pprogram----------!
+                if (autoTT.MethodName.equals("")) { //if method is empty, look in class declarations (i know this is a duplicate if structure, but doing it to show difference between storage and pprog)
+                    PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
+                    PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
+                    if (tempDecl instanceof PVariableDeclaration) { //it should be
+                        PVariableDeclaration varDecTBD = (PVariableDeclaration) tempDecl;
+                        if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
+                            String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                            varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
+                            classPPRog.declarationList.set(classdec11, varDecTBD); //replace in local class dec
+                            DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE VARDEC IN PPROGRAM
+                            System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
+                        } else { //auto not detected, error
+                            //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
+                            //        "Class pos " + classnum11 + " & Class Declaration pos " + classdec11);
+                            //theres something where it keeps replacing, but should be fine
+                        }
+                    } else {
+                        throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
+                                "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
+                    }
+                } else { //inside a method
+                    PClassDeclaration classPPRog = DuplicateProgram.classDeclarationList.get(classnum11);
+                    PDeclaration tempDecl = classPPRog.declarationList.get(classdec11);
+                    if (tempDecl instanceof PStatementFunctionDeclaration) { //found method dec
+                        PStatementFunctionDeclaration methodDecTBD = (PStatementFunctionDeclaration) tempDecl;
+                        PStatement tempSTMTM = methodDecTBD.statementList.get(method11);
+                        if (tempSTMTM instanceof PVariableDeclaration) { //find var dec in method decs
+                            PVariableDeclaration varDecTBD = (PVariableDeclaration) tempSTMTM;
+                            if (varDecTBD.variableType.getType() == Token.TokenType.KEYWORD_AUTO) { //if type is auto, good
+                                String tempTokenString = Token.VarTypeMap.get(type11); //grab proper string from type
+                                varDecTBD.variableType = new Token(tempTokenString); //update type in local PVariableDeclaration
+                                methodDecTBD.statementList.set(method11, varDecTBD); //set updated vardec in local method
+                                classPPRog.declarationList.set(classdec11, methodDecTBD); //replace method in local class dec
+                                DuplicateProgram.classDeclarationList.set(classnum11, classPPRog); //REPLACE METHOD IN PPROGRAM
+                                System.err.println("AUTO VAR UPDATED IN [PPROGRAM] CLASS " + autoTT.ClassName + " & METHOD " + autoTT.MethodName + " PPROGRAM OBJECT: {name: " + varname11 + "; new type: " + type11 + "}");
+                            } else { //auto not detected, error
+                                //throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find AUTO Type in" +
+                                //        "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
+                                //        "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
+                                //theres something where it keeps replacing, but should be fine
+                            }
+                        } else { //not found vardec
+                            throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PVariableDeclaration instance in" +
+                                    "Class pos " + classnum11 + " Class Name: " + autoTT.ClassName + ", Class Declaration pos " + classdec11 + " " +
+                                    "Method name: " + autoTT.MethodName + ", Method Dec pos " + autoTT.MethodDecNum);
+                        }
+                    } else { //didnt find method dec here
+                        throw new TypeCheckerException("AUTO Type Error: Variable Replacement Unsuccessful. Did not find PStatementFunctionDeclaration instance in" +
+                                "Class pos " + classnum11 + " & Class Declaration pos " + classdec11); //dont think this is possible
+                    }
+                } //end inside method
+            } //end for resolved tickets
+        } //end resolved ticket start
     }
 
     public static String ClassTypecheck(PClassDeclaration input) throws TypeCheckerException { //typecheck the class declaration
