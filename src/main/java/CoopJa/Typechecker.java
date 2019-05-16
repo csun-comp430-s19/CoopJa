@@ -480,19 +480,17 @@ public class Typechecker {
                     String[] nameslist = new String[AutoHandler.size()]; //new string array size of current autohandler, will fill with just names at first
                     for (int i = 0; i < AutoHandler.size(); i++) { //for all autotickets
                         AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
-                        System.err.println("AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
-                                "\nType should be: " + tempauto.NewType); //print it
                         //create array of string (name), check for matches
                         nameslist[i] = tempauto.TargetVarName; //load string array with the name
                         if (tempauto.NewType != null) { //if the auto type has been RESOLVED (not detected, but determined the new type)
                             //System.err.println("type " + tempauto.NewType + " not equal to null, proceed!");
                             orderedlistauto.put(tempauto.TargetVarName, tempauto.NewType); //put this resolution inside the orderlistauto
                         } else { //else, auto has just been detected, not resolved
-                            System.err.println("Found no resolutions for Auto");
+                            //System.err.println("Found no resolutions for Auto");
                         }
                     } //end for all autotickets
                     nameslist = new HashSet<String>(Arrays.asList(nameslist)).toArray(new String[0]); //removes all duplicates in string array of names
-                    System.err.println("After AutoHandler completed...checking for matches");
+                    //System.err.println("After AutoHandler completed...checking for matches");
                     System.err.println("size of orderlistauto: " + orderedlistauto.size());
                     HashMap<String, Token.TokenType> TEMPLIST = orderedlistauto;
                     System.err.println(orderedlistauto.toString()); //!!_!!!_!! only contains resolutions, could be nothing!
@@ -508,20 +506,14 @@ public class Typechecker {
                                     tempauto = AutoHandler.get(y); //pull out temp
                                     AutoHandler.remove(y); //remove it from list
                                     if (tempauto.isDeclaration) { //if this ticket is the declaration ticket
-                                        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^" + type);
+                                        //System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^" + type);
                                         tempauto.NewType = type; //update the declaration ticket with type
                                         fix.add(tempauto); //store this autoticket (the declaration one with the updated type)
                                     } //otherwise, let it go, this will not remove unresolved names
                                 } //else if unresolved name is here, leave it
                             } //end for resolutions
                             System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
-                            System.err.println("New AutoHandler array:");
-                            for (int i = 0; i < AutoHandler.size(); i++) {
-                                AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
-                                System.err.println("$$$$$$ AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
-                                        "\nType should be: " + tempauto.NewType); //print it
-                            }
-                            System.err.println("New FIXAUTO array:");
+                            //System.err.println("New FIXAUTO array:");
                             if (fix.size() > 0) { //if not empty
                                 for (int i = 0; i < fix.size(); i++) {
                                     AutoTicket tempauto = fix.get(i); //grab one of the tickets
@@ -540,7 +532,7 @@ public class Typechecker {
                 if (ResolvedAutoTickets.size() != 0) { //if we have a resolved auto ticket
                     System.err.println("RESOLVED AUTO TICKET FOUND!");
                     //resolve auto keyword in scope
-
+                    
                     //resolve auto keyword in duplicate pprogram
 
                 }
