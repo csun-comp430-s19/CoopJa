@@ -7,6 +7,7 @@ import java.util.*; //ArrayList, HashMap, Set
 
 public class Typechecker {
 
+    public static PProgram DuplicateProgram; //holds a copy of the input program to edit later
     public static HashMap<String, Storage> ClassListAll = new HashMap(); //holds (Class Name, Storage Object (holds ArrayList<String> of names of Variables and Methods for the Class)
     public static String ClassString = ""; //keeps name of the currently typechecking class, used to find this class's Storage object from the ClassListAll var
     public static String MethodString = "";
@@ -49,6 +50,7 @@ public class Typechecker {
     } //end Main()
 
     public static void TypecheckMain(PProgram fooTester) throws TypeCheckerException { //typechecker
+        DuplicateProgram = fooTester; //create duplicate program for later
         ArrayList<PClassDeclaration> classlist = new ArrayList<PClassDeclaration>(1);
 
         for (int i = 0; i < fooTester.classDeclarationList.size(); i++) { //load classes into above ArrayList
@@ -130,14 +132,18 @@ public class Typechecker {
         Token.TokenType varType;
         Token.TokenType assType; //good comment
 
+        boolean isVD = false;
+
         if (input instanceof PVariableDeclaration) {
+            isVD = true; //we just came from VDT, this is a vardec
             PVariableDeclaration varDec = (PVariableDeclaration) input;
             System.out.println("Checking Variable Declaration Body (UPDATED!)");
 
             varType = varDec.variableType.getType();
             assType = getExpressionType(varDec.assignment, varMap);
 
-        } else if (input instanceof PVariableAssignment) { //originally from typeCheckVariableAssignment()
+        } else if (input instanceof PVariableAssignment) {
+            isVD = false;
             PVariableAssignment varAss = (PVariableAssignment) input;
             //typecheck assignement
             Token.TokenType assignment = getExpressionType(varAss.value, varMap);
@@ -169,8 +175,12 @@ public class Typechecker {
         if (varType == Token.TokenType.KEYWORD_AUTO && assType != Token.TokenType.KEYWORD_AUTO) { //if left is auto
             System.out.println("AUTO var type detected!");
             //change auto type
-
             AutoTicket auto = new AutoTicket();
+            if (isVD) { //if vardec
+                auto.isDeclaration = true;
+            } else { //else, varass
+                auto.isDeclaration = false;
+            }
             auto.ClassName = ClassString;
             auto.ClassNumb = ClassNumber;
             auto.ClassDecNumb = ClassDeclarationNumber;
@@ -192,6 +202,7 @@ public class Typechecker {
             //change auto type of assignment var
 
             AutoTicket auto = new AutoTicket();
+            auto.isDeclaration = false; //right side is not declared
             auto.ClassName = ClassString;
             auto.ClassNumb = ClassNumber;
             auto.ClassDecNumb = ClassDeclarationNumber;
@@ -240,6 +251,7 @@ public class Typechecker {
                     throw new TypeCheckerException("Cannot assign an AUTO type to AUTO Var!");
                 } else {
                     AutoTicket auto = new AutoTicket();
+                    auto.isDeclaration = true;
                     auto.ClassName = ClassString;
                     auto.ClassNumb = ClassNumber;
                     auto.ClassDecNumb = ClassDeclarationNumber;
@@ -507,14 +519,25 @@ public class Typechecker {
                                     "\nType should be: " + tempauto.NewType); //print it
                         }
                         System.err.println("New FIXAUTO array:");
-                        for (int i = 0; i < fix.size(); i++) {
-                            AutoTicket tempauto = fix.get(i); //grab one of the tickets
-                            System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
-                                    "\nType should be: " + tempauto.NewType); //print it
+                        if (fix.size() > 0) { //if not empty
+                            for (int i = 0; i < fix.size(); i++) {
+                                AutoTicket tempauto = fix.get(i); //grab one of the tickets
+                                System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                        "\nType should be: " + tempauto.NewType); //print it
+                            }
+                            ResolvedAutoTickets.addAll(fix);
                         }
                     }
                 } //end if autohandler is not empty
-            }
+                //at the end of a stmt, try to resolve auto
+                if (ResolvedAutoTickets.size() != 0) { //if we have a resolved auto ticket
+                    System.err.println("RESOLVED AUTO TICKET FOUND!");
+                    //resolve auto keyword in scope
+
+                    //resolve auto keyword in duplicate pprogram
+
+                }
+            } //end for all body stmts
         } else {
             System.out.println("Method Body has no statements");
         }
@@ -971,6 +994,7 @@ public class Typechecker {
                 throw new TypeCheckerException("Cannot give function param Auto type!"); //probably never reach bc handled earlier
             } else if (givenType == Token.TokenType.KEYWORD_AUTO) { //if given var was declared auto
                 AutoTicket auto = new AutoTicket(); //creating an auto ticket to handle later
+                auto.isDeclaration = false; //this var was already declared somewhere else
                 auto.ClassName = ClassString; //class name currently dealing with
                 auto.ClassNumb = ClassNumber; //where in the class array are we
                 auto.ClassDecNumb = ClassDeclarationNumber; //where in the declaration list array are we for the above class
@@ -1097,6 +1121,7 @@ class FunctStor { //store method stuff
 
 class AutoTicket { //store where AUTO type can be found, and under what conditions
 
+    boolean isDeclaration; //***IMPORTANT***: true if the given autoticket is where the var was declared
     String ClassName; //name of the class found in
     int ClassNumb; //array val of which class we are in
     int ClassDecNumb; //array val of which class declaration we are in
@@ -1110,7 +1135,8 @@ class AutoTicket { //store where AUTO type can be found, and under what conditio
     String TargetVarName; //***IMPORTANT***: name of the variable/method that has Auto type
     Token.TokenType NewType; //***IMPORTANT***: the new type to replace Auto with
 
-    public AutoTicket(String temp_Class, int temp_cN, int temp_cDN, boolean temp_inPar, boolean temp_inM, String temp_Mname, int temp_mNumb, boolean temp_isP, int temp_Pnum, boolean temp_isFR, String temp_Varname, Token.TokenType temp_newType) {
+    public AutoTicket(boolean temp_dec, String temp_Class, int temp_cN, int temp_cDN, boolean temp_inPar, boolean temp_inM, String temp_Mname, int temp_mNumb, boolean temp_isP, int temp_Pnum, boolean temp_isFR, String temp_Varname, Token.TokenType temp_newType) {
+        isDeclaration = temp_dec;
         ClassName = temp_Class;
         ClassNumb = temp_cN;
         ClassDecNumb = temp_cDN;
