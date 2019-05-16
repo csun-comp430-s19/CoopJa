@@ -29,5 +29,41 @@ public class TC_UT1 {
         myException.printStackTrace();
     }
 
-    //put tests here
+
+
+    @Test
+    public void testGoodAutoReplace1() throws Exception {
+        String foo = "public class one {" +
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "auto tempv = 7;" +
+                "i = 0;" +
+                "j = true;" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testSuccessfulMergeParentChild1() throws Exception {
+        String foo = "public class one {" +
+                "int test1;" +
+                "}" +
+                "public class two extends one {" +
+                "int testing2;" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testSuccessfulMergeParentChild2() throws Exception {
+        String foo = "public class one {" +
+                //"int test1;" + //proves empty class list works
+                "}" +
+                "public class two extends one {" +
+                //"int testing2;" +
+                "}";
+        goodTest(foo);
+    }
 }

@@ -32,16 +32,6 @@ public class Typechecker {
 
 //        String foo = "public class one {" +
 //                "auto i;" +
-//                "auto j;" +
-//                "public void main() {" +
-//                "auto tempv = 7;" +
-//                "i = 0;" +
-//                "j = true;" +
-//                "}" +
-//                "}";
-
-//        String foo = "public class one {" +
-//                "auto i;" +
 //                //"auto j;" +
 //                "public void main() {" +
 //                //"auto tempv = 7;" +
@@ -53,11 +43,21 @@ public class Typechecker {
 //                "}" +
 //                "}";
 
+//        String foo = "public class one {" +
+//                //"int test1;" + //proves empty class list works
+//                "}" +
+//                "public class two extends one {" +
+//                //"int testing2;" +
+//                "}";
+
         String foo = "public class one {" +
-                //"int test1;" + //proves empty class list works
+                "auto i;" +
+                "auto j;" +
+                "public void main() {" +
+                "auto tempv = 7;" +
+                "i = 0;" +
+                "j = true;" +
                 "}" +
-                "public class two extends one {" +
-                //"int testing2;" +
                 "}";
 
 
