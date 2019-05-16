@@ -33,6 +33,7 @@ public class Typechecker {
                 "auto i;" +
                 "auto j;" +
                 "public void main() {" +
+                "auto tempv = 7;" +
                 "i = 0;" +
                 "j = true;" +
                 "}" +
@@ -250,22 +251,25 @@ public class Typechecker {
                 if (tempType == Token.TokenType.KEYWORD_AUTO) { //auto assigned auto type
                     throw new TypeCheckerException("Cannot assign an AUTO type to AUTO Var!");
                 } else {
-                    AutoTicket auto = new AutoTicket();
-                    auto.isDeclaration = true;
-                    auto.ClassName = ClassString;
-                    auto.ClassNumb = ClassNumber;
-                    auto.ClassDecNumb = ClassDeclarationNumber;
-                    auto.inParentClass = true; //idk
-                    auto.inMethod = assignmentAllowed; //in method if assignment is allowed
-                    auto.MethodName = MethodString;
-                    auto.MethodDecNum = MethodDeclarationNumber;
-                    auto.isParam = false; //not in this case
-                    auto.ParamNum = -1;
-                    auto.isFunctReturn = false; //not allowed
-                    auto.TargetVarName = input.identifier.getTokenString();
-                    auto.NewType = tempType;
-                    AutoHandler.add(auto);
-                    System.err.println("AUTOTICKET GENERATED"); //this would not have the type yet, if it was declared in the class
+                    if (input.assignment == null) { //if we have NO assignment, generate ticket NOW
+                        AutoTicket auto = new AutoTicket();
+                        auto.isDeclaration = true;
+                        auto.ClassName = ClassString;
+                        auto.ClassNumb = ClassNumber;
+                        auto.ClassDecNumb = ClassDeclarationNumber;
+                        auto.inParentClass = true; //idk
+                        auto.inMethod = assignmentAllowed; //in method if assignment is allowed
+                        auto.MethodName = MethodString;
+                        auto.MethodDecNum = MethodDeclarationNumber;
+                        auto.isParam = false; //not in this case
+                        auto.ParamNum = -1;
+                        auto.isFunctReturn = false; //not allowed
+                        auto.TargetVarName = input.identifier.getTokenString();
+                        auto.NewType = tempType;
+                        AutoHandler.add(auto);
+                        System.err.println("AUTOTICKET GENERATED"); //this would not have the type yet, if it was declared in the class
+                    }
+                    //else, wait to generate autoticket until we have the declaration
                 }
             } else { //auto not allowed
                 throw new TypeCheckerException("Auto type not allowed here!");
@@ -481,51 +485,54 @@ public class Typechecker {
                         //create array of string (name), check for matches
                         nameslist[i] = tempauto.TargetVarName; //load string array with the name
                         if (tempauto.NewType != null) { //if the auto type has been RESOLVED (not detected, but determined the new type)
+                            //System.err.println("type " + tempauto.NewType + " not equal to null, proceed!");
                             orderedlistauto.put(tempauto.TargetVarName, tempauto.NewType); //put this resolution inside the orderlistauto
                         } else { //else, auto has just been detected, not resolved
                             System.err.println("Found no resolutions for Auto");
                         }
                     } //end for all autotickets
-                    System.err.println("List of Name before"); //just for info, string names array before removal of duplicates
-                    for (int i = 0; i < nameslist.length; i++) {
-                        System.err.println(nameslist[i]); //print list
-                    }
                     nameslist = new HashSet<String>(Arrays.asList(nameslist)).toArray(new String[0]); //removes all duplicates in string array of names
-                    System.err.println("List of names after");
-                    for (int i = 0; i < nameslist.length; i++) { //just proof it is being removed
-                        System.err.println(nameslist[i]);
-                    }
                     System.err.println("After AutoHandler completed...checking for matches");
                     System.err.println("size of orderlistauto: " + orderedlistauto.size());
+                    HashMap<String, Token.TokenType> TEMPLIST = orderedlistauto;
+                    System.err.println(orderedlistauto.toString()); //!!_!!!_!! only contains resolutions, could be nothing!
                     for (int j = 0; j < nameslist.length; j++) { //for all names to resolve
-                        Token.TokenType type = orderedlistauto.get(nameslist[j]); //pull type from hashmap by name
-                        System.err.println(nameslist[j] + " must be type " + type); //-------->>>>here! (we have the types to resolve)
-                        ArrayList<AutoTicket> fix = new ArrayList<>();
-                        for (int y = 0; y < AutoHandler.size(); y++) { //check all autotickets again against hopefully resolutions
-                            AutoTicket tempauto;
-                            if (AutoHandler.get(y).TargetVarName.equals(nameslist[j])) { //if one of the resolved vars is here
-                                tempauto = AutoHandler.get(y); //pull out temp
-                                AutoHandler.remove(y); //remove it from list
-                                if (tempauto.NewType != null) { //if this ticket is actually valid and not null
-                                    fix.add(tempauto); //keep this autoticket
-                                } //otherwise, let it go, this will not remove unresolved names
-                            } //else if unresolved name is here, leave it
-                        } //end for resolutions
-                        System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
-                        System.err.println("New AutoHandler array:");
-                        for (int i = 0; i < AutoHandler.size(); i++) {
-                            AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
-                            System.err.println("$$$$$$ AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
-                                    "\nType should be: " + tempauto.NewType); //print it
-                        }
-                        System.err.println("New FIXAUTO array:");
-                        if (fix.size() > 0) { //if not empty
-                            for (int i = 0; i < fix.size(); i++) {
-                                AutoTicket tempauto = fix.get(i); //grab one of the tickets
-                                System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                        if (TEMPLIST.containsKey(nameslist[j])) { //if the resolution bank
+                            Token.TokenType type = TEMPLIST.get(nameslist[j]); //pull type from hashmap by name
+                            //orderedlistauto.put(nameslist[j], type); //ADD IT BACK INTO THE HASHMAP, HASHMAPS ARE WTF
+                            System.err.println("()()()()()" + nameslist[j] + " must be type " + type); //-------->>>>here! (we have noooo//oppee the types to resolve)
+                            ArrayList<AutoTicket> fix = new ArrayList<>();///////////NEWTYPE
+                            for (int y = 0; y < AutoHandler.size(); y++) { //check all autotickets again against a single name resolution, remove all duplicate instances
+                                AutoTicket tempauto;
+                                if (AutoHandler.get(y).TargetVarName.equals(nameslist[j])) { //if one of the resolved vars is here
+                                    tempauto = AutoHandler.get(y); //pull out temp
+                                    AutoHandler.remove(y); //remove it from list
+                                    if (tempauto.isDeclaration) { //if this ticket is the declaration ticket
+                                        System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^" + type);
+                                        tempauto.NewType = type; //update the declaration ticket with type
+                                        fix.add(tempauto); //store this autoticket (the declaration one with the updated type)
+                                    } //otherwise, let it go, this will not remove unresolved names
+                                } //else if unresolved name is here, leave it
+                            } //end for resolutions
+                            System.err.println("AUTOHANDLER SIZE IS: " + AutoHandler.size());
+                            System.err.println("New AutoHandler array:");
+                            for (int i = 0; i < AutoHandler.size(); i++) {
+                                AutoTicket tempauto = AutoHandler.get(i); //grab one of the tickets
+                                System.err.println("$$$$$$ AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
                                         "\nType should be: " + tempauto.NewType); //print it
                             }
-                            ResolvedAutoTickets.addAll(fix);
+                            System.err.println("New FIXAUTO array:");
+                            if (fix.size() > 0) { //if not empty
+                                for (int i = 0; i < fix.size(); i++) {
+                                    AutoTicket tempauto = fix.get(i); //grab one of the tickets
+                                    System.err.println("####### AutoTicket: Found var named " + tempauto.TargetVarName + " in class " + tempauto.ClassName + " and method " + tempauto.MethodName + "," +
+                                            "\nType should be: " + tempauto.NewType + "\n" +
+                                            "Class,ClassDec,Method#s: " + tempauto.ClassNumb + "," + tempauto.ClassDecNumb + "," + tempauto.MethodDecNum); //print it
+                                }
+                                ResolvedAutoTickets.addAll(fix);
+                            }
+                        } else {
+                            System.err.println("Cannot resolve name yet : " + nameslist[j]);
                         }
                     }
                 } //end if autohandler is not empty
