@@ -510,9 +510,11 @@ public class Typechecker {
             System.out.println("Method Declaration Body: Statement List");
             Storage statementBlockStorage = GOODMETHOD.Copy();
             statementBlockStorage.VariableNames.putAll(tempFS.VariableNames);//place parameter variables into method scope
+            GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj //-----------> updates globalscope with local vars
+            tempFS.VariableNames.putAll(tempFS.VariableNames); //------------------------->
+            GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS); //----->
+            ClassListAll.put(ClassString, GOODMETHOD); //replace class //----------------->
             for (int k = 0; k < input.statementList.size(); k++) { //for all body stmts (PStmt)
-                AutoVarChecker(); //check auto here
-
                 MethodDeclarationNumber = k;
                 PStatement tempStmtExp = input.statementList.get(k);
 
@@ -525,10 +527,14 @@ public class Typechecker {
                 HashMap<String, VarStor> returnedVDT = TEMP_unused_code_for_PStmts__PSTATEMENT(tempStmtExp, statementBlockStorage); //return vdt output, in the case of Variable Declarations
                 if (returnedVDT != null) { //if we added a var (VarDec)
                     statementBlockStorage.VariableNames.put(varName, returnedVDT.get(varName));
+                    GOODMETHOD = ClassListAll.get(ClassString); //pull out class obj //----------> updates globalscope with local vars
+                    tempFS.VariableNames.put(varName, returnedVDT.get(varName)); //-------------->
+                    GOODMETHOD.MethodNames.put(input.identifier.getTokenString(), tempFS); //---->
+                    ClassListAll.put(ClassString, GOODMETHOD); //replace class //---------------->
                 }
 
                 globalAutoOff = false; //turn off after
-                //auto check used to be here
+                AutoVarChecker(); //check auto here
 
             } //end for all body stmts
         } else {
@@ -546,6 +552,7 @@ public class Typechecker {
         MethodString = ""; //reset val
         MethodDeclarationNumber = -1; //reset val
 
+        AutoVarChecker(); //check auto here
         //not returning a map anymore, just updating as we go
 
     }
