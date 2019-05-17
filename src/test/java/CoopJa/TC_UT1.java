@@ -148,4 +148,61 @@ public class TC_UT1 {
                 "}";
         goodTest(foo);
     }
+
+    @Test
+    public void testMethodIdentifierIssue() throws Exception{
+        String foo = "public class ClassTest{" +
+                "public boolean AreTheyTheSame(int x, int y){" +
+                "return x == y;" +
+                "}" +
+                "}" +
+                "public class Test{" +
+                "public int main(){" +
+                "ClassTest foo = new ClassTest;" +
+                "if(foo.AreTheyTheSame(1,1)){" + //?
+                "println(\"Success!\");" +
+                "}" +
+                "else{" +
+                "println(\"Failure!\");" +
+                "}" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
+    public void testVariableDoesNotExistError() throws Exception{
+        String foo = "public class ClassTest{" +
+                "public int anInt;" +
+                "public int anotherInt;" +
+                "public int AddOp(int x, int y){" +
+                "return x + y;" +
+                "}" +
+                "public int SubtractOp(int x, int y){" +
+                "return x - y;" +
+                "}" +
+                "public int MultiplyOp(int x, int y){" +
+                "return x * y;" +
+                "}" +
+                "public int DivideOp(int x, int y){" +
+                "return x / y;" +
+                "}" +
+                "}" +
+                "public class Test{" +
+                "public int main(){" +
+                "ClassTest foo = new ClassTest;" +
+                "foo.anInt = 4;" +
+                "foo.anotherInt = 2;" +
+                "int i = foo.DivideOp(foo.anInt, foo.anotherInt);" + //...4/2=2
+                "i = i + foo.MultiplyOp(5 - 1, 4);" + //2 + ((5-1) * 4) = 18
+                "if(i == 18){" +
+                "println(\"Success!\");" +
+                "}" +
+                "else{" +
+                "println(\"Failure!\");" +
+                "}" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
 }

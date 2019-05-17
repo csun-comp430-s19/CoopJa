@@ -1189,8 +1189,14 @@ public class Typechecker {
                 if (ClassListAll.containsKey(tempcheck.IdentifierClass)) { //identifier of class type exists
                     Storage classScope = ClassListAll.get(tempcheck.IdentifierClass);
                     if (PIR.nextStatement != null){
-                        PVariableAssignment sumthin = (PVariableAssignment) PIR.nextStatement;
-                        return VariableInScope(sumthin.identifier.getTokenString(), classScope) ;
+                        if (PIR.nextStatement instanceof PStatementFunctionCall){
+                            PStatementFunctionCall sumthinFunc = (PStatementFunctionCall) PIR.nextStatement;
+                            return getExpressionType(sumthinFunc, classScope);
+                        }
+                        else {
+                            PVariableAssignment sumthin = (PVariableAssignment) PIR.nextStatement;
+                            return VariableInScope(sumthin.identifier.getTokenString(), classScope);
+                        }
                     }
                     else {
                         PExpressionVariable sumthinElse = (PExpressionVariable) PIR.nextExpression;
