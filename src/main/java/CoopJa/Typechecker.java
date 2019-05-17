@@ -1188,15 +1188,14 @@ public class Typechecker {
                 VarStor tempcheck = currentScope.VariableNames.get(PIR.identifier.getTokenString());
                 if (ClassListAll.containsKey(tempcheck.IdentifierClass)) { //identifier of class type exists
                     Storage classScope = ClassListAll.get(tempcheck.IdentifierClass);
-                    if (PIR.nextExpression != null) { //do PExpressionVariable / var ref
-                        return getExpressionType(PIR.nextExpression, classScope); //77777777777777777777
-                    } else if (PIR.nextStatement != null) { //do PStatementFunctionCall / funct ref
-                        //its a psfc
-                        return getExpressionType((PStatementFunctionCall) PIR.nextStatement, classScope); //77777777777777777777
-                    } else {
-                        throw new TypeCheckerException("not possible");
+                    if (PIR.nextStatement != null){
+                        PVariableAssignment sumthin = (PVariableAssignment) PIR.nextStatement;
+                        return VariableInScope(sumthin.identifier.getTokenString(), classScope) ;
                     }
-
+                    else {
+                        PExpressionVariable sumthinElse = (PExpressionVariable) PIR.nextExpression;
+                        return getExpressionType(sumthinElse, classScope);
+                    }
                 } else {
                     throw new TypeCheckerException("Unrecognized class: " + identifierName);
                 }
