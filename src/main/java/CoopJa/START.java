@@ -14,14 +14,14 @@ public class START {
     public static String DefaultProgramString = "" +
             "public class CoopJa {" +
             "public void main() {" +
-            "print(\"CoopJa\");" +
-            "print(\"Java to C Compiler\");" +
-            "print(\"by:\");" +
-            "print(\"Nicholas Araklisianos\");" +
-            "print(\"Miguel Cruz\");" +
-            "print(\"Jacob Poersch\");" +
-            "print(\"Carlos Sandoval\");" +
-            "print(\"\");" +
+            "println(\"CoopJa\");" +
+            "println(\"Java to C Compiler\");" +
+            "println(\"by:\");" +
+            "println(\"Nicholas Araklisianos\");" +
+            "println(\"Miguel Cruz\");" +
+            "println(\"Jacob Poersch\");" +
+            "println(\"Carlos Sandoval\");" +
+            "println(\"\");" +
             "}" +
             "}";
 
