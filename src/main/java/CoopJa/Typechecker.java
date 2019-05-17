@@ -1188,6 +1188,7 @@ public class Typechecker {
                 VarStor tempcheck = currentScope.VariableNames.get(PIR.identifier.getTokenString());
                 if (ClassListAll.containsKey(tempcheck.IdentifierClass)) { //identifier of class type exists
                     Storage classScope = ClassListAll.get(tempcheck.IdentifierClass);
+                    classScope.VariableNames.put(PIR.identifier.getTokenString(),tempcheck);
                     if (PIR.nextStatement != null){
                         if (PIR.nextStatement instanceof PStatementFunctionCall){
                             PStatementFunctionCall sumthinFunc = (PStatementFunctionCall) PIR.nextStatement;
