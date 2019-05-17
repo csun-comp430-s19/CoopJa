@@ -128,4 +128,24 @@ public class TC_UT1 {
                 "}";
         goodTest(foo);
     }
+
+    @Test
+    public void testIntegerIdentifierIssue() throws Exception{
+        String foo = "public class ClassTest{" +
+                "public int assignable;" +
+                "}" +
+                "public class Test{" +
+                "public int main(){" +
+                "ClassTest foo = new ClassTest;" +
+                "foo.assignable = 2;" +
+                "if(foo.assignable == 2){" +
+                "println(\"Success!\");" +
+                "}" +
+                "else{" +
+                "println(\"Failure!\");" +
+                "}" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
 }

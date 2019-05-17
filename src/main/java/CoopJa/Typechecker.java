@@ -1187,7 +1187,8 @@ public class Typechecker {
             if (currentScope.VariableNames.containsKey(PIR.identifier.getTokenString())) { //if variable exists
                 VarStor tempcheck = currentScope.VariableNames.get(PIR.identifier.getTokenString());
                 if (ClassListAll.containsKey(tempcheck.IdentifierClass)) { //identifier of class type exists
-                    return Token.TokenType.IDENTIFIER; //77777777777777777777
+                    Storage classScope = ClassListAll.get(tempcheck.IdentifierClass);
+                    return getExpressionType(PIR.nextExpression, classScope); //77777777777777777777
                 } else {
                     throw new TypeCheckerException("Unrecognized class: " + identifierName);
                 }
