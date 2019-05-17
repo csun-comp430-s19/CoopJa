@@ -14,6 +14,7 @@ public class Typechecker {
     public ArrayList<String> ClassNamesListAll = new ArrayList<>(); //holds the names of all declared classes (sorted) for easy ref
     public ArrayList<AutoTicket> AutoHandler = new ArrayList<>(); //holds all autotickets
     public ArrayList<AutoTicket> ResolvedAutoTickets = new ArrayList<>(); //holds all resolved autotickets
+    public ArrayList<ChildOverride> ChildMethodOverrideList = new ArrayList<>(); //holds all info about a child class replacing a method in parent
     public int ClassNumber; //holds array val of which class we are working on
     public int ClassDeclarationNumber; //holds the array val for which stmt inside the class we are on (auto related)
     public int MethodDeclarationNumber; //if method has a body, used to store the dec number (in array format, starting with 0) for later reference
@@ -22,13 +23,26 @@ public class Typechecker {
 
     public void main(String[] args) throws TypeCheckerException {
 
+//        String foo = "public class one {" +
+//                "auto i;" +
+//                "auto j;" +
+//                "public void main() {" +
+//                "auto tempv = 7;" +
+//                "i = 0;" +
+//                "j = true;" +
+//                "}" +
+//                "}";
+
         String foo = "public class one {" +
                 "auto i;" +
-                "auto j;" +
                 "public void main() {" +
-                "auto tempv = 7;" +
                 "i = 0;" +
-                "j = true;" +
+                "}" +
+                "}" +
+                "public class two extends one {" +
+                "int testing;" +
+                "public void main() {" +
+                "testing = 99;" +
                 "}" +
                 "}";
 
@@ -136,38 +150,88 @@ public class Typechecker {
         for (int i = 0; i < DuplicateProgram.classDeclarationList.size(); i++) {
             PClassDeclaration tempClassCHILD = DuplicateProgram.classDeclarationList.get(i);
             if (tempClassCHILD.extendsIdentifier != null) { //if the class extends another
-                int ParentLoc = ClassNamesListAll.indexOf(tempClassCHILD.extendsIdentifier.getTokenString()); //find the index of the parent class, using the name of the parent, retrieves the pos in arraylist
-                PClassDeclaration tempClassPARENT = DuplicateProgram.classDeclarationList.get(ParentLoc); //grab parent class dec
-                ArrayList<PDeclaration> CombinedDeclarations = tempClassPARENT.declarationList; //make a combined declarations list, insert parent first
-                CombinedDeclarations.addAll(tempClassCHILD.declarationList); //add child declarations
-                tempClassCHILD.declarationList = CombinedDeclarations; //replace child dec with combined dec local copy
-                DuplicateProgram.classDeclarationList.set(i, tempClassCHILD); //REPLACE CHILD IN PPROGRAM, i is pos of child
-                System.err.println("TYPECHECKER REORDER INFO: Found that Class " + tempClassCHILD.identifier.getTokenString() + " has Parent Class: " + tempClassPARENT.identifier.getTokenString() + "" +
-                        ", so Typechecker has combined its Declarations in order {Parent,Child}");
+                if (ChildMethodOverrideList.size() == 0) {
+                    int ParentLoc = ClassNamesListAll.indexOf(tempClassCHILD.extendsIdentifier.getTokenString()); //find the index of the parent class, using the name of the parent, retrieves the pos in arraylist
+                    PClassDeclaration tempClassPARENT = DuplicateProgram.classDeclarationList.get(ParentLoc); //grab parent class dec
+                    ArrayList<PDeclaration> CombinedDeclarations = tempClassPARENT.declarationList; //make a combined declarations list, insert parent first
+                    CombinedDeclarations.addAll(tempClassCHILD.declarationList); //add child declarations
+                    tempClassCHILD.declarationList = CombinedDeclarations; //replace child dec with combined dec local copy
+                    DuplicateProgram.classDeclarationList.set(i, tempClassCHILD); //REPLACE CHILD IN PPROGRAM, i is pos of child
+                    System.err.println("TYPECHECKER REORDER INFO: Found that Class " + tempClassCHILD.identifier.getTokenString() + " has Parent Class: " + tempClassPARENT.identifier.getTokenString() + "" +
+                            ", so Typechecker has combined its Declarations in order {Parent,Child}");
+                } else { //override stuff needed
+                    int TEMPCMO = ChildMethodOverrideList.size();
+                    ArrayList<ChildOverride> tempClassO = new ArrayList<>();
+                    for (int j = 0; j < TEMPCMO; j++) { //check list of child overrides, collect all pertaining to the current class
+                        ChildOverride temp1 = ChildMethodOverrideList.get(j);
+                        if (temp1.ChildClassName.equals(tempClassCHILD.identifier.getTokenString())) { //if current working class is the class we need to deal with
+                            tempClassO.add(temp1); //add this to temp list
+                            //TEMPCMO.remove(j);
+                        }
+                    }
+                    //ChildMethodOverrideList = TEMPCMO; //keep removals
+                    int ParentLoc = ClassNamesListAll.indexOf(tempClassCHILD.extendsIdentifier.getTokenString());
+                    PClassDeclaration tempClassPARENT = DuplicateProgram.classDeclarationList.get(ParentLoc); //parent decelaration temp
+                    int TCTODO = tempClassO.size();
+                    int FINALCOUNT = tempClassO.size();
+                    ArrayList<Integer> removetheseinchild = new ArrayList<Integer>();
+                    for (int k = 0; k < TCTODO; k++) { //for each method override in the class
+                        ChildOverride CM = tempClassO.get(k); //pull out the ChildOverride
+                        PDeclaration tempDec = tempClassCHILD.declarationList.get(CM.ChildClassDecNumb);
+                        if (tempDec instanceof PStatementFunctionDeclaration) { //good, found method
+                            PStatementFunctionDeclaration tempFUNC = (PStatementFunctionDeclaration) tempDec; //CHILD METHOD TO REPLACE PARENT
+                            if (tempFUNC.identifier.getTokenString().equals(CM.MethodName)) { //found correct method name in child
+                                for (int y = 0; y < tempClassPARENT.declarationList.size(); y++) { //iterate through parent and find the method to be replaced
+                                    PDeclaration temp155 = tempClassPARENT.declarationList.get(y);
+                                    if (temp155 instanceof PStatementFunctionDeclaration) { //dont bother to check if not a functdec
+                                        PStatementFunctionDeclaration temp999 = (PStatementFunctionDeclaration) temp155;
+                                        if (temp999.identifier.getTokenString().equals(CM.MethodName)) { //found method name in parent
+                                            tempClassPARENT.declarationList.set(y, tempFUNC); //***REPLACE PARENT METHOD WITH CHILD, NOW WILL MERGE THEM
+                                            //tempClassO.remove(k); //remove completed method name
+                                            //tempClassCHILD.declarationList.remove(CM.ChildClassDecNumb); //remove method dec in child
+                                            FINALCOUNT--;
+                                            removetheseinchild.add(CM.ChildClassDecNumb);
+                                            System.err.println("METHOD " + CM.MethodName + " REPLACED");
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw new TypeCheckerException("Replacement Error: Could not find correct Function named " + CM.MethodName + " in Child Class " + tempClassCHILD.identifier.getTokenString() + " " +
+                                        "in pos " + CM.ChildClassDecNumb);
+                            }
+                        } else {
+                            throw new TypeCheckerException("Replacement Error: Could not find Function Declaration in Child Class " + tempClassCHILD.identifier.getTokenString() + " " +
+                                    "in pos " + CM.ChildClassDecNumb);
+                        }
+                    }
+                    //tempClassCHILD.declarationList.remove(CM.ChildClassDecNumb); removetheseinchild Integer
+                    if (FINALCOUNT == 0) { //success
+                        for (int j = removetheseinchild.size() - 1; j >= 0; j--) {
+                            tempClassCHILD.declarationList.remove((int) removetheseinchild.get(j));
+                        }
+
+                        ArrayList<PDeclaration> CombinedDeclarations = tempClassPARENT.declarationList; //combining, parent first
+                        tempClassCHILD.declarationList = CombinedDeclarations; //now child
+                        DuplicateProgram.classDeclarationList.set(i, tempClassCHILD); //REPLACE CHILD IN PPROGRAM
+                        System.err.println("--REPLACED PARENT METHODS SUCCESSFULLY--");
+                    } else {
+                        throw new TypeCheckerException("!!_______SOME ERROR_______!! " + tempClassO.size());
+                    }
+                }
             } //else do nothing
         }
 
-        //PProgram copyprog = Cleaner(DuplicateProgram);
+//        System.out.println("testing reorder");
+//        for (int xyz = 0; xyz < DuplicateProgram.classDeclarationList.size(); xyz++) { //testing
+//            System.out.println(DuplicateProgram.classDeclarationList.get(xyz).identifier.getTokenString());
+//            for (int ooo = 0; ooo < DuplicateProgram.classDeclarationList.get(xyz).declarationList.size(); ooo++) {
+//                System.out.println(DuplicateProgram.classDeclarationList.get(xyz).declarationList.get(ooo).getIdentiferString());
+//                System.out.println(DuplicateProgram.classDeclarationList.get(xyz).declarationList.get(ooo).getClass());
+//            }
+//        }
 
         System.out.println("Typechecker has Completed"); //:)
-        //return copyprog;
         return DuplicateProgram;
-    }
-
-    public PProgram Cleaner(PProgram progdup) {
-        DuplicateProgram = null;
-        ClassListAll = new HashMap();
-        ClassString = "";
-        MethodString = "";
-        ClassNamesListAll = new ArrayList<>();
-        AutoHandler = new ArrayList<>();
-        ResolvedAutoTickets = new ArrayList<>();
-        ClassNumber = 0;
-        ClassDeclarationNumber = 0;
-        MethodDeclarationNumber = 0;
-        FunctionCallParameterScope = null;
-        globalAutoOff = false;
-        return progdup;
     }
 
     //entrypoint for checking variable declaration / assignment (more info in body)
@@ -421,8 +485,32 @@ public class Typechecker {
                 throw new TypeCheckerException("Method Declaration Error: Var with same name already defined in scope: \n Inside class as a Method");
             } else if (map.extendsClass.VariableNames.containsKey(input.identifier.getTokenString())) {
                 throw new TypeCheckerException("Method Declaration Error: Var with same name already defined in scope: \n Inside Parent class as a Variable");
-            } else if (map.extendsClass.MethodNames.containsKey(input.identifier.getTokenString())) {
-                throw new TypeCheckerException("Method Declaration Error: Var with same name already defined in scope: \n Inside Parent class as a Method");
+            } else if (map.extendsClass.MethodNames.containsKey(input.identifier.getTokenString())) { //else if method name is already in parent
+                //need to check if the declared method is the same as parent
+                FunctStor ParentMethod = map.extendsClass.MethodNames.get(input.identifier.getTokenString());
+                if (ParentMethod.AccessModifier.getType() == input.accessModifier.getType()) { //access modifiers are the same
+                    if (ParentMethod.Parameters.size() == input.variableDeclarations.size()) { //param amount same
+                        if (ParentMethod.ReturnType.getType() == input.returnType.getType()) { //return types same
+                            System.err.println("Child allowed to re-define this method from Parent"); //good
+                            ChildOverride cor = new ChildOverride();
+                            cor.ChildClassName = ClassString;
+                            cor.MethodName = input.identifier.getTokenString();
+                            cor.ChildClassDecNumb = ClassNumber;
+                            cor.ChildClassDecNumb = ClassDeclarationNumber;
+                            ChildMethodOverrideList.add(cor);
+                            System.err.println("Added ChildOverride to list");
+                        } else {
+                            throw new TypeCheckerException("Method Declaration Error: Cannot redefine Parent Method \"" + input.identifier.getTokenString() + "\"" +
+                                    " since they do not have the same Return Type");
+                        }
+                    } else {
+                        throw new TypeCheckerException("Method Declaration Error: Cannot redefine Parent Method \"" + input.identifier.getTokenString() + "\"" +
+                                " since they do not have the same Parameter Amount");
+                    }
+                } else {
+                    throw new TypeCheckerException("Method Declaration Error: Cannot redefine Parent Method \"" + input.identifier.getTokenString() + "\"" +
+                            " since they do not have the same Access Modifier");
+                }
             } else { //if not, add it as a new var
                 System.out.println("Method Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
                 tempFS.AccessModifier = input.accessModifier;
@@ -801,7 +889,7 @@ public class Typechecker {
             Token.TokenType tempToken = getExpressionType(tempExp.printExpression, currentScope); //get type of expression in print stmt
             if (tempToken == Token.TokenType.KEYWORD_INT) {
                 //good
-            } else if (tempToken != Token.TokenType.KEYWORD_STRING) { //note this also includes if it were a variable that was an int/string
+            } else if (tempToken == Token.TokenType.KEYWORD_STRING) { //note this also includes if it were a variable that was an int/string
                 //good
             } else {
                 throw new TypeCheckerException("Cannot print Type " + tempToken);
@@ -1292,6 +1380,24 @@ class AutoTicket { //store where AUTO type can be found, and under what conditio
     }
 
     public AutoTicket() {
+
+    }
+}
+
+class ChildOverride {
+    String ChildClassName;
+    String MethodName;
+    int ChildClassNumb;
+    int ChildClassDecNumb;
+
+    public ChildOverride(String childname_t, String methodname_t, int classn_t, int classdecn_t) {
+        ChildClassName = childname_t;
+        MethodName = methodname_t;
+        ChildClassNumb = classn_t;
+        ChildClassDecNumb = classdecn_t;
+    }
+
+    public ChildOverride() {
 
     }
 }

@@ -31,4 +31,41 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     //put tests here
+
+
+    @Test
+    public void testW1112222() throws Exception {
+        String foo = "public class ClassTest{\n" +
+                "    public int favoriteNumber;\n" +
+                "    public int someOtherNumber;\n" +
+                "    void setFavNumber(int number){\n" +
+                "        favoriteNumber = number;\n" +
+                "    }\n" +
+                "    void guessFavNumber(int number){\n" +
+                "        if (favoriteNumber == number){\n" +
+                "            println(\"Correct\");\n" +
+                "        }\n" +
+                "        else{\n" +
+                "            println(\"Incorrect\");\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n" +
+                "\n" +
+                "public class Test{\n" +
+                "    public int main(){\n" +
+                "        println(\"Hello World!\");\n" +
+                "        ClassTest foo = new ClassTest;\n" +
+                "        foo.setFavNumber(7);\n" +
+                "        foo.guessFavNumber(7);\n" +
+                "        foo.favoriteNumber = 6;\n" +
+                "        foo.guessFavNumber(6);\n" +
+                "        foo.someOtherNumber = 5;\n" +
+                "        foo.favoriteNumber = foo.someOtherNumber;\n" +
+                "        foo.guessFavNumber(5);\n" +
+                "    }\n" +
+                "}\n";
+        goodTest(foo);
+    }
+
+
 }
