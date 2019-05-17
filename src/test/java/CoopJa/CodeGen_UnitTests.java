@@ -9,14 +9,16 @@ import java.util.ArrayList;
 
 public class CodeGen_UnitTests {
 
-    public String ParseToProgramString(String inputString){
+    public String ParseToProgramString(String inputString) throws TypeCheckerException {
         ArrayList<Token> tokenList = Token.tokenize(inputString);
         Input<Token> tokenListInput = new TokenParserInput(tokenList);
         MainParser parsers = new MainParser();
-
         PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow();
+        Typechecker typecheckobj = new Typechecker();
+        PProgram NewProg = typecheckobj.TypecheckMain(fooTester);
+
         try {
-            String programString = fooTester.generateProgramString();
+            String programString = NewProg.generateProgramString();
             System.out.printf( "%s","\n" + programString + "\n");
             return programString;
         } catch (CodeGenException e) {
@@ -25,13 +27,13 @@ public class CodeGen_UnitTests {
         }
     }
 
-    public void TestCodeGenOutput(String codeString, String expectedOutput) throws IOException{
+    public void TestCodeGenOutput(String codeString, String expectedOutput) throws IOException, TypeCheckerException {
         String cCodeOutput =  CompileAndRuncCode(codeString);
         Assertions.assertTrue(cCodeOutput.equals(expectedOutput), "Output and Input Differ" +
                 "\nExpected: \n" + expectedOutput + "\nGot: \n" + cCodeOutput);
     }
     //similar to generateCFile in J_CodeGen but takes in the CoopJa code instead of the raw c code.
-    public String CompileAndRuncCode(String codeString) throws IOException{
+    public String CompileAndRuncCode(String codeString) throws IOException, TypeCheckerException {
         String cFile = ParseToProgramString(codeString);
         String fileName = "UnitTestFile.c";
         try {
@@ -57,7 +59,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenPrintStringTest() throws IOException{
+    public void CodeGenPrintStringTest() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
                 "println(\"Rose Windmill\");" +
@@ -66,7 +68,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenIfElseTest() throws IOException{
+    public void CodeGenIfElseTest() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
                 "int i = 1;" +
@@ -83,7 +85,7 @@ public class CodeGen_UnitTests {
                 "}","test passed");
     }
     @Test
-    public void CodeGenWhileTest() throws IOException{
+    public void CodeGenWhileTest() throws IOException, TypeCheckerException {
         TestCodeGenOutput(
                 "public class test{" +
                     "public int main(){" +
@@ -96,7 +98,7 @@ public class CodeGen_UnitTests {
                 "}","heyheyhey");
     }
     @Test
-    public void CodeGenForTest() throws IOException{
+    public void CodeGenForTest() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class test{" +
                 "public int main(){" +
                 "int j = 2;" +
@@ -108,7 +110,7 @@ public class CodeGen_UnitTests {
                 "}", "owowow");
     }
     @Test
-    public void CodeGenClassTestFull() throws IOException{
+    public void CodeGenClassTestFull() throws IOException, TypeCheckerException {
         //from PProgram deletion pending
         TestCodeGenOutput("public class ClassTest{\n" +
                 "    public int favoriteNumber;\n" +
@@ -142,7 +144,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenClassSetter() throws IOException{
+    public void CodeGenClassSetter() throws IOException, TypeCheckerException {
         TestCodeGenOutput(
                 "public class ClassTest{" +
                     "public int niceInt;" +
@@ -167,7 +169,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenFunctionCall() throws IOException{
+    public void CodeGenFunctionCall() throws IOException, TypeCheckerException {
         TestCodeGenOutput(
                 "public class ClassTest{" +
                     "int AddTwo(int number){" +
@@ -188,7 +190,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenAssignWithoutSetter() throws IOException{
+    public void CodeGenAssignWithoutSetter() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class ClassTest{" +
                     "public int assignable;" +
                 "}" +
@@ -207,7 +209,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenIntegerExpressionsWithFunctionCalls() throws IOException{
+    public void CodeGenIntegerExpressionsWithFunctionCalls() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class ClassTest{" +
                     "public int GimmeAOne(int x){" +
                         "return 1;" +
@@ -231,7 +233,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenBooleanExpressionsWithFunctionCalls() throws IOException{
+    public void CodeGenBooleanExpressionsWithFunctionCalls() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class ClassTest{" +
                     "public int GimmeAOne(int x){" +
                         "return 1;" +
@@ -255,16 +257,16 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenReturnBooleanResult() throws IOException{
+    public void CodeGenReturnBooleanResult() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class ClassTest{" +
-                    "public bool AreTheyTheSame(int x, int y){" +
+                    "public boolean AreTheyTheSame(int x, int y){" +
                         "return x == y;" +
                     "}" +
                 "}" +
                 "public class Test{" +
                     "public int main(){" +
                         "ClassTest foo = new ClassTest;" +
-                        "if(foo.AreTheyTheSame(1,1)){" +
+                        "if(foo.AreTheyTheSame(1,1)){" + //?
                             "println(\"Success!\");" +
                         "}" +
                         "else{" +
@@ -275,7 +277,7 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenFunctionCallChainedExpression() throws IOException{//interesting behaviour, worth reviewing
+    public void CodeGenFunctionCallChainedExpression() throws IOException, TypeCheckerException {//interesting behaviour, worth reviewing
         TestCodeGenOutput(
         "public class ClassTest{" +
                     "public int anInt;" +
@@ -311,14 +313,14 @@ public class CodeGen_UnitTests {
     }
 
     @Test
-    public void CodeGenMultipleObjects() throws IOException{
+    public void CodeGenMultipleObjects() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class ClassTest{" +
-                    "public bool AreTheyTheSame(int x, int y){" +
+                    "public boolean AreTheyTheSame(int x, int y){" +
                         "return x == y;" +
                     "}" +
                 "}" +
                 "public class OtherClass{" +
-                    "public bool AreTheyDifferent(int x, int y){" +
+                    "public boolean AreTheyDifferent(int x, int y){" +
                         "return x != y;" +
                     "}" +
                 "}" +
@@ -392,7 +394,7 @@ public class CodeGen_UnitTests {
     }
 
     //*************************************** Unit tests for Syntax **********************************
-    public void TestSyntaxCodeGen(String input, String expectedOutPut){
+    public void TestSyntaxCodeGen(String input, String expectedOutPut) throws TypeCheckerException {
         String givenOutput = ParseToProgramString(input);
         Assertions.assertTrue(givenOutput.equals(expectedOutPut), "Output and Input Differ" +
                 "\nExpected: \n" + expectedOutPut + "\nGot: \n" + givenOutput);
