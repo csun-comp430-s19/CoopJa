@@ -251,6 +251,17 @@ public class Typechecker {
             varType = varDec.variableType.getType();
             assType = getExpressionType(varDec.assignment, varMap);
 
+            if (assType == null && varType == Token.TokenType.IDENTIFIER) { //if assignment is an identifier
+                assType = Token.TokenType.IDENTIFIER;
+                //bc of declaration, set the identifier
+
+                /////77777777777777777777777if PVA--> check given map for id
+            }
+//            else { //assType is null and not in the instance of an identifier------>>>>>NVM IGNORE THIS
+//                throw new TypeCheckerException("Unknown Error occured when assigning Types.\n" +
+//                        "Variable: " + varDec.identifier.getTokenString() + ", VarType: " + varType + ", AssignmentType: " + assType);
+//            }
+
         } else if (input instanceof PVariableAssignment) {
             isVD = false;
             PVariableAssignment varAss = (PVariableAssignment) input;
@@ -406,7 +417,13 @@ public class Typechecker {
             } else if (map.extendsClass.MethodNames.containsKey(input.identifier.getTokenString())) {
                 throw new TypeCheckerException("Variable Declaration Error: Variable with same name already defined in scope: \n Inside Parent class as a Method");
             } else { //variable is okay
-                VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
+                //77777777777777777777
+                String identifiertemp = "";
+                if (input.variableType.getType() == Token.TokenType.IDENTIFIER) {
+                    //ALREADY CHECKED IDENTIFIER IS VALID
+                    identifiertemp = input.variableType.getTokenString();
+                }
+                VarStor tempVS = new VarStor(input.variableType, input.accessModifier, identifiertemp); //create a new VarStor obj with the variable's data
                 mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
                 System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
             }
@@ -417,7 +434,13 @@ public class Typechecker {
             } else if (map.MethodNames.containsKey(input.identifier.getTokenString())) {
                 throw new TypeCheckerException("Variable Declaration Error: Variable with same name already defined in scope: \n Inside class as a Method");
             } else { //variable is okay
-                VarStor tempVS = new VarStor(input.variableType, input.accessModifier); //create a new VarStor obj with the variable's data
+                //77777777777777777777
+                String identifiertemp = "";
+                if (input.variableType.getType() == Token.TokenType.IDENTIFIER) {
+                    //ALREADY CHECKED IDENTIFIER IS VALID
+                    identifiertemp = input.variableType.getTokenString();
+                }
+                VarStor tempVS = new VarStor(input.variableType, input.accessModifier, identifiertemp); //create a new VarStor obj with the variable's data
                 mapNEW.put(input.identifier.getTokenString(), tempVS); //add variable to new list of vars
                 System.out.println("Declaration Identifier Type: " + input.identifier.getType() + " " + input.identifier.getTokenString());
             }
@@ -982,7 +1005,7 @@ public class Typechecker {
         //remember to add the incrementor declaration to the scope of the for loop
         PVariableDeclaration varDec = (PVariableDeclaration) forStatement.statement1;
         TEMP_unused_code_for_PStmts__PSTATEMENT(forStatement.statement1, forScope); //typecheck variable decleration,....might not be implemented in this function
-        VarStor newVariableStore = new VarStor(varDec.variableType, varDec.accessModifier);
+        VarStor newVariableStore = new VarStor(varDec.variableType, varDec.accessModifier, ""); //777777777777777777
         forScope.VariableNames.put(varDec.identifier.getTokenString(), newVariableStore);
         if (getExpressionType(forStatement.expression, forScope) != Token.TokenType.KEYWORD_BOOLEAN) //typecheck continue expression
             throw new TypeCheckerException("For Loop Expression must be of type BOOLEAN");
@@ -1084,6 +1107,9 @@ public class Typechecker {
             //if the two sides match just return the type of one of the sides
             return output;
         }
+        if (true) {
+            //debug
+        }
         return null;
     }
 
@@ -1146,7 +1172,7 @@ public class Typechecker {
             if(PIR.nextStatement == null){//if this of type foo.variable or foo.identifier.identifier2...... and so on
                 if (PIR.nextExpression instanceof PExpressionVariable){//variable called from within another method foo.var
                     //use storage from within variables class to determine its validity
-                    return  getExpressionType(PIR.nextExpression, classSpecificStorage);
+                    return getExpressionType(PIR.nextExpression, classSpecificStorage);
                 }
                 else if (PIR.nextExpression instanceof PIdentifierReference){//if it is a daisy chained call foo.identifier.identifier2......
                     return IdentifierReferenceTypeCheck((PIdentifierReference)PIR.nextExpression, classSpecificStorage);//
@@ -1154,13 +1180,21 @@ public class Typechecker {
                 else {
                     throw new TypeCheckerException("Unexpected result in IdentifierReferenceTypeCheck: " + PIR.nextExpression.getClass());
                 }
-            }
-            else {//PIR.nextExpression == null....... in other words if this is of type foo.method()
+            } else {//PIR.nextExpression == null....... in other words if this is of type foo.method()
                 return FunctionCallTypeCheckFromIRef((PStatementFunctionCall) PIR.nextStatement, classSpecificStorage);
             }
+        } else { //7777777777777777777777
+            if (currentScope.VariableNames.containsKey(PIR.identifier.getTokenString())) { //if variable exists
+                VarStor tempcheck = currentScope.VariableNames.get(PIR.identifier.getTokenString());
+                if (ClassListAll.containsKey(tempcheck.IdentifierClass)) { //identifier of class type exists
+                    return Token.TokenType.IDENTIFIER; //77777777777777777777
+                } else {
+                    throw new TypeCheckerException("Unrecognized class: " + identifierName);
+                }
+            } else {
+                throw new TypeCheckerException("Variable does not exist: " + PIR.identifier.getTokenString());
+            }
         }
-        else
-            throw new TypeCheckerException("Unrecognized class: " + identifierName);
     }
 
     //same as FunctionCallTypeCheck but using FunctionCallParameterScope ClassSpecificStorage is still used to determine the method validity
@@ -1313,15 +1347,18 @@ class VarStor { //stores var info
 
     Token Type;
     Token AccessModifier;
+    String IdentifierClass; //77777777777777 -> used with vars of type identifier, holds the name of the class they are of
 
-    public VarStor(Token type_in, Token accessmodifier_in) {
+    public VarStor(Token type_in, Token accessmodifier_in, String id_in) {
         Type = type_in;
         AccessModifier = accessmodifier_in;
+        IdentifierClass = id_in;
     }
 
     public VarStor() {
         Type = null;
         AccessModifier = null;
+        IdentifierClass = "";
     }
 }
 
