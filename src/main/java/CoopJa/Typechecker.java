@@ -793,6 +793,17 @@ public class Typechecker {
             if (ClassListAll.containsKey(input.extendsIdentifier.getTokenString())) { //check if this class (that the working class is supposed to extend) is known yet/exists
                 System.out.println("yes " + input.extendsIdentifier.getType() + " " + input.extendsIdentifier.getTokenString()); //it does exist
                 extendsHandler = input.extendsIdentifier.getTokenString(); //yes, give name of class
+                String parentName = input.extendsIdentifier.getTokenString();
+                for (int u = 0; u < DuplicateProgram.classDeclarationList.size(); u++) {
+                    if (parentName.equals(DuplicateProgram.classDeclarationList.get(u).identifier.getTokenString())) { //if we find the parent class
+                        Token.TokenType parentAM = DuplicateProgram.classDeclarationList.get(u).accessModifier.getType();
+                        if (parentAM == Token.TokenType.KEYWORD_PRIVATE) { //parent is private class
+                            throw new TypeCheckerException("Class Declaration Error: Class cannot inherit from a class if it has PRIVATE Access!");
+                        } else {
+                            System.out.println("Class is able to extend this Parent class");
+                        }
+                    }
+                }
             } else { //class extends class that does not exist (yet)
                 throw new TypeCheckerException("Class Error: Class Extends Class that does not exist");
             }

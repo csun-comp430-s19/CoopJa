@@ -279,6 +279,28 @@ public class Typechecker_UnitTests {
     }
 
     @Test
+    public void testBadAccessModifierParentClass() {
+        String foo = "private class parent {" +
+                "int i;" +
+                "int j;" +
+                "}" +
+                "public class child extends parent {" +
+                "}";
+        badTest(foo);
+    }
+
+    @Test
+    public void testGoodAccessModifierPrivateChild() throws Exception {
+        String foo = "public class parent {" +
+                "int i;" +
+                "int j;" +
+                "}" +
+                "private class child extends parent {" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
     public void testReplaceMultipleClasses() throws Exception {
         String foo = "public class one {" +
                 "public void main1() {" +
