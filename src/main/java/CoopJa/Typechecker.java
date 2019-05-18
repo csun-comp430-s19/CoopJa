@@ -1113,7 +1113,7 @@ public class Typechecker {
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
             FunctStor method = currentScope.MethodNames.get(identifierName);
-            if (method.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+            if (method.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE)//this is the only part that is different
                 throw new TypeCheckerException("Method access violation");
             ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
             TypeCheckFunctionCallParameters(identifierName, parameters, functionCall, currentScope);
@@ -1218,7 +1218,7 @@ public class Typechecker {
         String identifierName = functionCall.identifier.getTokenString();
         if (currentScope.MethodNames.containsKey(identifierName)){//check if method is within scope
             FunctStor method = currentScope.MethodNames.get(identifierName); // retrieve method
-            if (method.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+            if (method.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE)//this is the only part that is different
                 throw new TypeCheckerException("Method access violation");
             ArrayList<VarStor> parameters = method.Parameters; //retrieve parameters
             //USE FunctionCallParameterScope to make sure we are not using a nested scope to check for the given variables
@@ -1291,7 +1291,7 @@ public class Typechecker {
         if (currentScope.VariableNames.containsKey(varName)) { //if var is in class
             VarStor tempVarCheck = currentScope.VariableNames.get(varName);
             if (tempVarCheck.AccessModifier != null)
-                if (tempVarCheck.AccessModifier.equals(Token.TokenType.KEYWORD_PRIVATE))//this is the only part that is different
+                if (tempVarCheck.AccessModifier.getType() == Token.TokenType.KEYWORD_PRIVATE)//this is the only part that is different
                     throw new TypeCheckerException("Private Access Violation");
             return tempVarCheck.Type.getType();
         }

@@ -58,8 +58,6 @@ public class CodeGen_UnitTests {
         return J_CodeGen_ExpressionTest.RUNFILE("UnitTestFile.exe");
     }
 
-
-
     @Test
     public void CodeGenPrintStringTest() throws IOException, TypeCheckerException {
         TestCodeGenOutput("public class test{" +
@@ -208,6 +206,178 @@ public class CodeGen_UnitTests {
                         "}" +
                     "}" +
                 "}","Success!");
+    }
+
+    @Test
+    public void CodeGenAuto() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class test {" +
+                "auto i;" +
+                "public int main(){" +
+                "i = 100;" +
+                "printf(\"%d\", i);" +
+                "return 0;" +
+                "}" +
+                "}","100");
+    }
+
+    @Test
+    public void CodeGenAutoInt() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class test {" +
+                "auto i;" +
+                "auto j;" +
+                "auto k;" +
+                "auto hello;" +
+                "public int main(){" +
+                "i = \"Auto Type\";" +
+                "j = true;" +
+                "k = 123;" +
+                "hello = j;" +
+                "printf(\"%d\", k);" +
+                "}" +
+                "}","123");
+    }
+
+    @Test
+    public void CodeGenAutoString() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class test {" +
+                "auto i;" +
+                "auto j;" +
+                "auto k;" +
+                "auto hello;" +
+                "public int main(){" +
+                "i = \"Auto Type\";" +
+                "j = true;" +
+                "k = 123;" +
+                "hello = j;" +
+                "printf(\"%s\", i);" +
+                "}" +
+                "}","Auto Type");
+    }
+
+    @Test
+    public void CodeGenAutoStringReassigntoStringVar() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class test {" +
+                "auto i;" +
+                "auto j;" +
+                "public int main(){" +
+                "i = \"Auto Type\";" +
+                "j = \"Auto Type2\";" +
+                "i = j;" +
+                "printf(\"%s\", i);" +
+                "}" +
+                "}","Auto Type2");
+    }
+
+    @Test
+    public void CodeGenAutoStringReassigntoStringLiteral() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class test {" +
+                "auto i;" +
+                "public int main(){" +
+                "i = \"Auto Type\";" +
+                "i = \"Auto Type2\";" +
+                "printf(\"%s\", i);" +
+                "}" +
+                "}","Auto Type2");
+    }
+
+    @Test
+    public void CodeGenObjectIntReturn() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class Person1 {" +
+                "public int returnint(){" + //same method
+                "return 26;" +
+                "}" +
+                "}" +
+                "public class Person2 {" +
+                "public int returnint() {" + //same method
+                "return 99;" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "Person1 aaaa = new Person1;" +
+                "printf(\"%d\", aaaa.returnint());" +
+                "Person2 bbbb = new Person2;" +
+                "printf(\"%d\", bbbb.returnint());" +
+                "}" +
+                "}","2699");
+    }
+
+    @Test
+    public void CodeGenChildInheritsParentVar() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class parent {" +
+                "int i;" +
+                "}" +
+                "public class child extends parent {" +
+                "public int main() {" + //child inherits parent vardec
+                "i = 222;" +
+                "printf(\"%d\", i);" +
+                "}" +
+                "}","222");
+    }
+
+    @Test
+    public void CodeGenParentOverwriteChildMethod() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class parent {" +
+                "public int printself(){" + //same method
+                "println(\"Parent\");" +
+                "}" +
+                "}" +
+                "public class child extends parent {" +
+                "public int printself() {" + //same method
+                "println(\"Child\");" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "child Child1 = new child;" +
+                "Child1.printself();" +
+                "parent Parent1 = new parent;" +
+                "Parent1.printself();" +
+                "}" +
+                "}","ChildParent");
+    }
+
+    @Test
+    public void CodeGenParentChildIntReturn() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class parent {" +
+                "public int returnint(){" + //same method
+                "return 0;" +
+                "}" +
+                "}" +
+                "public class child extends parent {" +
+                "public int returnint() {" + //same method
+                "return 50;" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "parent Parent1 = new parent;" +
+                "printf(\"%d\", Parent1.returnint());" +
+                "child Child1 = new child;" +
+                "printf(\"%d\", Child1.returnint());" +
+                "}" +
+                "}","050");
+    }
+
+    @Test
+    public void CodeGenPrintNames() throws IOException, TypeCheckerException {
+        TestCodeGenOutput("public class CoopJa {" +
+                "public int main() {" +
+                "println(\"CoopJa\");" +
+                "println(\"Java to C Compiler\");" +
+                "println(\"by:\");" +
+                "println(\"Nicholas Araklisianos\");" +
+                "println(\"Miguel Cruz\");" +
+                "println(\"Jacob Poersch\");" +
+                "println(\"Carlos Sandoval\");" +
+                "}" +
+                "}","CoopJa" +
+                "Java to C Compiler" +
+                "by:" +
+                "Nicholas Araklisianos" +
+                "Miguel Cruz" +
+                "Jacob Poersch" +
+                "Carlos Sandoval");
     }
 
     @Test

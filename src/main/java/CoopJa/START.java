@@ -13,7 +13,7 @@ public class START {
 
     public static String DefaultProgramString = "" +
             "public class CoopJa {" +
-            "public void main() {" +
+            "public int main() {" +
             "println(\"CoopJa\");" +
             "println(\"Java to C Compiler\");" +
             "println(\"by:\");" +
@@ -21,11 +21,10 @@ public class START {
             "println(\"Miguel Cruz\");" +
             "println(\"Jacob Poersch\");" +
             "println(\"Carlos Sandoval\");" +
-            "println(\"\");" +
             "}" +
             "}";
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, TypeCheckerException {
 
         String ProgramString;
 
@@ -56,41 +55,23 @@ public class START {
             ProgramString = ProgInput.toString();
         }
 
-        //now run stuff
+        ArrayList<Token> tokenList = Token.tokenize(ProgramString); //Tokenize
+        Input<Token> tokenListInput = new TokenParserInput(tokenList);
+        MainParser parsers = new MainParser();
+        PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse
 
-        System.out.println("Program test");
-        System.out.println(ProgramString);
+        Typechecker tempTypeC = new Typechecker();
+        PProgram FixedProgram = tempTypeC.TypecheckMain(fooTester); //Typecheck
 
+        /* Generate the C File */
+        try {
+            String generatedProgramString = FixedProgram.generateProgramString();
+            System.out.println("\nGenerated Program:");
+            System.out.printf("%s", generatedProgramString);
+        } catch (CodeGenException e) {
 
-
-        //ArrayList<Token> tokenList = Token.tokenize(foo); //Tokenize
-        //Input<Token> tokenListInput = new TokenParserInput(tokenList);
-        //MainParser parsers = new MainParser();
-        //PProgram fooTester = parsers.programParser.parse(tokenListInput).getOrThrow(); //Parse
-
-        //Typechecker tempTypeC = new Typechecker();
-        //PProgram FixedProgram = tempTypeC.TypecheckMain(fooTester); //Typecheck
-
-        //*****use "FixedProgram" var, the one returned from typechecker to run codegen
-
-				/* Generate the C File */
-				// try
-				// {
-					// String generatedProgramString = fooTester.generateProgramString();
-					// System.out.println("\nGenerated Program:");
-					// System.out.printf("%s", generatedProgramString);
-				// }
-				// catch (CodeGenException e)
-				// {
-					// ;
-				// }
-				/* Save & Execute as a C File.
-						If it doesn't print to console on its own,
-						try piping output to stdout console?
-				*/
+        }
     }
-
-
 
 
 }

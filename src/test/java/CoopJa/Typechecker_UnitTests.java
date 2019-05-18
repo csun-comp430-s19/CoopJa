@@ -67,6 +67,29 @@ public class Typechecker_UnitTests {
     }
 
     @Test
+    public void testGoodChildParent() throws Exception {
+        String foo = "public class parent {" +
+                "public int returnint(){" + //same method
+                "return 0;" +
+                "}" +
+                "}" +
+                "public class child extends parent {" +
+                "public int returnint() {" + //same method
+                "return 50;" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "parent Parent1 = new parent;" +
+                "printf(\"%d\", Parent1.returnint());" +
+                "child Child1 = new child;" +
+                "printf(\"%d\", Child1.returnint());" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
+
+    @Test
     public void testGoodAutoMultiMethod() throws Exception {
         String foo = "public class one {" +
                 "auto i;" +
@@ -160,6 +183,26 @@ public class Typechecker_UnitTests {
                 "}" +
                 "}";
         goodTest(foo);
+    }
+
+    @Test
+    public void testBadAccessModifierParentVar() {
+        String foo = "public class parent {" +
+                "private int i;" +
+                "}" +
+                "public class child extends parent {" +
+                "public int returnint() {" + //same method
+                "i = 80;" +
+                "return i;" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "child Child1 = new child;" +
+                "printf(\"%d\", Child1.returnint());" +
+                "}" +
+                "}";
+        badTest(foo);
     }
 
     @Test
@@ -948,7 +991,6 @@ public class Typechecker_UnitTests {
         badTest(foo);
     }
 
-    //BUG IN THIS UNIT TEST, READ NOTES
     @Test
     public void testBadForwardRefExtends2() {
         String foo = "public class one extends two {" + //two is not known yet
