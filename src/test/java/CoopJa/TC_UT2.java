@@ -31,4 +31,27 @@ public class TC_UT2 { //temp second unit test class so no overwriting (NSA)
     }
 
     //put tests here
+
+    @Test
+    public void testGoodAutoLarge() throws Exception {
+        String foo = "public class parent {" +
+                "public int returnint(){" + //same method
+                "return 0;" +
+                "}" +
+                "}" +
+                "public class child extends parent {" +
+                "public int returnint() {" + //same method
+                "return 50;" +
+                "}" +
+                "}" +
+                "public class one {" +
+                "public int main() {" +
+                "parent Parent1 = new parent;" +
+                "printf(\"%d\", Parent1.returnint());" +
+                "child Child1 = new child;" +
+                "printf(\"%d\", Child1.returnint());" +
+                "}" +
+                "}";
+        goodTest(foo);
+    }
 }

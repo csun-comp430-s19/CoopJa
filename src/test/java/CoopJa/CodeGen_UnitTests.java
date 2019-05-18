@@ -58,54 +58,7 @@ public class CodeGen_UnitTests {
         return J_CodeGen_ExpressionTest.RUNFILE("UnitTestFile.exe");
     }
 
-    @Test //only duplicate test right now
-    public void CodeGenAuto() throws IOException, TypeCheckerException {
-        TestCodeGenOutput("public class test {" +
-                "auto i;" +
-                "public int main(){" +
-                "i = 100;" +
-                "printf(\"%d\", i);" +
-                "return 0;" +
-                "}" +
-                "}","100");
-    }
 
-    @Test
-    public void CodeGenAuto11133331() throws IOException, TypeCheckerException {
-        TestCodeGenOutput("public class test {" +
-                "auto i;" +
-                "auto j;" +
-                "auto k;" +
-                "auto hello;" +
-                "public int main(){" +
-                "i = \"Auto Type\";" +
-                "j = true;" +
-                "k = 123;" +
-                "hello = j;" +
-                "printf(\"%d\", k);" +
-                "}" +
-                "}","Auto Type");
-    }
-
-    @Test
-    public void CodeGenAuto112222133331() throws IOException, TypeCheckerException {
-        TestCodeGenOutput("public class parent {" +
-                "public int main(){" +
-                "println(\"Rose Windmill\");" +
-                "}" +
-                "}" +
-                "public class child {" +
-                "public int main() {" +
-                "println(\"hello\");" +
-                "}" +
-                "}" +
-                "public class one {" +
-                "public int main() {" +
-                "child test = new child;" +
-                "test.main();" +
-                "}" +
-                "}","Auto Type");
-    }
 
     @Test
     public void CodeGenPrintStringTest() throws IOException, TypeCheckerException {
