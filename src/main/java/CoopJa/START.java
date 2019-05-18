@@ -2,10 +2,7 @@ package CoopJa;
 
 import org.typemeta.funcj.parser.Input;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*; //BufferedReader, File, FileReader, IOException
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -68,6 +65,28 @@ public class START {
             String generatedProgramString = FixedProgram.generateProgramString();
             System.out.println("\nGenerated Program:");
             System.out.printf("%s", generatedProgramString);
+
+            String fileName = "CoopJa_Output.c";
+            try {
+                File outputFile = new File(fileName);
+                if (!outputFile.exists()) {
+                    outputFile.createNewFile();
+                }
+                else{
+                    outputFile.delete();
+                    outputFile.createNewFile();
+                }
+
+                Writer writer = new FileWriter(outputFile);
+                BufferedWriter bufferedWriter = new BufferedWriter(writer);
+                bufferedWriter.write(generatedProgramString);
+                bufferedWriter.close();
+
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+            System.out.println();
+            System.out.println("Output File Generated: " + fileName);
         } catch (CodeGenException e) {
 
         }
